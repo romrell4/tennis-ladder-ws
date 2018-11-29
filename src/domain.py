@@ -17,5 +17,5 @@ class Match:
 #### Non-DB Objects ####
 
 class Player:
-    def __init__(self, user_id, name, score):
-        self.user_id, self.name, self.score = user_id, name, score
+    def __init__(self, user_id, ladder_id, name, score):
+        self.user_id, self.ladder_id, self.name, self.score = user_id, ladder_id, name, score

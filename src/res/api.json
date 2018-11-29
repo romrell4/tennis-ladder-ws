@@ -124,6 +124,9 @@
 				"user_id": {
 					"type": "integer"
 				},
+				"ladder_id": {
+					"type": "integer"
+				},
 				"name": {
 					"type": "string"
 				},

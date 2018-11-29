@@ -26,9 +26,9 @@ class Handler:
             elif resource == "/ladders" and method == "GET":
                 response_body = self.manager.get_ladders()
             elif resource == "/ladders/{ladder_id}/players" and method == "GET":
-                response_body = self.manager.get_players(path_parameters.get("ladder_id"))
+                response_body = self.manager.get_players(int(path_parameters.get("ladder_id")))
             elif resource == "/ladders/{ladder_id}/players/{user_id}" and method == "POST":
-                response_body = self.manager.add_player_to_ladder(path_parameters.get("ladder_id"), path_parameters.get("user_id"))
+                response_body = self.manager.add_player_to_ladder(int(path_parameters.get("ladder_id")), int(path_parameters.get("user_id")))
             else:
                 raise ServiceException("Invalid path: '{} {}'".format(resource, method))
 
