@@ -1,12 +1,21 @@
 class User:
-    pass
+    def __init__(self, user_id, name):
+        self.user_id, self.name = user_id, name
 
 class Ladder:
-    pass
+    def __init__(self, ladder_id, name, start_date, end_date):
+        self.ladder_id, self.name, self.start_date, self.end_date = ladder_id, name, str(start_date), str(end_date)
 
 class Score:
-    pass
+    def __init__(self, score_id, user_id, ladder_id, score):
+        self.score_id, self.user_id, self.ladder_id, self.score = score_id, user_id, ladder_id, score
 
 class Match:
-    pass
+    def __init__(self, match_id, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score):
+        self.match_id, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score = match_id, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score
 
+#### Non-DB Objects ####
+
+class Player:
+    def __init__(self, user_id, name, score):
+        self.user_id, self.name, self.score = user_id, name, score
