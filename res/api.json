@@ -1,0 +1,202 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"version": "v1",
+		"title": "Tennis Ladder API"
+	},
+	"host": "lxlwvoenil.execute-api.us-west-2.amazonaws.com",
+	"basePath": "/prod",
+	"schemes": [
+		"https"
+	],
+	"paths": {
+		"/users": {
+			"post": {
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/user"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			}
+		},
+		"/ladders": {
+			"get": {
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/ArrayOfladder"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			}
+		},
+		"/ladders/{ladder_id}/players": {
+			"get": {
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "ladder_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/players"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			}
+		},
+		"/ladders/{ladder_id}/players/{user_id}": {
+			"post": {
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "ladder_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/player"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			}
+		}
+	},
+	"definitions": {
+		"user": {
+			"properties": {
+				"user_id": {
+					"type": "integer"
+				},
+				"name": {
+					"type": "string"
+				}
+			}
+		},
+		"ladders": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/ladder"
+			}
+		},
+		"ladder": {
+			"properties": {
+				"ladder_id": {
+					"type": "integer"
+				},
+				"name": {
+					"type": "string"
+				},
+				"start_date": {
+					"type": "string",
+					"format": "date"
+				},
+				"end_date": {
+					"type": "string",
+					"format": "date"
+				}
+			}
+		},
+		"players": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/player"
+			}
+		},
+		"player": {
+			"properties": {
+				"user_id": {
+					"type": "integer"
+				},
+				"ladder_id": {
+					"type": "integer"
+				},
+				"name": {
+					"type": "string"
+				},
+				"score": {
+					"type": "integer"
+				}
+			}
+		}
+	}
+}
