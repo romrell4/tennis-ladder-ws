@@ -1,19 +1,23 @@
 {
 	"swagger": "2.0",
 	"info": {
-		"title": "Tennis Ladder API",
-		"version": "v1"
+		"version": "v1",
+		"title": "Tennis Ladder API"
 	},
+	"host": "lxlwvoenil.execute-api.us-west-2.amazonaws.com",
+	"basePath": "/prod",
+	"schemes": [
+		"https"
+	],
 	"paths": {
 		"/users": {
 			"post": {
-				"summary": "Either logs in or registers a user",
 				"produces": [
 					"application/json"
 				],
 				"responses": {
 					"200": {
-						"description": "User",
+						"description": "200 response",
 						"schema": {
 							"$ref": "#/definitions/user"
 						}
@@ -23,13 +27,12 @@
 		},
 		"/ladders": {
 			"get": {
-				"summary": "Get all active ladders",
 				"produces": [
 					"application/json"
 				],
 				"responses": {
 					"200": {
-						"description": "Ladders",
+						"description": "200 response",
 						"schema": {
 							"type": "array",
 							"items": {
@@ -42,7 +45,6 @@
 		},
 		"/ladders/{ladder_id}/players": {
 			"get": {
-				"summary": "Get all players in a ladder",
 				"produces": [
 					"application/json"
 				],
@@ -51,12 +53,12 @@
 						"name": "ladder_id",
 						"in": "path",
 						"required": true,
-						"type": "integer"
+						"type": "string"
 					}
 				],
 				"responses": {
 					"200": {
-						"description": "Players",
+						"description": "200 response",
 						"schema": {
 							"type": "array",
 							"items": {
@@ -69,7 +71,6 @@
 		},
 		"/ladders/{ladder_id}/players/{user_id}": {
 			"post": {
-				"summary": "Place a player in a ladder",
 				"produces": [
 					"application/json"
 				],
@@ -78,15 +79,23 @@
 						"name": "ladder_id",
 						"in": "path",
 						"required": true,
-						"type": "integer"
+						"type": "string"
 					},
 					{
 						"name": "user_id",
 						"in": "path",
 						"required": true,
-						"type": "integer"
+						"type": "string"
 					}
-				]
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/player"
+						}
+					}
+				}
 			}
 		}
 	},
