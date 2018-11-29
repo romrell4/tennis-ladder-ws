@@ -1,4 +1,4 @@
-from src.bl import Manager
+from bl import Manager
 import json
 
 def handle(event, context):
