@@ -1,0 +1,3 @@
+
+class Dao:
+    pass

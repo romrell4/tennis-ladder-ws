@@ -1,0 +1,8 @@
+#!/bin/bash
+cd src
+rm lambda.zip
+zip -r lambda.zip *
+aws apigateway put-rest-api --rest-api-id 3vxcifd2rc --mode overwrite --body file://res/api.json --profile personal
+aws apigateway create-deployment --rest-api-id 3vxcifd2rc --stage-name PROD --profile personal
+aws lambda update-function-code --function-name BracketChallenge --zip-file fileb://lambda.zip --profile personal
+cd ..
