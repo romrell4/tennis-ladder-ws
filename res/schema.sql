@@ -11,10 +11,10 @@ create table ladders (
 );
 
 create table scores (
-  ID integer key auto_increment not null,
   USER_ID integer not null,
   LADDER_ID integer not null,
   SCORE integer not null default 0,
+  primary key (USER_ID, LADDER_ID),
   foreign key (USER_ID) references users(ID) on delete cascade,
   foreign key (LADDER_ID) references ladders(ID) on delete cascade
 );
@@ -29,6 +29,6 @@ create table matches(
   LOSER_SET2_SCORE integer not null,
   WINNER_SET3_SCORE integer,
   LOSER_SET3_SCORE integer,
-  foreign key (WINNER_ID) references users(ID) on delete RESTRICT,
-  foreign key (LOSER_ID) references users(ID) on delete RESTRICT
+  foreign key (WINNER_ID) references users(ID) on delete cascade,
+  foreign key (LOSER_ID) references users(ID) on delete cascade
 );

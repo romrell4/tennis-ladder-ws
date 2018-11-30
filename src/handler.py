@@ -1,6 +1,8 @@
 from bl import Manager
 import json
 
+from domain import ServiceException
+
 def handle(event, context):
     # TODO: Pass in whatever data is needed to authenticate the user into the manager
     manager = Manager()
@@ -42,8 +44,3 @@ def format_response(body = None, status_code = 200):
         "statusCode": status_code,
         "body": json.dumps(body, default = lambda x: x.__dict__) if body is not None else None
     }
-
-class ServiceException(Exception):
-    def __init__(self, message, status_code = 500):
-        self.error_message = message
-        self.status_code = status_code
