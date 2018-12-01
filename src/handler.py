@@ -1,6 +1,6 @@
-from bl import Manager
 import json
 
+from bl import Manager
 from domain import ServiceException
 
 def handle(event, context):
@@ -19,6 +19,10 @@ class Handler:
 
             resource, method = event["resource"], event["httpMethod"]  # These will be used to specify which endpoint was being hit
             path_parameters = event.get("pathParameters", {}) if event.get("pathParameters") is not None else {}  # This will be used to get IDs and other parameters from the URL
+            try:
+                body = json.loads(event["body"])  # This will be used for most POSTs and PUTs
+            except (TypeError, KeyError, ValueError):
+                body = None
 
             if resource == "/users" and method == "POST":
                 response_body = self.manager.login()
@@ -29,8 +33,8 @@ class Handler:
                 response_body = self.manager.get_ladders()
             elif resource == "/ladders/{ladder_id}/players" and method == "GET":
                 response_body = self.manager.get_players(int(path_parameters.get("ladder_id")))
-            elif resource == "/ladders/{ladder_id}/players/{user_id}" and method == "POST":
-                response_body = self.manager.add_player_to_ladder(int(path_parameters.get("ladder_id")), int(path_parameters.get("user_id")))
+            elif resource == "/ladders/{ladder_id}/match" and method == "POST":
+                response_body = self.manager.report_match(int(path_parameters.get("ladder_id")), body)
             else:
                 raise ServiceException("Invalid path: '{} {}'".format(resource, method))
 
