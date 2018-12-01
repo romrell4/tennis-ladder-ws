@@ -12,5 +12,5 @@ class Manager:
     def get_players(self, ladder_id):
         pass
 
-    def add_player_to_ladder(self, ladder_id, user_id):
+    def report_match(self, ladder_id, match):
         pass

@@ -99,8 +99,11 @@
 				}
 			}
 		},
-		"/ladders/{ladder_id}/players/{user_id}": {
+		"/ladders/{ladder_id}/matches": {
 			"post": {
+				"consumes": [
+					"application/json"
+				],
 				"produces": [
 					"application/json"
 				],
@@ -112,17 +115,21 @@
 						"type": "string"
 					},
 					{
-						"name": "user_id",
-						"in": "path",
+						"name": "match",
+						"in": "body",
 						"required": true,
-						"type": "string"
+						"type": {
+							"schema": {
+								"$ref": "#/definitions/match"
+							}
+						}
 					}
 				],
 				"responses": {
 					"200": {
 						"description": "200 response",
 						"schema": {
-							"$ref": "#/definitions/player"
+							"$ref": "#/definitions/match"
 						}
 					}
 				},
@@ -194,6 +201,37 @@
 					"type": "string"
 				},
 				"score": {
+					"type": "integer"
+				}
+			}
+		},
+		"match": {
+			"properties": {
+				"match_id": {
+					"type": "integer"
+				},
+				"winner_id": {
+					"type": "integer"
+				},
+				"loser_id": {
+					"type": "integer"
+				},
+				"winner_set1_score": {
+					"type": "integer"
+				},
+				"loser_set1_score": {
+					"type": "integer"
+				},
+				"winner_set2_score": {
+					"type": "integer"
+				},
+				"loser_set2_score": {
+					"type": "integer"
+				},
+				"winner_set3_score": {
+					"type": "integer"
+				},
+				"loser_set3_score": {
 					"type": "integer"
 				}
 			}

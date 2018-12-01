@@ -55,18 +55,24 @@ class Test(unittest.TestCase):
         players = json.loads(response["body"])
         self.assertEqual(2, len(players))
 
-    def test_add_player_to_ladder(self):
+    def test_report_match(self):
         response = self.handler.handle({
-            "resource": "/ladders/{ladder_id}/players/{user_id}",
+            "resource": "/ladders/{ladder_id}/match",
             "httpMethod": "POST",
-            "pathParameters": {"ladder_id": "1", "user_id": "1"}
+            "pathParameters": {"ladder_id": "1"},
+            "body": "{}"
         })
         self.assertEqual(200, response["statusCode"])
-        player = json.loads(response["body"])
-        self.assertEqual(1, player["user_id"])
-        self.assertEqual(1, player["ladder_id"])
-        self.assertEqual("New Player", player["name"])
-        self.assertEqual(10, player["score"])
+        match = json.loads(response["body"])
+        self.assertEqual(1, match["match_id"])
+        self.assertEqual(2, match["winner_id"])
+        self.assertEqual(3, match["loser_id"])
+        self.assertEqual(6, match["winner_set1_score"])
+        self.assertEqual(0, match["loser_set1_score"])
+        self.assertEqual(5, match["winner_set2_score"])
+        self.assertEqual(7, match["loser_set2_score"])
+        self.assertEqual(6, match["winner_set3_score"])
+        self.assertEqual(3, match["loser_set3_score"])
 
 class MockManager():
     def __init__(self):
@@ -92,5 +98,5 @@ class MockManager():
                 Player(3, 2, "User3", 0)
             ]
 
-    def add_player_to_ladder(self, ladder_id, user_id):
-        return Player(user_id, ladder_id, "New Player", 10)
+    def report_match(self, ladder_id, match):
+        return Match(1, 2, 3, 6, 0, 5, 7, 6, 3)
