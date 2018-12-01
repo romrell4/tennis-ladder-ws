@@ -1,6 +1,6 @@
-from bl import Manager
 import json
 
+from bl import Manager
 from domain import ServiceException
 
 def handle(event, context):
