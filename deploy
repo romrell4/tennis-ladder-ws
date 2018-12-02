@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Run the test suite
+python3 test/test_runner.py
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+	echo ""
+	echo "Failed tests. Code will not be deployed until all tests are resolved"
+	exit $RESULT
+fi
+
 # Update the API Gateway
 aws apigateway put-rest-api --rest-api-id lxlwvoenil --mode overwrite --body file://res/api.json --profile personal
 aws apigateway create-deployment --rest-api-id lxlwvoenil --stage-name prod --profile personal
