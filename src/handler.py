@@ -1,11 +1,13 @@
 import json
 
 from bl import Manager
+from da import Dao
 from domain import ServiceException
 
 def handle(event, context):
     # TODO: Pass in whatever data is needed to authenticate the user into the manager
-    manager = Manager()
+    dao = Dao()
+    manager = Manager(dao)
     return Handler(manager).handle(event)
 
 class Handler:
@@ -41,7 +43,6 @@ class Handler:
             return format_response(response_body)
         except ServiceException as e:
             return format_response({"error": e.error_message}, e.status_code)
-
 
 def format_response(body = None, status_code = 200):
     return {
