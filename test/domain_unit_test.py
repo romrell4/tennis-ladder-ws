@@ -48,8 +48,48 @@ class Test(unittest.TestCase):
         self.assertTrue(Match.is_valid_tiebreak(150, 148))
 
     def test_calculate_score(self):
-        # TODO: Do it
-        pass
+        def assert_success(match, new_winner_score, new_loser_score):
+            winner_score, loser_score = match.calculate_scores()
+            self.assertEqual(new_winner_score, winner_score)
+            self.assertEqual(new_loser_score, loser_score)
+
+        def create_match(w1, l1, w2, l2, w3 = None, l3 = None):
+            return Match(None, None, None, w1, l1, w2, l2, w3, l3)
+
+        # Temporarily overwrite the calculate_distance_penalty function for easier testing
+        old_function = Match.calculate_distance_penalty
+        Match.calculate_distance_penalty = lambda winner_rank, loser_rank: 0
+
+        # Test valid matches
+        assert_success(create_match(6, 0, 6, 0), 39, 0)
+        assert_success(create_match(6, 0, 6, 0), 39, 0)
+        assert_success(create_match(6, 1, 6, 0), 38, 1)
+        assert_success(create_match(6, 3, 6, 3), 33, 6)
+        assert_success(create_match(7, 5, 6, 3), 31, 8)
+
+        # Third sets
+        assert_success(create_match(6, 0, 0, 6, 6, 0), 33, 6)
+        assert_success(create_match(0, 6, 6, 0, 6, 0), 33, 6)
+        assert_success(create_match(7, 6, 6, 7, 7, 6), 20, 19)
+
+        # Tiebreaks
+        assert_success(create_match(6, 0, 0, 6, 10, 8), 29, 10)
+        assert_success(create_match(6, 0, 0, 6, 10, 7), 29, 10)
+        assert_success(create_match(6, 0, 0, 6, 16, 14), 20, 19)
+        assert_success(create_match(6, 0, 0, 6, 200, 198), 20, 19)
+
+        # Pretend that there is distance penalty of -10
+        Match.calculate_distance_penalty = lambda winner_rank, loser_rank: -10
+        assert_success(create_match(6, 0, 6, 0), 29, 0)
+        assert_success(create_match(7, 6, 6, 7, 7, 6), 10, 19)
+
+        # Pretend that there is a distance penalty of 10
+        Match.calculate_distance_penalty = lambda winner_rank, loser_rank: 10
+        assert_success(create_match(6, 0, 6, 0), 49, 0)
+        assert_success(create_match(7, 6, 6, 7, 7, 6), 30, 19)
+
+        # Reset the function to the real one (so that other tests can run)
+        Match.calculate_distance_penalty = old_function
 
     def test_calculate_distance_penalty(self):
         # Test zero-tier penalty
