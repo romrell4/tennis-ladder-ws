@@ -27,10 +27,21 @@ class Match:
 
     @staticmethod
     def is_valid_set(winner_score, loser_score):
+        # TODO: Mark
         pass
 
     @staticmethod
     def is_valid_tiebreak(winner_score, loser_score):
+        # TODO: Mark
+        pass
+
+    def calculate_scores(self):
+        # TODO: Mark
+        pass
+
+    @staticmethod
+    def calculate_distance_penalty(winner_rank, loser_rank):
+        # TODO: Mark
         pass
 
     def get_insert_properties(self):

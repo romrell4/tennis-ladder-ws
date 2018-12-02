@@ -46,3 +46,11 @@ class Test(unittest.TestCase):
         self.assertTrue(Match.is_valid_tiebreak(10, 8))
         self.assertTrue(Match.is_valid_tiebreak(11, 9))
         self.assertTrue(Match.is_valid_tiebreak(150, 148))
+
+    def test_calculate_score(self):
+        # TODO: Do it
+        pass
+
+    def test_calculate_distance_penalty(self):
+        # TODO Do it
+        pass
