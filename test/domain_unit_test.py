@@ -52,5 +52,36 @@ class Test(unittest.TestCase):
         pass
 
     def test_calculate_distance_penalty(self):
-        # TODO Do it
-        pass
+        # Test zero-tier penalty
+        self.assertEqual(0, Match.calculate_distance_penalty(1, 2))
+        self.assertEqual(0, Match.calculate_distance_penalty(1, 5))
+        self.assertEqual(0, Match.calculate_distance_penalty(7, 11))
+
+        # Test zero-tier premium
+        self.assertEqual(0, Match.calculate_distance_penalty(2, 1))
+        self.assertEqual(0, Match.calculate_distance_penalty(5, 1))
+        self.assertEqual(0, Match.calculate_distance_penalty(11, 7))
+
+        # Test first-tier penalty
+        self.assertEqual(-3, Match.calculate_distance_penalty(1, 6))
+        self.assertEqual(-6, Match.calculate_distance_penalty(1, 7))
+        self.assertEqual(-9, Match.calculate_distance_penalty(1, 8))
+        self.assertEqual(-12, Match.calculate_distance_penalty(1, 9))
+
+        # Test first-tier premium
+        self.assertEqual(3, Match.calculate_distance_penalty(6, 1))
+        self.assertEqual(6, Match.calculate_distance_penalty(7, 1))
+        self.assertEqual(9, Match.calculate_distance_penalty(8, 1))
+        self.assertEqual(12, Match.calculate_distance_penalty(9, 1))
+
+        # Test second-tier penalty
+        self.assertEqual(-16, Match.calculate_distance_penalty(1, 10))
+        self.assertEqual(-20, Match.calculate_distance_penalty(1, 11))
+        self.assertEqual(-24, Match.calculate_distance_penalty(1, 12))
+        self.assertEqual(-28, Match.calculate_distance_penalty(1, 13))
+
+        # Test first-tier premium
+        self.assertEqual(15, Match.calculate_distance_penalty(10, 1))
+        self.assertEqual(18, Match.calculate_distance_penalty(11, 1))
+        self.assertEqual(21, Match.calculate_distance_penalty(12, 1))
+        self.assertEqual(24, Match.calculate_distance_penalty(13, 1))
