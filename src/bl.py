@@ -1,7 +1,7 @@
-
 class Manager:
-    def __init__(self):
+    def __init__(self, dao):
         self.user = None
+        self.dao = dao
 
     def login(self):
         pass
@@ -13,4 +13,5 @@ class Manager:
         pass
 
     def report_match(self, ladder_id, match):
+        # TODO: Mark
         pass
