@@ -1,5 +1,6 @@
 import unittest
 import os
+from datetime import datetime
 
 import properties
 from da import Dao
@@ -15,8 +16,8 @@ class Test(unittest.TestCase):
 
         cls.da = Dao()
         try:
-            cls.da.insert("INSERT INTO users (ID, NAME) VALUES (-1, 'Tester One')")
-            cls.da.insert("INSERT INTO users (ID, NAME) VALUES (-2, 'Tester Two')")
+            cls.da.insert("INSERT INTO users (ID, NAME, EMAIL, PHOTO_URL) VALUES (-1, 'Tester One', 'test1@mail.com', 'test1.jpg')")
+            cls.da.insert("INSERT INTO users (ID, NAME, EMAIL, PHOTO_URL) VALUES (-2, 'Tester Two', 'test2@mail.com', 'test2.jpg')")
             cls.da.insert("INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02')")
             cls.da.insert("INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02')")
             cls.da.insert("INSERT INTO scores (USER_ID, LADDER_ID, SCORE) VALUES (-1, -3, 5)")
@@ -60,7 +61,9 @@ class Test(unittest.TestCase):
 
     def test_create_match(self):
         # Test with null values
-        match = self.da.create_match(Match(None, -1, -2, 6, 1, 6, 2, None, None))
+        match = self.da.create_match(Match(None, -3, datetime(2018, 1, 1, 1, 0, 0), -1, -2, 6, 1, 6, 2, None, None))
+        self.assertEqual(-3, match.ladder_id)
+        self.assertEqual(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
         self.assertEqual(-1, match.winner_id)
         self.assertEqual(-2, match.loser_id)
         self.assertEqual(6, match.winner_set1_score)
@@ -71,7 +74,9 @@ class Test(unittest.TestCase):
         self.assertIsNone(match.loser_set3_score)
 
         # Test with a third set
-        match = self.da.create_match(Match(None, -1, -2, 6, 1, 2, 6, 7, 5))
+        match = self.da.create_match(Match(None, -3, datetime(2018, 1, 1, 1, 0, 0), -1, -2, 6, 1, 2, 6, 7, 5))
+        self.assertEqual(-3, match.ladder_id)
+        self.assertEqual(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
         self.assertEqual(-1, match.winner_id)
         self.assertEqual(-2, match.loser_id)
         self.assertEqual(6, match.winner_set1_score)
