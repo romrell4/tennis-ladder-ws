@@ -28,7 +28,7 @@ create table scores (
 create table matches(
   ID integer key auto_increment not null,
   LADDER_ID integer not null,
-  MATCH_DATE date not null,
+  MATCH_DATE datetime not null,
   WINNER_ID integer not null,
   LOSER_ID integer not null,
   WINNER_SET1_SCORE integer not null,

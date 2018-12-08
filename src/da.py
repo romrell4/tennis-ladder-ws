@@ -17,7 +17,7 @@ class Dao:
         return self.get_list(Player, "select users.ID, ladders.ID, users.NAME, scores.SCORE FROM scores JOIN users ON scores.USER_ID = users.ID join ladders on scores.LADDER_ID = ladders.ID WHERE scores.LADDER_ID = %s ORDER BY scores.SCORE DESC", ladder_id)
 
     def create_match(self, match):
-        match_id = self.insert("INSERT INTO matches (WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) values (%s, %s, %s, %s, %s, %s, %s, %s)", *match.get_insert_properties())
+        match_id = self.insert("INSERT INTO matches (LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", *match.get_insert_properties())
         return self.get_one(Match, "SELECT * FROM matches WHERE ID = %s", match_id)
 
     def update_score(self, user_id, ladder_id, new_score):

@@ -2,6 +2,7 @@ import unittest
 import json
 from src import handler
 from src.domain import *
+from datetime import datetime
 
 class Test(unittest.TestCase):
     @classmethod
@@ -76,7 +77,7 @@ class Test(unittest.TestCase):
 
 class MockManager():
     def __init__(self):
-        self.user = User(1, "User1")
+        self.user = User(1, "User1", "user@test.com", "hello.jpg")
 
     def login(self):
         return self.user
@@ -99,4 +100,4 @@ class MockManager():
             ]
 
     def report_match(self, ladder_id, match):
-        return Match(1, 2, 3, 6, 0, 5, 7, 6, 3)
+        return Match(1, 1, "2018-02-02", 2, 3, 6, 0, 5, 7, 6, 3)
