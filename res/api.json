@@ -46,7 +46,10 @@
 					"200": {
 						"description": "200 response",
 						"schema": {
-							"$ref": "#/definitions/ArrayOfladder"
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/ladder"
+							}
 						}
 					}
 				},
@@ -81,7 +84,10 @@
 					"200": {
 						"description": "200 response",
 						"schema": {
-							"$ref": "#/definitions/players"
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/players"
+							}
 						}
 					}
 				},
@@ -98,6 +104,50 @@
 					"type": "aws_proxy"
 				}
 			}
+		},
+		"/ladders/{ladder_id}/players/{player_id}/matches": {
+			"get": {
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "ladder_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "player_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/match"
+							}
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			},
 		},
 		"/ladders/{ladder_id}/matches": {
 			"post": {
@@ -119,7 +169,8 @@
 						"in": "body",
 						"required": true,
 						"type": {
-							"schema": {
+							"type": "array",
+							"items": {
 								"$ref": "#/definitions/match"
 							}
 						}
