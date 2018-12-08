@@ -1,4 +1,4 @@
-drop table users;
+# drop table users;
 create table users (
   ID integer key auto_increment not null,
   NAME varchar(32) not null,
