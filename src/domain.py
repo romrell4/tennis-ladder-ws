@@ -1,6 +1,6 @@
 class User:
-    def __init__(self, user_id, name):
-        self.user_id, self.name = user_id, name
+    def __init__(self, user_id, name, email, photo_url):
+        self.user_id, self.name, self.email, self.photo_url = user_id, name, email, photo_url
 
 class Ladder:
     def __init__(self, ladder_id, name, start_date, end_date):
@@ -11,8 +11,8 @@ class Score:
         self.user_id, self.ladder_id, self.score = user_id, ladder_id, score
 
 class Match:
-    def __init__(self, match_id, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None):
-        self.match_id, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score = match_id, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score
+    def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None):
+        self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score
 
     def validate(self):
         if self.winner_id is None: raise DomainException("Missing winner_id")
