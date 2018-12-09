@@ -46,10 +46,7 @@
 					"200": {
 						"description": "200 response",
 						"schema": {
-							"type": "array",
-							"items": {
-								"$ref": "#/definitions/ladder"
-							}
+							"$ref": "#/definitions/ladders"
 						}
 					}
 				},
@@ -84,10 +81,7 @@
 					"200": {
 						"description": "200 response",
 						"schema": {
-							"type": "array",
-							"items": {
-								"$ref": "#/definitions/players"
-							}
+							"$ref": "#/definitions/players"
 						}
 					}
 				},
@@ -128,10 +122,7 @@
 					"200": {
 						"description": "200 response",
 						"schema": {
-							"type": "array",
-							"items": {
-								"$ref": "#/definitions/match"
-							}
+							"$ref": "#/definitions/matches"
 						}
 					}
 				},
@@ -147,7 +138,7 @@
 					"contentHandling": "CONVERT_TO_TEXT",
 					"type": "aws_proxy"
 				}
-			},
+			}
 		},
 		"/ladders/{ladder_id}/matches": {
 			"post": {
@@ -168,11 +159,8 @@
 						"name": "match",
 						"in": "body",
 						"required": true,
-						"type": {
-							"type": "array",
-							"items": {
-								"$ref": "#/definitions/match"
-							}
+						"schema": {
+							"$ref": "#/definitions/match"
 						}
 					}
 				],
@@ -254,6 +242,12 @@
 				"score": {
 					"type": "integer"
 				}
+			}
+		},
+		"matches": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/match"
 			}
 		},
 		"match": {
