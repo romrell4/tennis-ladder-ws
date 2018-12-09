@@ -6,9 +6,7 @@ from domain import ServiceException
 
 def handle(event, context):
     # TODO: Pass in whatever data is needed to authenticate the user into the manager
-    dao = Dao()
-    manager = Manager(dao)
-    return Handler(manager).handle(event)
+    return Handler(Manager(Dao())).handle(event)
 
 class Handler:
     def __init__(self, manager):
@@ -35,6 +33,8 @@ class Handler:
                 response_body = self.manager.get_ladders()
             elif resource == "/ladders/{ladder_id}/players" and method == "GET":
                 response_body = self.manager.get_players(int(path_parameters.get("ladder_id")))
+            elif resource == "/ladders/{ladder_id}/players/{player_id}/matches" and method == "GET":
+                repsonse_body = self.manager.get_matches(int(path_parameters.get("ladder_id")), int(path_parameters.get("player_id")))
             elif resource == "/ladders/{ladder_id}/match" and method == "POST":
                 response_body = self.manager.report_match(int(path_parameters.get("ladder_id")), body)
             else:
