@@ -1,17 +1,24 @@
 import unittest
 from datetime import datetime
+import os
+import properties
 
 from bl import Manager
-from domain import ServiceException, Ladder, Match, Player
+from domain import ServiceException, Ladder, Match, Player, User
 
 class Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.dao = MockDao()
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../src/firebase_creds.json"
         cls.manager = Manager(cls.dao)
 
+    def _test_validate_token(self):
+        # In order to run this test, you'll have to generate a new valid token and place it in the properties file
+        Manager.validate_token(properties.firebase_token)
+
     def test_login(self):
-        pass
+        return User(1, "Test User", "tester@user.com", "test.jpg")
 
     def test_get_ladders(self):
         pass
