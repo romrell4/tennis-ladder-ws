@@ -1,5 +1,6 @@
 # These lines allows us to import the src module
 import sys, os
+
 sys.path.append(os.path.abspath(__file__ + "/../../"))
 sys.path.append(os.path.abspath(__file__ + "/../../src/"))
 
