@@ -74,7 +74,7 @@
 						"name": "ladder_id",
 						"in": "path",
 						"required": true,
-						"type": "string"
+						"type": "integer"
 					}
 				],
 				"responses": {
@@ -99,7 +99,7 @@
 				}
 			}
 		},
-		"/ladders/{ladder_id}/players/{player_id}/matches": {
+		"/ladders/{ladder_id}/players/{user_id}/matches": {
 			"get": {
 				"produces": [
 					"application/json"
@@ -109,13 +109,13 @@
 						"name": "ladder_id",
 						"in": "path",
 						"required": true,
-						"type": "string"
+						"type": "integer"
 					},
 					{
-						"name": "player_id",
+						"name": "user_id",
 						"in": "path",
 						"required": true,
-						"type": "string"
+						"type": "integer"
 					}
 				],
 				"responses": {
@@ -153,7 +153,7 @@
 						"name": "ladder_id",
 						"in": "path",
 						"required": true,
-						"type": "string"
+						"type": "integer"
 					},
 					{
 						"name": "match",
