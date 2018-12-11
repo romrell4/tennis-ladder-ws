@@ -18,7 +18,7 @@ class Manager:
             raise ServiceException("Unauthorized. Provided authentication did not validate. Error: {}".format(e), 403)
 
     def get_ladders(self):
-        pass
+        return self.dao.get_ladders()
 
     def get_players(self, ladder_id):
         pass

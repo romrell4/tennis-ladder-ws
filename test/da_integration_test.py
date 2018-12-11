@@ -35,11 +35,11 @@ class Test(unittest.TestCase):
 
     def test_get_user(self):
         # Test non-existent user
-        user = self.dao.get_user(0)
+        user = self.dao.get_user("0")
         self.assertIsNone(user)
 
         # Test regular user
-        user = self.dao.get_user(-1)
+        user = self.dao.get_user("-1")
         self.assertIsNotNone(user)
         self.assertEqual("-1", user.user_id)
         self.assertEqual("Tester One", user.name)
