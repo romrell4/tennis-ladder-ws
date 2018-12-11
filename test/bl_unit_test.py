@@ -22,7 +22,7 @@ class Test(unittest.TestCase):
 
         assert_error(None, "Illegal ID token provided")
         assert_error("", "Illegal ID token provided")
-        assert_error("a.bad.token", "Incorrect padding")
+        assert_error("a.bad.token", "Invalid base64-encoded string")
         assert_error(properties.old_firebase_token, "Token expired")
 
         # In order to run this test, you'll have to generate a new valid token and place it in the properties file
