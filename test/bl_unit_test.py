@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
     def test_validate_token(self):
         def assert_error(token, expected_error):
             with self.assertRaises(ServiceException) as e:
-                Manager.validate_token(token)
+                self.manager.validate_token(token)
             self.assertEqual(403, e.exception.status_code)
             self.assertTrue(expected_error in e.exception.error_message)
 
@@ -26,10 +26,7 @@ class Test(unittest.TestCase):
         assert_error(properties.old_firebase_token, "Token expired")
 
         # In order to run this test, you'll have to generate a new valid token and place it in the properties file
-        # Manager.validate_token(properties.firebase_token)
-
-    def test_login(self):
-        return User(1, "Test User", "tester@user.com", "test.jpg")
+        self.manager.validate_token(properties.firebase_token)
 
     def test_get_ladders(self):
         pass
@@ -77,6 +74,12 @@ class Test(unittest.TestCase):
         # TODO: What other tests are needed? Test most everything else in domain...
 
 class MockDao:
+    def get_user(self, user_id):
+        return User(user_id, "Tester", "test@mail.com", "test.jpg")
+
+    def create_user(self, user):
+        return user
+
     def get_ladders(self):
         return [
             Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02")

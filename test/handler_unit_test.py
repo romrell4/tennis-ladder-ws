@@ -10,13 +10,6 @@ class Test(unittest.TestCase):
         cls.manager = MockManager()
         cls.handler = handler.Handler(cls.manager)
 
-    def test_login(self):
-        response = self.handler.handle(create_event("/users", method = "POST"))
-        self.assertEqual(200, response["statusCode"])
-        user = json.loads(response["body"])
-        self.assertEqual(1, user["user_id"])
-        self.assertEqual("User1", user["name"])
-
     def test_get_ladders(self):
         response = self.handler.handle(create_event("/ladders"))
         self.assertEqual(200, response["statusCode"])
@@ -100,14 +93,10 @@ def create_event(resource, path_params = {}, method = "GET", body = None):
 
 class MockManager():
     def __init__(self):
-        self.user = User(1, "User1", "user@test.com", "hello.jpg")
+        self.user = User("1", "User1", "user@test.com", "hello.jpg")
 
-    @staticmethod
-    def validate_token(token):
-        return ""
-
-    def login(self):
-        return self.user
+    def validate_token(self, token):
+        pass
 
     def get_ladders(self):
         return [

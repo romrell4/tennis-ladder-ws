@@ -10,6 +10,12 @@ class Dao:
             print("ERROR: Could not connect to MySQL", e)
             raise ServiceException("Failed to connect to database")
 
+    def get_user(self, user_id):
+        return self.get_one(User, "SELECT * FROM users where ID = %s", user_id)
+
+    def create_user(self, user):
+        self.insert("INSERT INTO users (ID, NAME, EMAIL, PHOTO_URL) values (%s, %s, %s, %s)", *user.get_insert_properties())
+
     def get_ladders(self):
         return self.get_list(Ladder, "SELECT * FROM ladders ORDER BY START_DATE DESC")
 

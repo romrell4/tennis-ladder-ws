@@ -2,6 +2,9 @@ class User:
     def __init__(self, user_id, name, email, photo_url):
         self.user_id, self.name, self.email, self.photo_url = user_id, name, email, photo_url
 
+    def get_insert_properties(self):
+        return [self.user_id, self.name, self.email, self.photo_url]
+
 class Ladder:
     def __init__(self, ladder_id, name, start_date, end_date):
         self.ladder_id, self.name, self.start_date, self.end_date = ladder_id, name, str(start_date), str(end_date)

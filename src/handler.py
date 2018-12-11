@@ -32,14 +32,9 @@ class Handler:
             except (TypeError, KeyError, ValueError):
                 body = None
 
-            self.manager.firebase_user = self.manager.validate_token(self.get_token(event))
+            self.manager.validate_token(self.get_token(event))
 
-            if resource == "/users" and method == "POST":
-                response_body = self.manager.login()
-            elif self.manager.user is None:
-                # If this user isn't in our database, they are only allowed to use the login endpoint
-                raise ServiceException("This user is not tracked in our database. The only allowed endpoint is /users POST to create an account.", 403)
-            elif resource == "/ladders" and method == "GET":
+            if resource == "/ladders" and method == "GET":
                 response_body = self.manager.get_ladders()
             elif resource == "/ladders/{ladder_id}/players" and method == "GET":
                 response_body = self.manager.get_players(int(path_parameters.get("ladder_id")))
