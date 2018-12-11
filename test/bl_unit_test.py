@@ -13,9 +13,20 @@ class Test(unittest.TestCase):
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../src/firebase_creds.json"
         cls.manager = Manager(cls.dao)
 
-    def _test_validate_token(self):
+    def test_validate_token(self):
+        def assert_error(token):
+            with self.assertRaises(ServiceException) as e:
+                Manager.validate_token(token)
+            self.assertEqual(403, e.exception.status_code)
+            print(e.exception.error_message)
+
+        assert_error(None)
+        assert_error("")
+        assert_error("a.bad.token")
+        assert_error(properties.old_firebase_token)
+
         # In order to run this test, you'll have to generate a new valid token and place it in the properties file
-        Manager.validate_token(properties.firebase_token)
+        # Manager.validate_token(properties.firebase_token)
 
     def test_login(self):
         return User(1, "Test User", "tester@user.com", "test.jpg")

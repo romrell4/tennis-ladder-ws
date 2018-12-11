@@ -57,7 +57,7 @@ class Handler:
     @staticmethod
     def get_token(event):
         # Lower case all the keys, then look for token
-        return {k.lower(): v for k, v in event["headers"].items()}["x-firebase-token"]
+        return {k.lower(): v for k, v in event["headers"].items()}.get("x-firebase-token")
 
 def format_response(body = None, status_code = 200):
     return {
