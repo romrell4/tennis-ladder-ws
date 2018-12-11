@@ -1,10 +1,10 @@
+import os
 import unittest
 from datetime import datetime
-import os
-import properties
 
+import properties
 from bl import Manager
-from domain import ServiceException, Ladder, Match, Player, User
+from domain import ServiceException, Ladder, Player, User
 
 class Test(unittest.TestCase):
     @classmethod

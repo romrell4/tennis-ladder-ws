@@ -1,7 +1,7 @@
-import unittest
 import os
-import properties
+import unittest
 
+import properties
 from bl import Manager
 from da import Dao
 from handler import Handler
@@ -11,7 +11,8 @@ from handler import Handler
 class Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../src/firebase_creds.json"
+        print(__file__)
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "firebase_creds.json"
         os.environ["DB_HOST"] = properties.db_host
         os.environ["DB_USERNAME"] = properties.db_username
         os.environ["DB_PASSWORD"] = properties.db_password
