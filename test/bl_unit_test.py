@@ -14,16 +14,16 @@ class Test(unittest.TestCase):
         cls.manager = Manager(cls.dao)
 
     def test_validate_token(self):
-        def assert_error(token):
+        def assert_error(token, expected_error):
             with self.assertRaises(ServiceException) as e:
                 Manager.validate_token(token)
             self.assertEqual(403, e.exception.status_code)
-            print(e.exception.error_message)
+            self.assertTrue(expected_error in e.exception.error_message)
 
-        assert_error(None)
-        assert_error("")
-        assert_error("a.bad.token")
-        assert_error(properties.old_firebase_token)
+        assert_error(None, "Illegal ID token provided")
+        assert_error("", "Illegal ID token provided")
+        assert_error("a.bad.token", "Incorrect padding")
+        assert_error(properties.old_firebase_token, "Token expired")
 
         # In order to run this test, you'll have to generate a new valid token and place it in the properties file
         # Manager.validate_token(properties.firebase_token)
