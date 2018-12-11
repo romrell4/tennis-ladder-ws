@@ -11,8 +11,7 @@ from handler import Handler
 class Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        print(__file__)
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "firebase_creds.json"
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../src/firebase_creds.json"
         os.environ["DB_HOST"] = properties.db_host
         os.environ["DB_USERNAME"] = properties.db_username
         os.environ["DB_PASSWORD"] = properties.db_password

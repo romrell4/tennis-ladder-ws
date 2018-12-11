@@ -6,10 +6,17 @@ from da import Dao
 from domain import ServiceException
 
 def handle(event, _):
-    # TODO: Pass in whatever data is needed to authenticate the user into the manager
-    return Handler(Manager(Dao())).handle(event)
+    return Handler.get_instance().handle(event)
 
 class Handler:
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        if Handler.instance is None:
+            Handler.instance = Handler(Manager(Dao()))
+        return Handler.instance
+
     def __init__(self, manager):
         self.manager = manager
 
