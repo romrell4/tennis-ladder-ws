@@ -28,12 +28,6 @@ class Test(unittest.TestCase):
         # In order to run this test, you'll have to generate a new valid token and place it in the properties file
         # self.manager.validate_token(properties.firebase_token)
 
-    def test_get_ladders(self):
-        pass
-
-    def test_get_players(self):
-        pass
-
     def _test_report_match(self):
         def assert_error(ladder_id, match_dict, status_code, error_message):
             with self.assertRaises(ServiceException) as e:
