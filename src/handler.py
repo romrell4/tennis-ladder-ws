@@ -39,7 +39,7 @@ class Handler:
             elif resource == "/ladders/{ladder_id}/players" and method == "GET":
                 response_body = self.manager.get_players(int(path_parameters.get("ladder_id")))
             elif resource == "/ladders/{ladder_id}/players/{user_id}/matches" and method == "GET":
-                response_body = self.manager.get_matches(int(path_parameters.get("ladder_id")), int(path_parameters.get("user_id")))
+                response_body = self.manager.get_matches(int(path_parameters.get("ladder_id")), path_parameters.get("user_id"))
             elif resource == "/ladders/{ladder_id}/matches" and method == "POST":
                 response_body = self.manager.report_match(int(path_parameters.get("ladder_id")), body)
             else:

@@ -42,7 +42,7 @@ class Test(unittest.TestCase):
 
     def test_get_matches(self):
         # Test a user who's played in a single match in a ladder
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}/matches", {"ladder_id": "1", "user_id": "1"}))
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}/matches", {"ladder_id": "1", "user_id": "TEST1"}))
         self.assertEqual(200, response["statusCode"])
         matches = json.loads(response["body"])
         self.assertEqual(1, len(matches))

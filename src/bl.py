@@ -29,4 +29,5 @@ class Manager:
 
     def report_match(self, ladder_id, match):
         # TODO: Mark
+        # TODO: Authorize the logged in user
         pass
