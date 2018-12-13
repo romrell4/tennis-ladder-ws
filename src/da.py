@@ -20,7 +20,16 @@ class Dao:
         return self.get_list(Ladder, "SELECT * FROM ladders ORDER BY START_DATE DESC")
 
     def get_players(self, ladder_id):
-        return self.get_list(Player, "SELECT users.ID, ladders.ID, users.NAME, scores.SCORE FROM scores JOIN users ON scores.USER_ID = users.ID join ladders on scores.LADDER_ID = ladders.ID WHERE scores.LADDER_ID = %s ORDER BY scores.SCORE DESC", ladder_id)
+        return self.get_list(Player, """
+          SELECT users.ID, ladders.ID, users.NAME, scores.SCORE 
+          FROM scores 
+          JOIN users 
+            ON scores.USER_ID = users.ID 
+          JOIN ladders 
+            ON scores.LADDER_ID = ladders.ID 
+          WHERE scores.LADDER_ID = %s 
+          ORDER BY scores.SCORE DESC
+        """, ladder_id)
 
     def get_matches(self, ladder_id, user_id):
         return self.get_list(Match, "SELECT * FROM matches where LADDER_ID = %s and (WINNER_ID = %s or LOSER_ID = %s)", ladder_id, user_id, user_id)
