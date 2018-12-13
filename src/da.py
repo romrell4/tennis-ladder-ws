@@ -21,14 +21,17 @@ class Dao:
 
     def get_players(self, ladder_id):
         return self.get_list(Player, """
-          SELECT users.ID, ladders.ID, users.NAME, scores.SCORE 
-          FROM scores 
-          JOIN users 
-            ON scores.USER_ID = users.ID 
-          JOIN ladders 
-            ON scores.LADDER_ID = ladders.ID 
-          WHERE scores.LADDER_ID = %s 
-          ORDER BY scores.SCORE DESC
+            select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, s.SCORE,
+              (select count(*) + 1 from scores where SCORE > s.SCORE) as RANKING,
+              (select count(*) as WINS from matches where WINNER_ID = u.ID) as WINS,
+              (select count(*) as WINS from matches where LOSER_ID = u.ID) as LOSSES
+            from scores s
+            join users u
+                on s.USER_ID = u.ID
+            join ladders l
+                on s.LADDER_ID = l.ID
+            where l.ID = %s
+            order by s.SCORE desc
         """, ladder_id)
 
     def get_matches(self, ladder_id, user_id):

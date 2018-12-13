@@ -21,7 +21,7 @@ class Manager:
         return self.dao.get_ladders()
 
     def get_players(self, ladder_id):
-        #TODO: Add the ranking and record to the player
+        # The database handles all the sorting and derived fields
         return self.dao.get_players(ladder_id)
 
     def get_matches(self, ladder_id, user_id):
