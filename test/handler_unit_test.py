@@ -30,6 +30,9 @@ class Test(unittest.TestCase):
         self.assertEqual(1, players[0]["ladder_id"])
         self.assertEqual("User1", players[0]["name"])
         self.assertEqual(10, players[0]["score"])
+        self.assertEqual(3, players[0]["ranking"])
+        self.assertEqual(1, players[0]["wins"])
+        self.assertEqual(0, players[0]["losses"])
 
         # Test a ladder with multiple players
         response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "2"}))
@@ -107,12 +110,12 @@ class MockManager():
     def get_players(self, ladder_id):
         if ladder_id == 1:
             return [
-                Player(1, 1, "User1", 10)
+                Player(1, 1, "User1", 10, 3, 1, 0)
             ]
         elif ladder_id == 2:
             return [
-                Player(2, 2, "User2", 0),
-                Player(3, 2, "User3", 0)
+                Player(2, 2, "User2", 0, 1, 0, 0),
+                Player(3, 2, "User3", 0, 1, 0, 0)
             ]
 
     def get_matches(self, ladder_id, user_id):

@@ -214,6 +214,15 @@
 				},
 				"score": {
 					"type": "integer"
+				},
+				"ranking": {
+					"type": "integer"
+				},
+				"wins": {
+					"type": "integer"
+				},
+				"losses": {
+					"type": "integer"
 				}
 			}
 		},
