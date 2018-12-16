@@ -1,21 +1,21 @@
-import firebase_admin
-from domain import ServiceException, User
-from firebase_admin import auth
+from domain import User
 
 class Manager:
-    def __init__(self, dao):
-        firebase_admin.initialize_app()
+    def __init__(self, firebase_client, dao):
+        self.firebase_client = firebase_client
         self.dao = dao
         self.user = None
 
     def validate_token(self, token):
+        if token is None: return
+
         try:
-            firebase_user = auth.verify_id_token(token)
+            firebase_user = self.firebase_client.get_firebase_user(token)
             self.user = User(firebase_user["user_id"], firebase_user["name"], firebase_user["email"], firebase_user["picture"])
             if self.dao.get_user(self.user.user_id) is None:
                 self.dao.create_user(self.user)
-        except ValueError as e:
-            raise ServiceException("Unauthorized. Provided authentication did not validate. Error: {}".format(e), 403)
+        except (KeyError, ValueError):
+            pass
 
     def get_ladders(self):
         return self.dao.get_ladders()

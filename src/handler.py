@@ -2,6 +2,7 @@ import datetime
 import json
 
 from bl import Manager
+from firebase_client import FirebaseClient
 from da import Dao
 from domain import ServiceException
 
@@ -14,7 +15,7 @@ class Handler:
     @staticmethod
     def get_instance():
         if Handler.instance is None:
-            Handler.instance = Handler(Manager(Dao()))
+            Handler.instance = Handler(Manager(FirebaseClient(), Dao()))
         return Handler.instance
 
     def __init__(self, manager):

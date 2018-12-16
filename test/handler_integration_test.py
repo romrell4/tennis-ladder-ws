@@ -3,6 +3,7 @@ import unittest
 
 import properties
 from bl import Manager
+from firebase_client import FirebaseClient
 from da import Dao
 from handler import Handler
 
@@ -16,7 +17,7 @@ class Test(unittest.TestCase):
         os.environ["DB_USERNAME"] = properties.db_username
         os.environ["DB_PASSWORD"] = properties.db_password
         os.environ["DB_DATABASE_NAME"] = properties.db_database_name
-        cls.handler = Handler(Manager(Dao()))
+        cls.handler = Handler(Manager(FirebaseClient(), Dao()))
 
     def test_handle(self):
         response = self.handler.handle({

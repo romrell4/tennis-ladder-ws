@@ -1,32 +1,39 @@
-import os
 import unittest
 from datetime import datetime
 
-import properties
 from bl import Manager
 from domain import ServiceException, Ladder, Player, User
 
 class Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.dao = MockDao()
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../src/firebase_creds.json"
-        cls.manager = Manager(cls.dao)
+        cls.manager = Manager(MockFirebaseClient(), MockDao())
 
     def test_validate_token(self):
-        def assert_error(token, expected_error):
-            with self.assertRaises(ServiceException) as e:
-                self.manager.validate_token(token)
-            self.assertEqual(403, e.exception.status_code)
-            self.assertTrue(expected_error in e.exception.error_message)
+        # Test without a token (unauthenticated request)
+        self.manager.validate_token(None)
+        self.assertIsNone(self.manager.user)
 
-        assert_error(None, "Illegal ID token provided")
-        assert_error("", "Illegal ID token provided")
-        assert_error("a.bad.token", "Invalid base64-encoded string")
-        assert_error(properties.old_firebase_token, "Token expired")
+        # Test invalid token response
+        self.manager.firebase_client.valid_user = False
+        self.manager.validate_token("")
+        self.assertIsNone(self.manager.user)
 
-        # In order to run this test, you'll have to generate a new valid token and place it in the properties file
-        # self.manager.validate_token(properties.firebase_token)
+        # Test a new user
+        self.manager.firebase_client.valid_user = True
+        self.manager.validate_token("")
+        self.assertIsNotNone(self.manager.user)
+        self.assertTrue(self.manager.dao.created_user)
+        self.assertEqual("USER_ID", self.manager.user.user_id)
+        self.assertEqual("NAME", self.manager.user.name)
+        self.assertEqual("EMAIL", self.manager.user.email)
+        self.assertEqual("PICTURE", self.manager.user.photo_url)
+
+        # Test a saved user
+        self.manager.firebase_client.valid_user = True
+        self.manager.validate_token("")
+        self.assertIsNotNone(self.manager.user)
+        self.assertFalse(self.manager.dao.created_user)
 
     def _test_report_match(self):
         def assert_error(ladder_id, match_dict, status_code, error_message):
@@ -49,6 +56,9 @@ class Test(unittest.TestCase):
                 "loser_set3_score": loser_set3_score
             }
 
+        # Test when the manager doesn't have a user
+        assert_error(0, {}, 403, "Unable to authenticate")
+
         # Test with a null ladder_id
         assert_error(None, None, 400, "Null ladder_id param")
 
@@ -67,11 +77,26 @@ class Test(unittest.TestCase):
 
         # TODO: What other tests are needed? Test most everything else in domain...
 
+class MockFirebaseClient:
+    valid_user = True
+
+    def get_firebase_user(self, token):
+        if self.valid_user:
+            return {"user_id": "USER_ID", "name": "NAME", "email": "EMAIL", "picture": "PICTURE"}
+        else:
+            return {}
+
 class MockDao:
+    user_database = {}
+    created_user = False
+
     def get_user(self, user_id):
-        return User(user_id, "Tester", "test@mail.com", "test.jpg")
+        self.created_user = False
+        return self.user_database.get(user_id)
 
     def create_user(self, user):
+        self.user_database[user.user_id] = user
+        self.created_user = True
         return user
 
     def get_ladders(self):
