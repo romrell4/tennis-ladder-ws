@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 
 from bl import Manager
-from domain import ServiceException, Ladder, Player, User
+from domain import ServiceException, Ladder, Player, Match
 
 class Test(unittest.TestCase):
     @classmethod
@@ -34,6 +34,16 @@ class Test(unittest.TestCase):
         self.manager.validate_token("")
         self.assertIsNotNone(self.manager.user)
         self.assertFalse(self.manager.dao.created_user)
+
+    def test_get_matches(self):
+        matches = self.manager.get_matches(1, 1)
+        self.assertIsNotNone(matches)
+        self.assertEqual(1, len(matches))
+        self.assertEqual(1, matches[0].match_id)
+        self.assertEqual(1, matches[0].winner.user_id)
+        self.assertEqual("Player 1", matches[0].winner.name)
+        self.assertEqual(2, matches[0].loser.user_id)
+        self.assertEqual("Player 2", matches[0].loser.name)
 
     def _test_report_match(self):
         def assert_error(ladder_id, match_dict, status_code, error_message):
@@ -126,6 +136,11 @@ class MockDao:
             Player(18, ladder_id, "Player 18", 0, 1, 0, 0),
             Player(19, ladder_id, "Player 19", 0, 1, 0, 0),
             Player(20, ladder_id, "Player 20", 0, 1, 0, 0)
+        ]
+
+    def get_matches(self, ladder_id, user_id):
+        return [
+            Match(1, ladder_id, "2018-01-01 12:30:00", 1, 2, 6, 0, 6, 0)
         ]
 
     def create_match(self, match):

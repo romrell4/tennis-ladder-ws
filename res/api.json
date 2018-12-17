@@ -237,11 +237,15 @@
 				"match_id": {
 					"type": "integer"
 				},
-				"winner_id": {
-					"type": "integer"
+				"winner": {
+					"schema": {
+						"$ref": "#/definitions/player"
+					}
 				},
-				"loser_id": {
-					"type": "integer"
+				"loser": {
+					"schema": {
+						"$ref": "#/definitions/player"
+					}
 				},
 				"winner_set1_score": {
 					"type": "integer"

@@ -25,9 +25,26 @@ class Manager:
         return self.dao.get_players(ladder_id)
 
     def get_matches(self, ladder_id, user_id):
-        return self.dao.get_matches(ladder_id, user_id)
+        # Get all the matches (which will only have user ids, not the full player)
+        matches = self.dao.get_matches(ladder_id, user_id)
+
+        # Get all players in that ladder
+        players = self.dao.get_players(ladder_id)
+
+        # Create a map for quick and easy look up
+        player_map = {}
+        for player in players:
+            player_map[player.user_id] = player
+
+        # Attach the winners and losers to the match
+        for match in matches:
+            match.winner = player_map[match.winner_id]
+            match.loser = player_map[match.loser_id]
+
+        return matches
 
     def report_match(self, ladder_id, match):
         # TODO: Mark
+        # TODO: Set match date to right now (to avoid issues with device times being changed)
         # TODO: Authorize the logged in user
         pass
