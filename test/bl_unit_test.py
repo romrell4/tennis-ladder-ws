@@ -116,26 +116,26 @@ class MockDao:
 
     def get_players(self, ladder_id):
         return [
-            Player(1, ladder_id, "Player 1", 0, 1, 0, 0),
-            Player(2, ladder_id, "Player 2", 0, 1, 0, 0),
-            Player(3, ladder_id, "Player 3", 0, 1, 0, 0),
-            Player(4, ladder_id, "Player 4", 0, 1, 0, 0),
-            Player(5, ladder_id, "Player 5", 0, 1, 0, 0),
-            Player(6, ladder_id, "Player 6", 0, 1, 0, 0),
-            Player(7, ladder_id, "Player 7", 0, 1, 0, 0),
-            Player(8, ladder_id, "Player 8", 0, 1, 0, 0),
-            Player(9, ladder_id, "Player 9", 0, 1, 0, 0),
-            Player(10, ladder_id, "Player 10", 0, 1, 0, 0),
-            Player(11, ladder_id, "Player 11", 0, 1, 0, 0),
-            Player(12, ladder_id, "Player 12", 0, 1, 0, 0),
-            Player(13, ladder_id, "Player 13", 0, 1, 0, 0),
-            Player(14, ladder_id, "Player 14", 0, 1, 0, 0),
-            Player(15, ladder_id, "Player 15", 0, 1, 0, 0),
-            Player(16, ladder_id, "Player 16", 0, 1, 0, 0),
-            Player(17, ladder_id, "Player 17", 0, 1, 0, 0),
-            Player(18, ladder_id, "Player 18", 0, 1, 0, 0),
-            Player(19, ladder_id, "Player 19", 0, 1, 0, 0),
-            Player(20, ladder_id, "Player 20", 0, 1, 0, 0)
+            Player(1, ladder_id, "Player 1", "test1.jpg", 0, 1, 0, 0),
+            Player(2, ladder_id, "Player 2", "test2.jpg", 0, 1, 0, 0),
+            Player(3, ladder_id, "Player 3", "test3.jpg", 0, 1, 0, 0),
+            Player(4, ladder_id, "Player 4", "test4.jpg", 0, 1, 0, 0),
+            Player(5, ladder_id, "Player 5", "test5.jpg", 0, 1, 0, 0),
+            Player(6, ladder_id, "Player 6", "test6.jpg", 0, 1, 0, 0),
+            Player(7, ladder_id, "Player 7", "test7.jpg", 0, 1, 0, 0),
+            Player(8, ladder_id, "Player 8", "test8.jpg", 0, 1, 0, 0),
+            Player(9, ladder_id, "Player 9", "test9.jpg", 0, 1, 0, 0),
+            Player(10, ladder_id, "Player 10", "test10.jpg", 0, 1, 0, 0),
+            Player(11, ladder_id, "Player 11", "test11.jpg", 0, 1, 0, 0),
+            Player(12, ladder_id, "Player 12", "test12.jpg", 0, 1, 0, 0),
+            Player(13, ladder_id, "Player 13", "test13.jpg", 0, 1, 0, 0),
+            Player(14, ladder_id, "Player 14", "test14.jpg", 0, 1, 0, 0),
+            Player(15, ladder_id, "Player 15", "test15.jpg", 0, 1, 0, 0),
+            Player(16, ladder_id, "Player 16", "test16.jpg", 0, 1, 0, 0),
+            Player(17, ladder_id, "Player 17", "test17.jpg", 0, 1, 0, 0),
+            Player(18, ladder_id, "Player 18", "test18.jpg", 0, 1, 0, 0),
+            Player(19, ladder_id, "Player 19", "test19.jpg", 0, 1, 0, 0),
+            Player(20, ladder_id, "Player 20", "test20.jpg", 0, 1, 0, 0)
         ]
 
     def get_matches(self, ladder_id, user_id):

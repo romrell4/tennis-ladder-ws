@@ -21,7 +21,7 @@ class Dao:
 
     def get_players(self, ladder_id):
         return self.get_list(Player, """
-            select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, s.SCORE,
+            select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, u.PHOTO_URL, s.SCORE,
               (select count(*) + 1 from scores where SCORE > s.SCORE) as RANKING,
               (select count(*) as WINS from matches where WINNER_ID = u.ID) as WINS,
               (select count(*) as WINS from matches where LOSER_ID = u.ID) as LOSSES

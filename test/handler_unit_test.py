@@ -29,6 +29,7 @@ class Test(unittest.TestCase):
         self.assertEqual(1, players[0]["user_id"])
         self.assertEqual(1, players[0]["ladder_id"])
         self.assertEqual("User1", players[0]["name"])
+        self.assertEqual("test1.jpg", players[0]["photo_url"])
         self.assertEqual(10, players[0]["score"])
         self.assertEqual(3, players[0]["ranking"])
         self.assertEqual(1, players[0]["wins"])
@@ -110,12 +111,12 @@ class MockManager():
     def get_players(self, ladder_id):
         if ladder_id == 1:
             return [
-                Player(1, 1, "User1", 10, 3, 1, 0)
+                Player(1, 1, "User1", "test1.jpg", 10, 3, 1, 0)
             ]
         elif ladder_id == 2:
             return [
-                Player(2, 2, "User2", 0, 1, 0, 0),
-                Player(3, 2, "User3", 0, 1, 0, 0)
+                Player(2, 2, "User2", "test2.jpg", 0, 1, 0, 0),
+                Player(3, 2, "User3", "test3.jpg", 0, 1, 0, 0)
             ]
 
     def get_matches(self, ladder_id, user_id):
