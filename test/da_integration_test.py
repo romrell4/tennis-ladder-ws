@@ -20,9 +20,9 @@ class Test(unittest.TestCase):
             cls.dao.insert("INSERT INTO users (ID, NAME, EMAIL, PHOTO_URL) VALUES ('TEST2', 'Tester Two', 'test2@mail.com', 'test2.jpg')")
             cls.dao.insert("INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02')")
             cls.dao.insert("INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02')")
-            cls.dao.insert("INSERT INTO scores (USER_ID, LADDER_ID, SCORE) VALUES ('TEST1', -3, 5)")
-            cls.dao.insert("INSERT INTO scores (USER_ID, LADDER_ID, SCORE) VALUES ('TEST2', -3, 10)")
-            cls.dao.insert("INSERT INTO scores (USER_ID, LADDER_ID, SCORE) VALUES ('TEST1', -4, 0)")
+            cls.dao.insert("INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES ('TEST1', -3, 5)")
+            cls.dao.insert("INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES ('TEST2', -3, 10)")
+            cls.dao.insert("INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES ('TEST1', -4, 0)")
             cls.dao.insert("INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) values (-1, -4, CURDATE(), 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)")
         except:
             cls.tearDownClass()
@@ -131,4 +131,4 @@ class Test(unittest.TestCase):
 
     def test_update_score(self):
         self.dao.update_score('TEST1', -4, 100)
-        self.assertEqual(100, self.dao.get_one(Score, "SELECT * FROM scores WHERE USER_ID = %s and LADDER_ID = %s", "TEST1", -4).score)
+        self.assertEqual(100, self.dao.get_one(int, "SELECT score FROM players WHERE USER_ID = %s and LADDER_ID = %s", "TEST1", -4))

@@ -14,8 +14,8 @@ create table ladders (
   END_DATE date not null
 );
 
-# drop table scores;
-create table scores (
+# drop table players;
+create table players (
   USER_ID varchar(64) not null,
   LADDER_ID integer not null,
   SCORE integer not null default 0,
