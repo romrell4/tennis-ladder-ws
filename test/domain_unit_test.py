@@ -94,12 +94,12 @@ class Test(unittest.TestCase):
         assert_success(create_match(7, 6, 6, 7, 200, 198), 20, 19)
         Match.played_tiebreak = lambda _: False
 
-        # Pretend that there is distance penalty of -10
+        # Pretend that there is distance penalty of 10
         Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: 10
         assert_success(create_match(6, 0, 6, 0), 29, 0)
         assert_success(create_match(7, 6, 6, 7, 7, 6), 10, 19)
 
-        # Pretend that there is a distance penalty of 10
+        # Pretend that there is a distance premium of 10
         Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: -10
         assert_success(create_match(6, 0, 6, 0), 49, 0)
         assert_success(create_match(7, 6, 6, 7, 7, 6), 30, 19)
