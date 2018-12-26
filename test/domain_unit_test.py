@@ -58,18 +58,20 @@ class Test(unittest.TestCase):
         self.assertTrue(Match.is_valid_tiebreak(11, 9))
         self.assertTrue(Match.is_valid_tiebreak(150, 148))
 
-    def _test_calculate_score(self):
+    def test_calculate_scores(self):
         def assert_success(match, new_winner_score, new_loser_score):
-            winner_score, loser_score = match.calculate_scores()
+            winner_score, loser_score = match.calculate_scores(0, 0)
             self.assertEqual(new_winner_score, winner_score)
             self.assertEqual(new_loser_score, loser_score)
 
         def create_match(w1, l1, w2, l2, w3 = None, l3 = None):
-            return Match(None, None, None, w1, l1, w2, l2, w3, l3)
+            return Match(None, None, None, None, None, w1, l1, w2, l2, w3, l3)
 
         # Temporarily overwrite the calculate_distance_penalty function for easier testing
-        old_function = Match.calculate_distance_penalty
-        Match.calculate_distance_penalty = lambda winner_rank, loser_rank: 0
+        old_calculate_distance_penalty = Match.calculate_distance_penalty
+        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: 0
+        old_played_tiebreak = Match.played_tiebreak
+        Match.played_tiebreak = lambda _: False
 
         # Test valid matches
         assert_success(create_match(6, 0, 6, 0), 39, 0)
@@ -84,23 +86,46 @@ class Test(unittest.TestCase):
         assert_success(create_match(7, 6, 6, 7, 7, 6), 20, 19)
 
         # Tiebreaks
+        Match.played_tiebreak = lambda _: True
         assert_success(create_match(6, 0, 0, 6, 10, 8), 29, 10)
         assert_success(create_match(6, 0, 0, 6, 10, 7), 29, 10)
-        assert_success(create_match(6, 0, 0, 6, 16, 14), 20, 19)
-        assert_success(create_match(6, 0, 0, 6, 200, 198), 20, 19)
+        assert_success(create_match(6, 0, 0, 6, 15, 13), 27, 12)
+        assert_success(create_match(6, 0, 0, 6, 200, 198), 27, 12)
+        assert_success(create_match(7, 6, 6, 7, 200, 198), 20, 19)
+        Match.played_tiebreak = lambda _: False
 
         # Pretend that there is distance penalty of -10
-        Match.calculate_distance_penalty = lambda winner_rank, loser_rank: -10
+        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: 10
         assert_success(create_match(6, 0, 6, 0), 29, 0)
         assert_success(create_match(7, 6, 6, 7, 7, 6), 10, 19)
 
         # Pretend that there is a distance penalty of 10
-        Match.calculate_distance_penalty = lambda winner_rank, loser_rank: 10
+        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: -10
         assert_success(create_match(6, 0, 6, 0), 49, 0)
         assert_success(create_match(7, 6, 6, 7, 7, 6), 30, 19)
 
         # Reset the function to the real one (so that other tests can run)
-        Match.calculate_distance_penalty = old_function
+        Match.calculate_distance_penalty = old_calculate_distance_penalty
+        Match.played_tiebreak = old_played_tiebreak
+
+    def test_played_tiebreak(self):
+        def match_played_tiebreak(winner_set3_score, loser_set3_score):
+            return Match(None, None, None, None, None, None, None, None, None, winner_set3_score, loser_set3_score).played_tiebreak()
+
+        # Test no third set
+        self.assertFalse(match_played_tiebreak(None, None))
+
+        # Test valid sets
+        self.assertFalse(match_played_tiebreak(6, 0))
+        self.assertFalse(match_played_tiebreak(6, 4))
+        self.assertFalse(match_played_tiebreak(7, 5))
+        self.assertFalse(match_played_tiebreak(7, 6))
+
+        # Test valid tiebreaks
+        self.assertTrue(match_played_tiebreak(10, 0))
+        self.assertTrue(match_played_tiebreak(10, 8))
+        self.assertTrue(match_played_tiebreak(11, 9))
+        self.assertTrue(match_played_tiebreak(200, 198))
 
     def test_calculate_distance_penalty(self):
         # Test penalties

@@ -1,3 +1,5 @@
+import math
+
 class User:
     def __init__(self, user_id, name, email, photo_url):
         self.user_id, self.name, self.email, self.photo_url = user_id, name, email, photo_url
@@ -37,9 +39,17 @@ class Match:
         # TODO: Mark
         pass
 
-    def calculate_scores(self):
-        # TODO: Mark
-        pass
+    def calculate_scores(self, winner_rank, loser_rank):
+        loser_score = self.loser_set1_score + self.loser_set2_score
+        if self.loser_set3_score is not None:
+            # If a tiebreak, half of the score - rounded up. Otherwise, just the score. However, you can never get more than 6 point for a tiebreak
+            loser_score += min(int(math.ceil(self.loser_set3_score / 2)) if self.played_tiebreak() else self.loser_set3_score, 6)
+
+        winner_score = 39 - loser_score - self.calculate_distance_penalty(winner_rank, loser_rank)
+        return winner_score, loser_score
+
+    def played_tiebreak(self):
+        return self.winner_set3_score is not None and self.loser_set3_score is not None and max(self.winner_set3_score, self.loser_set3_score) >= 10
 
     @staticmethod
     def calculate_distance_penalty(winner_rank, loser_rank):
