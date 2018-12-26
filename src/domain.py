@@ -32,12 +32,12 @@ class Match:
     @staticmethod
     def is_valid_set(winner_score, loser_score):
         # TODO: Mark
-        pass
+        return True
 
     @staticmethod
     def is_valid_tiebreak(winner_score, loser_score):
         # TODO: Mark
-        pass
+        return True
 
     def calculate_scores(self, winner_rank, loser_rank):
         loser_score = self.loser_set1_score + self.loser_set2_score
