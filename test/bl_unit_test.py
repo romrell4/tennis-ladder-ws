@@ -66,6 +66,8 @@ class Test(unittest.TestCase):
                 "loser_set3_score": loser_set3_score
             }
 
+        # TODO: Test date getting reset
+
         # Test when the manager doesn't have a user
         assert_error(0, {}, 403, "Unable to authenticate")
 
