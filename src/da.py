@@ -21,17 +21,17 @@ class Dao:
 
     def get_players(self, ladder_id):
         return self.get_list(Player, """
-            select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, u.PHOTO_URL, s.SCORE,
-              (select count(*) + 1 from scores where SCORE > s.SCORE) as RANKING,
+            select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, u.PHOTO_URL, p.SCORE,
+              (select count(*) + 1 from players where SCORE > p.SCORE) as RANKING,
               (select count(*) as WINS from matches where WINNER_ID = u.ID) as WINS,
               (select count(*) as WINS from matches where LOSER_ID = u.ID) as LOSSES
-            from scores s
+            from players p
             join users u
-                on s.USER_ID = u.ID
+                on p.USER_ID = u.ID
             join ladders l
-                on s.LADDER_ID = l.ID
+                on p.LADDER_ID = l.ID
             where l.ID = %s
-            order by s.SCORE desc
+            order by p.SCORE desc
         """, ladder_id)
 
     def get_matches(self, ladder_id, user_id):
@@ -42,7 +42,7 @@ class Dao:
         return self.get_one(Match, "SELECT * FROM matches WHERE ID = %s", match_id)
 
     def update_score(self, user_id, ladder_id, new_score):
-        self.execute("UPDATE scores SET SCORE = %s WHERE USER_ID = %s and LADDER_ID = %s", new_score, user_id, ladder_id)
+        self.execute("UPDATE players SET SCORE = %s WHERE USER_ID = %s and LADDER_ID = %s", new_score, user_id, ladder_id)
 
     ### UTILS ###
 
