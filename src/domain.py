@@ -43,8 +43,7 @@ class Match:
 
     @staticmethod
     def calculate_distance_penalty(winner_rank, loser_rank):
-        # TODO: Mark
-        pass
+        return (winner_rank - loser_rank) * -3
 
     def get_insert_properties(self):
         return [self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score]
