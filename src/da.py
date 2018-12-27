@@ -19,6 +19,9 @@ class Dao:
     def get_ladders(self):
         return self.get_list(Ladder, "SELECT * FROM ladders ORDER BY START_DATE DESC")
 
+    def get_ladder(self, ladder_id):
+        return self.get_one(Ladder, "select * from ladders where ID = %s", ladder_id)
+
     def get_players(self, ladder_id):
         return self.get_list(Player, """
             select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, u.PHOTO_URL, p.SCORE,
