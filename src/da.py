@@ -3,6 +3,23 @@ import pymysql
 import os
 
 class Dao:
+    PLAYER_SQL_PREFIX = """
+        select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, u.PHOTO_URL, p.SCORE,
+          (select count(*) + 1 from players where SCORE > p.SCORE) as RANKING,
+          (select count(*) as WINS from matches where WINNER_ID = u.ID) as WINS,
+          (select count(*) as WINS from matches where LOSER_ID = u.ID) as LOSSES
+        from players p
+        join users u
+            on p.USER_ID = u.ID
+        join ladders l
+            on p.LADDER_ID = l.ID
+        where l.ID = %s
+    """
+    PLAYERS_SQL_POSTFIX = " order by p.SCORE desc "
+    PLAYER_SQL_POSTFIX = " and p.USER_ID = %s"
+    PLAYERS_SQL = PLAYER_SQL_PREFIX + PLAYERS_SQL_POSTFIX
+    PLAYER_SQL = PLAYER_SQL_PREFIX + PLAYER_SQL_POSTFIX
+
     def __init__(self):
         try:
             self.conn = pymysql.connect(os.environ["DB_HOST"], user = (os.environ["DB_USERNAME"]), passwd = (os.environ["DB_PASSWORD"]), db = (os.environ["DB_DATABASE_NAME"]), autocommit = True)
@@ -23,19 +40,10 @@ class Dao:
         return self.get_one(Ladder, "select * from ladders where ID = %s", ladder_id)
 
     def get_players(self, ladder_id):
-        return self.get_list(Player, """
-            select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, u.PHOTO_URL, p.SCORE,
-              (select count(*) + 1 from players where SCORE > p.SCORE) as RANKING,
-              (select count(*) as WINS from matches where WINNER_ID = u.ID) as WINS,
-              (select count(*) as WINS from matches where LOSER_ID = u.ID) as LOSSES
-            from players p
-            join users u
-                on p.USER_ID = u.ID
-            join ladders l
-                on p.LADDER_ID = l.ID
-            where l.ID = %s
-            order by p.SCORE desc
-        """, ladder_id)
+        return self.get_list(Player, self.PLAYERS_SQL, ladder_id)
+
+    def get_player(self, ladder_id, user_id):
+        return self.get_one(Player, self.PLAYER_SQL, ladder_id, user_id)
 
     def get_matches(self, ladder_id, user_id):
         return self.get_list(Match, "SELECT * FROM matches where LADDER_ID = %s and (WINNER_ID = %s or LOSER_ID = %s)", ladder_id, user_id, user_id)
