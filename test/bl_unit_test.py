@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 
 from bl import Manager
-from domain import ServiceException, Ladder, Player, Match
+from domain import ServiceException, Ladder, Player, Match, User
 
 class Test(unittest.TestCase):
     @classmethod
@@ -45,7 +45,7 @@ class Test(unittest.TestCase):
         self.assertEqual(2, matches[0].loser.user_id)
         self.assertEqual("Player 2", matches[0].loser.name)
 
-    def _test_report_match(self):
+    def test_report_match(self):
         def assert_error(ladder_id, match_dict, status_code, error_message):
             with self.assertRaises(ServiceException) as e:
                 self.manager.report_match(ladder_id, match_dict)
@@ -66,10 +66,9 @@ class Test(unittest.TestCase):
                 "loser_set3_score": loser_set3_score
             }
 
-        # TODO: Test date getting reset
-
         # Test when the manager doesn't have a user
         assert_error(0, {}, 403, "Unable to authenticate")
+        self.manager.user = User("USER1", "User", "user@test.com", "user.jpg")
 
         # Test with a null ladder_id
         assert_error(None, None, 400, "Null ladder_id param")
@@ -78,7 +77,7 @@ class Test(unittest.TestCase):
         assert_error(0, None, 400, "Null match param")
 
         # Test with a non-existent ladder
-        assert_error(0, {}, 404, "No match with id: '0'")
+        assert_error(0, {}, 404, "No ladder with id: '0'")
 
         # Test with a winner/loser not in the specified ladder
         assert_error(1, create_match(0, 1, 6, 0, 6, 0), 400, "No user with id: '0'")
@@ -87,7 +86,15 @@ class Test(unittest.TestCase):
         # Test with a match where players are too far apart
         assert_error(1, create_match(1, 14, 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
-        # TODO: What other tests are needed? Test most everything else in domain...
+        # Test a match with the same winner and loser (played against themselves)
+        assert_error(1, create_match(1, 1, 6, 0, 6, 0), 400, "A match with the same winner and loser is invalid")
+
+        # Test date getting reset
+        match = self.manager.report_match(1, create_match(1, 2, 6, 0, 6, 0))
+        self.assertIsNotNone(match)
+        self.assertFalse(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
+
+        # TODO: Test score getting updated?
 
 class MockFirebaseClient:
     valid_user = True
@@ -146,7 +153,7 @@ class MockDao:
         ]
 
     def create_match(self, match):
-        pass
+        return match
 
     def update_score(self, user_id, ladder_id, new_score):
         pass

@@ -1,4 +1,4 @@
-from domain import User
+from domain import User, ServiceException, Match
 
 class Manager:
     def __init__(self, firebase_client, dao):
@@ -43,8 +43,37 @@ class Manager:
 
         return matches
 
-    def report_match(self, ladder_id, match):
+    def report_match(self, ladder_id, match_dict):
+        if self.user is None:
+            raise ServiceException("Unable to authenticate", 403)
+        elif ladder_id is None:
+            raise ServiceException("Null ladder_id param", 400)
+        elif match_dict is None:
+            raise ServiceException("Null match param", 400)
+
+        # Look up ladder
+        ladder = self.dao.get_ladder(ladder_id)
+        if ladder is None:
+            raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
+
+        match = Match.from_dict(match_dict)
+
+        # Validate that the rest of the match is set up properly (valid set scores and players)
+        match.validate()
+
+        # Look up players in ladder
+        winner = self.dao.get_player(ladder_id, match.winner_id)
+        if winner is None:
+            raise ServiceException("No user with id: '{}'".format(match.winner_id), 400)
+
+        loser = self.dao.get_player(ladder_id, match.loser_id)
+        if loser is None:
+            raise ServiceException("No user with id: '{}'".format(match.loser_id), 400)
+
+        print(winner)
+        print(loser)
+
         # TODO: Mark
         # TODO: Set match date to right now (to avoid issues with device times being changed)
-        # TODO: Authorize the logged in user
-        pass
+        self.dao.create_match(match)
+        return match

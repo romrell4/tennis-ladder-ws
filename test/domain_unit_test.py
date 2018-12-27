@@ -12,9 +12,6 @@ class Test(unittest.TestCase):
         # Test match with no ladder id
         assert_error("Missing ladder_id", Match(None, None, "2018-01-01", 1, 2, 6, 0, 6, 0))
 
-        # Test match with no date
-        assert_error("Missing match_date", Match(None, 0, None, 1, 2, 6, 0, 6, 0))
-
         # Test match with null winner id
         assert_error("Missing winner_id", Match(None, 0, "2018-01-01", None, 1, 6, 0, 6, 0))
 

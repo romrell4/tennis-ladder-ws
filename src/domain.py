@@ -15,9 +15,24 @@ class Match:
     def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None):
         self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score
 
+    @staticmethod
+    def from_dict(match_dict):
+        return Match(
+            match_dict.get("match_id"),
+            match_dict.get("ladder_id"),
+            match_dict.get("match_date"),
+            match_dict.get("winner_id"),
+            match_dict.get("loser_id"),
+            match_dict.get("winner_set1_score"),
+            match_dict.get("loser_set1_score"),
+            match_dict.get("winner_set2_score"),
+            match_dict.get("loser_set2_score"),
+            match_dict.get("winner_set3_score"),
+            match_dict.get("loser_set3_score")
+        )
+
     def validate(self):
         if self.ladder_id is None: raise DomainException("Missing ladder_id")
-        if self.match_date is None: raise DomainException("Missing match_date")
         if self.winner_id is None: raise DomainException("Missing winner_id")
         if self.loser_id is None: raise DomainException("Missing loser_id")
         if self.winner_id == self.loser_id: raise DomainException("A match cannot be played against oneself")
