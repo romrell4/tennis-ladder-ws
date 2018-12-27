@@ -94,6 +94,15 @@ class Test(unittest.TestCase):
         self.assertEqual(-3, player.ladder_id)
         self.assertEqual(10, player.score)
 
+    def test_get_player(self):
+        # Test a non-existent player
+        player = self.dao.get_player(-3, "TEST0")
+        self.assertIsNone(player)
+
+        # Test regular player
+        player = self.dao.get_player(-3, "TEST1")
+        self.assertIsNotNone(player)
+
     def test_get_matches(self):
         # Test a non-existent ladder
         matches = self.dao.get_matches(-5, "TEST1")
