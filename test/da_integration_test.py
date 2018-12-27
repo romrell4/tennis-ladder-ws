@@ -73,6 +73,15 @@ class Test(unittest.TestCase):
         self.assertEqual("2018-02-01", ladder.start_date)
         self.assertEqual("2018-02-02", ladder.end_date)
 
+    def test_get_ladder(self):
+        # Test a ladder that doesn't exist
+        ladder = self.dao.get_ladder(0)
+        self.assertIsNone(ladder)
+
+        # Test a normal ladder
+        ladder = self.dao.get_ladder(-3)
+        self.assertIsNotNone(ladder)
+
     def test_get_players(self):
         # Test running the SQL, and deserializing a result set
         players = self.dao.get_players(-3)
