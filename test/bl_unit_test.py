@@ -54,7 +54,7 @@ class Test(unittest.TestCase):
 
         def create_match(winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None):
             return {
-                "ladder_id": "1",
+                "ladder_id": 1,
                 "match_date": datetime(2018, 1, 1, 1, 0, 0),
                 "winner_id": winner_id,
                 "loser_id": loser_id,
@@ -107,6 +107,9 @@ class MockFirebaseClient:
 
 class MockDao:
     user_database = {}
+    ladder_database = {
+        1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02")
+    }
     created_user = False
 
     def get_user(self, user_id):
@@ -119,9 +122,10 @@ class MockDao:
         return user
 
     def get_ladders(self):
-        return [
-            Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02")
-        ]
+        return self.ladder_database.values()
+
+    def get_ladder(self, ladder_id):
+        return self.ladder_database.get(ladder_id)
 
     def get_players(self, ladder_id):
         return [

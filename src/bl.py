@@ -58,9 +58,6 @@ class Manager:
 
         match = Match.from_dict(match_dict)
 
-        # Validate that the rest of the match is set up properly (valid set scores and players)
-        match.validate()
-
         # Look up players in ladder
         winner = self.dao.get_player(ladder_id, match.winner_id)
         if winner is None:
@@ -69,6 +66,9 @@ class Manager:
         loser = self.dao.get_player(ladder_id, match.loser_id)
         if loser is None:
             raise ServiceException("No user with id: '{}'".format(match.loser_id), 400)
+
+        # Validate that the rest of the match is set up properly (valid set scores and players)
+        match.validate()
 
         print(winner)
         print(loser)
