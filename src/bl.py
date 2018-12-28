@@ -56,6 +56,7 @@ class Manager:
         if self.dao.get_ladder(ladder_id) is None:
             raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
 
+        # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
         match = Match.from_dict(match_dict)
 
         # Look up players in ladder
@@ -66,9 +67,6 @@ class Manager:
         loser = self.dao.get_player(ladder_id, match.loser_id)
         if loser is None:
             raise ServiceException("No user with id: '{}'".format(match.loser_id), 400)
-
-        # Validate that the rest of the match is set up properly (valid set scores and players)
-        match.validate()
 
         if abs(winner.ranking - loser.ranking) > 12:
             raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)

@@ -29,7 +29,7 @@ class Match:
             match_dict.get("loser_set2_score"),
             match_dict.get("winner_set3_score"),
             match_dict.get("loser_set3_score")
-        )
+        ).validate()
 
     def validate(self):
         if self.ladder_id is None: raise DomainException("Missing ladder_id")
