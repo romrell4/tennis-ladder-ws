@@ -12,6 +12,12 @@ class Ladder:
         self.ladder_id, self.name, self.start_date, self.end_date = ladder_id, name, str(start_date), str(end_date)
 
 class Match:
+    BASE_WINNER_POINTS = 39
+    MIN_WINNER_POINTS = 0
+    MAX_TIEBREAK_POINTS = 6
+    MIN_TIEBREAK_WINNER_SCORE = 10
+    DISTANCE_PENALTY_MULTIPLIER = -3
+
     def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None):
         self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score
 
@@ -43,17 +49,18 @@ class Match:
         loser_score = self.loser_set1_score + self.loser_set2_score
         if self.loser_set3_score is not None:
             # If a tiebreak, half of the score - rounded up. Otherwise, just the score. However, you can never get more than 6 point for a tiebreak
-            loser_score += min(int(math.ceil(self.loser_set3_score / 2)) if self.played_tiebreak() else self.loser_set3_score, 6)
+            loser_score += min(int(math.ceil(self.loser_set3_score / 2)) if self.played_tiebreak() else self.loser_set3_score, Match.MAX_TIEBREAK_POINTS)
 
-        winner_score = 39 - loser_score - self.calculate_distance_penalty(winner_rank, loser_rank)
+        # The winners score cannot go below zero (if there is a large distance penalty)
+        winner_score = max(Match.BASE_WINNER_POINTS - loser_score - self.calculate_distance_penalty(winner_rank, loser_rank), Match.MIN_WINNER_POINTS)
         return winner_score, loser_score
 
     def played_tiebreak(self):
-        return self.winner_set3_score is not None and self.loser_set3_score is not None and max(self.winner_set3_score, self.loser_set3_score) >= 10
+        return self.winner_set3_score is not None and self.loser_set3_score is not None and max(self.winner_set3_score, self.loser_set3_score) >= Match.MIN_TIEBREAK_WINNER_SCORE
 
     @staticmethod
     def calculate_distance_penalty(winner_rank, loser_rank):
-        return (winner_rank - loser_rank) * -3
+        return (winner_rank - loser_rank) * Match.DISTANCE_PENALTY_MULTIPLIER
 
     def get_insert_properties(self):
         return [self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score]
