@@ -2,6 +2,8 @@ from domain import User, ServiceException, Match
 from datetime import datetime
 
 class Manager:
+    INVALID_RANKING_DISTANCE = 12
+
     def __init__(self, firebase_client, dao):
         self.firebase_client = firebase_client
         self.dao = dao
@@ -68,7 +70,7 @@ class Manager:
         if loser is None:
             raise ServiceException("No user with id: '{}'".format(match.loser_id), 400)
 
-        if abs(winner.ranking - loser.ranking) > 12:
+        if abs(winner.ranking - loser.ranking) > Manager.INVALID_RANKING_DISTANCE:
             raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)
 
         # Update the scores of the players
