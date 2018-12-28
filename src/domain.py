@@ -39,8 +39,7 @@ class Match:
 
         if not Match.is_valid_set(self.winner_set1_score, self.loser_set1_score) or \
                 not Match.is_valid_set(self.winner_set2_score, self.loser_set2_score) or \
-                (self.winner_set3_score is None and self.loser_set3_score is None) or \
-                (not Match.is_valid_set(self.winner_set3_score, self.loser_set3_score) and Match.is_valid_tiebreak(self.winner_set3_score, self.loser_set3_score)):
+                (self.winner_set3_score is not None and self.loser_set3_score is not None and not Match.is_valid_set(self.winner_set3_score, self.loser_set3_score) and not Match.is_valid_tiebreak(self.winner_set3_score, self.loser_set3_score)):
             raise DomainException("Invalid set scores")
         return self
 

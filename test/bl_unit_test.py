@@ -80,14 +80,14 @@ class Test(unittest.TestCase):
         assert_error(0, {}, 404, "No ladder with id: '0'")
 
         # Test with a winner/loser not in the specified ladder
-        assert_error(1, create_match(0, 1, 6, 0, 6, 0), 400, "No user with id: '0'")
-        assert_error(1, create_match(1, 0, 6, 0, 6, 0), 400, "No user with id: '0'")
+        assert_error(1, create_match("TEST0", "TEST1", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
+        assert_error(1, create_match("TEST1", "TEST0", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
 
         # Test with a match where players are too far apart
-        assert_error(1, create_match(1, 14, 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
+        assert_error(1, create_match("TEST1", "TEST14", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
         # Test a match with the same winner and loser (played against themselves)
-        assert_error(1, create_match(1, 1, 6, 0, 6, 0), 400, "A match with the same winner and loser is invalid")
+        assert_error(1, create_match("TEST1", "TEST1", 6, 0, 6, 0), 400, "A match with the same winner and loser is invalid")
 
         # Test date getting reset
         match = self.manager.report_match(1, create_match(1, 2, 6, 0, 6, 0))
@@ -110,6 +110,28 @@ class MockDao:
     ladder_database = {
         1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02")
     }
+    players_database = {
+        "TEST1": Player("TEST1", 1, "Player 1", "test1.jpg", 0, 1, 0, 0),
+        "TEST2": Player("TEST2", 1, "Player 2", "test2.jpg", 0, 1, 0, 0),
+        "TEST3": Player("TEST3", 1, "Player 3", "test3.jpg", 0, 1, 0, 0),
+        "TEST4": Player("TEST4", 1, "Player 4", "test4.jpg", 0, 1, 0, 0),
+        "TEST5": Player("TEST5", 1, "Player 5", "test5.jpg", 0, 1, 0, 0),
+        "TEST6": Player("TEST6", 1, "Player 6", "test6.jpg", 0, 1, 0, 0),
+        "TEST7": Player("TEST7", 1, "Player 7", "test7.jpg", 0, 1, 0, 0),
+        "TEST8": Player("TEST8", 1, "Player 8", "test8.jpg", 0, 1, 0, 0),
+        "TEST9": Player("TEST9", 1, "Player 9", "test9.jpg", 0, 1, 0, 0),
+        "TEST10": Player("TEST10", 1, "Player 10", "test10.jpg", 0, 1, 0, 0),
+        "TEST11": Player("TEST11", 1, "Player 11", "test11.jpg", 0, 1, 0, 0),
+        "TEST12": Player("TEST12", 1, "Player 12", "test12.jpg", 0, 1, 0, 0),
+        "TEST13": Player("TEST13", 1, "Player 13", "test13.jpg", 0, 1, 0, 0),
+        "TEST14": Player("TEST14", 1, "Player 14", "test14.jpg", 0, 1, 0, 0),
+        "TEST15": Player("TEST15", 1, "Player 15", "test15.jpg", 0, 1, 0, 0),
+        "TEST16": Player("TEST16", 1, "Player 16", "test16.jpg", 0, 1, 0, 0),
+        "TEST17": Player("TEST17", 1, "Player 17", "test17.jpg", 0, 1, 0, 0),
+        "TEST18": Player("TEST18", 1, "Player 18", "test18.jpg", 0, 1, 0, 0),
+        "TEST19": Player("TEST19", 1, "Player 19", "test19.jpg", 0, 1, 0, 0),
+        "TEST20": Player("TEST20", 1, "Player 20", "test20.jpg", 0, 1, 0, 0)
+    }
     created_user = False
 
     def get_user(self, user_id):
@@ -128,28 +150,10 @@ class MockDao:
         return self.ladder_database.get(ladder_id)
 
     def get_players(self, ladder_id):
-        return [
-            Player(1, ladder_id, "Player 1", "test1.jpg", 0, 1, 0, 0),
-            Player(2, ladder_id, "Player 2", "test2.jpg", 0, 1, 0, 0),
-            Player(3, ladder_id, "Player 3", "test3.jpg", 0, 1, 0, 0),
-            Player(4, ladder_id, "Player 4", "test4.jpg", 0, 1, 0, 0),
-            Player(5, ladder_id, "Player 5", "test5.jpg", 0, 1, 0, 0),
-            Player(6, ladder_id, "Player 6", "test6.jpg", 0, 1, 0, 0),
-            Player(7, ladder_id, "Player 7", "test7.jpg", 0, 1, 0, 0),
-            Player(8, ladder_id, "Player 8", "test8.jpg", 0, 1, 0, 0),
-            Player(9, ladder_id, "Player 9", "test9.jpg", 0, 1, 0, 0),
-            Player(10, ladder_id, "Player 10", "test10.jpg", 0, 1, 0, 0),
-            Player(11, ladder_id, "Player 11", "test11.jpg", 0, 1, 0, 0),
-            Player(12, ladder_id, "Player 12", "test12.jpg", 0, 1, 0, 0),
-            Player(13, ladder_id, "Player 13", "test13.jpg", 0, 1, 0, 0),
-            Player(14, ladder_id, "Player 14", "test14.jpg", 0, 1, 0, 0),
-            Player(15, ladder_id, "Player 15", "test15.jpg", 0, 1, 0, 0),
-            Player(16, ladder_id, "Player 16", "test16.jpg", 0, 1, 0, 0),
-            Player(17, ladder_id, "Player 17", "test17.jpg", 0, 1, 0, 0),
-            Player(18, ladder_id, "Player 18", "test18.jpg", 0, 1, 0, 0),
-            Player(19, ladder_id, "Player 19", "test19.jpg", 0, 1, 0, 0),
-            Player(20, ladder_id, "Player 20", "test20.jpg", 0, 1, 0, 0)
-        ]
+        return self.players_database.values()
+
+    def get_player(self, ladder_id, user_id):
+        return self.players_database.get(user_id)
 
     def get_matches(self, ladder_id, user_id):
         return [
