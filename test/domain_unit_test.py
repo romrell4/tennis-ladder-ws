@@ -104,6 +104,10 @@ class Test(unittest.TestCase):
         assert_success(create_match(6, 0, 6, 0), 49, 0)
         assert_success(create_match(7, 6, 6, 7, 7, 6), 30, 19)
 
+        # Test that with a large penalty, the winner's score cannot go below 0
+        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: 100
+        assert_success(create_match(7, 6, 6, 7, 7, 6), 0, 19)
+
         # Reset the function to the real one (so that other tests can run)
         Match.calculate_distance_penalty = old_calculate_distance_penalty
         Match.played_tiebreak = old_played_tiebreak
