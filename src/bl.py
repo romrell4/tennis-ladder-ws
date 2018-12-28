@@ -53,8 +53,7 @@ class Manager:
             raise ServiceException("Null match param", 400)
 
         # Look up ladder
-        ladder = self.dao.get_ladder(ladder_id)
-        if ladder is None:
+        if self.dao.get_ladder(ladder_id) is None:
             raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
 
         match = Match.from_dict(match_dict)
