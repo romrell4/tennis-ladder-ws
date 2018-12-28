@@ -52,8 +52,8 @@ class Dao:
         match_id = self.insert("INSERT INTO matches (LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", *match.get_insert_properties())
         return self.get_one(Match, "SELECT * FROM matches WHERE ID = %s", match_id)
 
-    def update_score(self, user_id, ladder_id, new_score):
-        self.execute("UPDATE players SET SCORE = %s WHERE USER_ID = %s and LADDER_ID = %s", new_score, user_id, ladder_id)
+    def update_score(self, user_id, ladder_id, new_score_to_add):
+        self.execute("UPDATE players SET SCORE = SCORE + %s WHERE USER_ID = %s and LADDER_ID = %s", new_score_to_add, user_id, ladder_id)
 
     ### UTILS ###
 

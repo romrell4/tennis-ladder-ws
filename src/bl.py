@@ -1,4 +1,5 @@
 from domain import User, ServiceException, Match
+from datetime import datetime
 
 class Manager:
     def __init__(self, firebase_client, dao):
@@ -70,10 +71,18 @@ class Manager:
         # Validate that the rest of the match is set up properly (valid set scores and players)
         match.validate()
 
-        print(winner)
-        print(loser)
+        if abs(winner.ranking - loser.ranking) > 12:
+            raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)
 
-        # TODO: Mark
-        # TODO: Set match date to right now (to avoid issues with device times being changed)
+        # Update the scores of the players
+        winner_score, loser_score = match.calculate_scores(winner.ranking, loser.ranking)
+        self.dao.update_score(match.winner_id, match.ladder_id, winner_score)
+        self.dao.update_score(match.loser_id, match.ladder_id, loser_score)
+
+        # Set match date to right now (to avoid issues with device times being changed)
+        match.match_date = datetime.now()
+
+        # Save the match to the database (which will assign it a new match_id)
         self.dao.create_match(match)
+
         return match
