@@ -148,5 +148,12 @@ class Test(unittest.TestCase):
         self.assertEqual(5, match.loser_set3_score)
 
     def test_update_score(self):
-        self.dao.update_score('TEST1', -4, 100)
-        self.assertEqual(100, self.dao.get_one(int, "SELECT score FROM players WHERE USER_ID = %s and LADDER_ID = %s", "TEST1", -4))
+        GET_SCORE_SQL = "select SCORE from players where USER_ID = %s and LADDER_ID = %s"
+
+        # Test updating someone who doesn't have any points yet
+        self.dao.update_score("TEST1", -4, 100)
+        self.assertEqual(100, self.dao.get_one(int, GET_SCORE_SQL, "TEST1", -4))
+
+        # Test updating someone who already has points (to make sure it overwrites it)
+        self.dao.update_score("TEST1", -3, 2)
+        self.assertEqual(2, self.dao.get_one(int, GET_SCORE_SQL, "TEST1", -3))
