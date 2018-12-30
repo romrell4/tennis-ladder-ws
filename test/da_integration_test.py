@@ -154,6 +154,6 @@ class Test(unittest.TestCase):
         self.dao.update_score("TEST1", -4, 100)
         self.assertEqual(100, self.dao.get_one(int, GET_SCORE_SQL, "TEST1", -4))
 
-        # Test updating someone who already has points (to make sure it overwrites it)
+        # Test updating someone who already has points (to make sure it adds to what is already there)
         self.dao.update_score("TEST1", -3, 2)
-        self.assertEqual(2, self.dao.get_one(int, GET_SCORE_SQL, "TEST1", -3))
+        self.assertEqual(7, self.dao.get_one(int, GET_SCORE_SQL, "TEST1", -3))

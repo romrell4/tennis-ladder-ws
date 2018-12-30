@@ -9,20 +9,50 @@ class Test(unittest.TestCase):
                 match.validate()
             self.assertEqual(DomainException.MESSAGE_FORMAT.format(expected_error_message), e.exception.error_message)
 
-        # Test match with no ladder id
-        assert_error("Missing ladder_id", Match(None, None, "2018-01-01", 1, 2, 6, 0, 6, 0))
+        def create_match(ladder_id, winner_id, loser_id, scores = None):
+            w1, l1, w2, l2, w3, l3 = 0, 0, 0, 0, None, None
+            if scores is not None:
+                w1, l1, w2, l2, w3, l3 = scores
+            return Match(None, ladder_id, None, winner_id, loser_id, w1, l1, w2, l2, w3, l3)
 
-        # Test match with no date
-        assert_error("Missing match_date", Match(None, 0, None, 1, 2, 6, 0, 6, 0))
+        ### Overwriting the "is_valid" functions to work in a way that we can test
+        old_is_valid_set = Match.is_valid_set
+        old_is_valid_tiebreak = Match.is_valid_tiebreak
+        Match.is_valid_set = lambda x, y: x == 0 and y == 0
+        Match.is_valid_tiebreak = lambda x, y: x == 1 and y == 1
+
+        # Test match with no ladder id
+        assert_error("Missing ladder_id", create_match(None, None, None))
 
         # Test match with null winner id
-        assert_error("Missing winner_id", Match(None, 0, "2018-01-01", None, 1, 6, 0, 6, 0))
+        assert_error("Missing winner_id", create_match(0, None, 1))
 
         # Test match with null loser id
-        assert_error("Missing loser_id", Match(None, 0, "2018-01-01", 1, None, 6, 0, 6, 0))
+        assert_error("Missing loser_id", create_match(0, 1, None))
 
         # Test match against oneself
-        assert_error("A match cannot be played against oneself", Match(None, 0, "2018-01-01", 1, 1, 6, 0, 6, 0))
+        assert_error("A match cannot be played against oneself", create_match(0, 1, 1))
+
+        # Test invalid first set
+        assert_error("Invalid set scores", create_match(0, 1, 2, [-1, -1, 0, 0, None, None]))
+
+        # Test invalid second set
+        assert_error("Invalid set scores", create_match(0, 1, 2, [0, 0, -1, -1, None, None]))
+
+        # Test no third set
+        create_match(0, 1, 2, [0, 0, 0, 0, None, None]).validate()
+
+        # Test invalid third set
+        assert_error("Invalid set scores", create_match(0, 1, 2, [0, 0, 0, 0, -1, -1]))
+
+        # Test valid third set
+        create_match(0, 1, 2, [0, 0, 0, 0, 0, 0]).validate()
+
+        # Test valid third tiebreak
+        create_match(0, 1, 2, [0, 0, 0, 0, 1, 1]).validate()
+
+        Match.is_valid_set = old_is_valid_set
+        Match.is_valid_tiebreak = old_is_valid_tiebreak
 
     def _test_is_valid_set(self):
         self.assertFalse(Match.is_valid_set(None, None))
