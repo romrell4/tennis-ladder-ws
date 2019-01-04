@@ -31,20 +31,7 @@ class Manager:
         # Get all the matches (which will only have user ids, not the full player)
         matches = self.dao.get_matches(ladder_id, user_id)
 
-        # Get all players in that ladder
-        players = self.dao.get_players(ladder_id)
-
-        # Create a map for quick and easy look up
-        player_map = {}
-        for player in players:
-            player_map[player.user_id] = player
-
-        # Attach the winners and losers to the match
-        for match in matches:
-            match.winner = player_map[match.winner_id]
-            match.loser = player_map[match.loser_id]
-
-        return matches
+        return self.transform_matches(matches, ladder_id)
 
     def report_match(self, ladder_id, match_dict):
         if self.user is None:
@@ -84,4 +71,20 @@ class Manager:
         # Save the match to the database (which will assign it a new match_id)
         self.dao.create_match(match)
 
-        return match
+        return self.transform_matches([match], ladder_id)[0]
+
+    def transform_matches(self, matches, ladder_id):
+        # Get all players in that ladder
+        players = self.dao.get_players(ladder_id)
+
+        # Create a map for quick and easy look up
+        player_map = {}
+        for player in players:
+            player_map[player.user_id] = player
+
+        # Attach the winners and losers to the match
+        for match in matches:
+            match.winner = player_map[match.winner_id]
+            match.loser = player_map[match.loser_id]
+
+        return matches
