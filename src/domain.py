@@ -60,7 +60,7 @@ class Match:
             if difference < 2 and difference > -2: return False
         if winner_score > 6 or loser_score > 6:
             if difference > 2 or difference < -2: return False
-        # TODO: Mark
+        return True
 
     @staticmethod
     def is_valid_tiebreak(winner_score, loser_score):
