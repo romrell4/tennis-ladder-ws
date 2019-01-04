@@ -67,7 +67,9 @@ class Test(unittest.TestCase):
 
         # Overwrite the calculate scores function for easier testing
         old_calculate_scores = Match.calculate_scores
+        old_validate = Match.validate
         Match.calculate_scores = lambda _, x, y: (10, 5)
+        Match.validate = lambda match: match
 
         # Test when the manager doesn't have a user
         assert_error(0, {}, 403, "Unable to authenticate")
@@ -100,6 +102,7 @@ class Test(unittest.TestCase):
 
         # Set mocked function back to originals
         Match.calculate_scores = old_calculate_scores
+        Match.validate = old_validate
 
 class MockFirebaseClient:
     valid_user = True
