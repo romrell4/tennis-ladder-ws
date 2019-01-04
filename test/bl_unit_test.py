@@ -55,8 +55,12 @@ class Test(unittest.TestCase):
             return {
                 "ladder_id": 1,
                 "match_date": None,
-                "winner_id": winner_id,
-                "loser_id": loser_id,
+                "winner": {
+                    "user_id": winner_id
+                },
+                "loser": {
+                    "user_id": loser_id
+                },
                 "winner_set1_score": winner_set1_score,
                 "loser_set1_score": loser_set1_score,
                 "winner_set2_score": winner_set2_score,
