@@ -1,16 +1,23 @@
+import datetime
 import json
 
 from bl import Manager
+from firebase_client import FirebaseClient
 from da import Dao
 from domain import ServiceException
 
-def handle(event, context):
-    # TODO: Pass in whatever data is needed to authenticate the user into the manager
-    dao = Dao()
-    manager = Manager(dao)
-    return Handler(manager).handle(event)
+def handle(event, _):
+    return Handler.get_instance().handle(event)
 
 class Handler:
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        if Handler.instance is None:
+            Handler.instance = Handler(Manager(FirebaseClient(), Dao()))
+        return Handler.instance
+
     def __init__(self, manager):
         self.manager = manager
 
@@ -26,16 +33,15 @@ class Handler:
             except (TypeError, KeyError, ValueError):
                 body = None
 
-            if resource == "/users" and method == "POST":
-                response_body = self.manager.login()
-            elif self.manager.user is None:
-                # If this user isn't in our database, they are only allowed to use the login endpoint
-                raise ServiceException("This user is not tracked in our database. The only allowed endpoint is /users POST to create an account.", 403)
-            elif resource == "/ladders" and method == "GET":
+            self.manager.validate_token(self.get_token(event))
+
+            if resource == "/ladders" and method == "GET":
                 response_body = self.manager.get_ladders()
             elif resource == "/ladders/{ladder_id}/players" and method == "GET":
                 response_body = self.manager.get_players(int(path_parameters.get("ladder_id")))
-            elif resource == "/ladders/{ladder_id}/match" and method == "POST":
+            elif resource == "/ladders/{ladder_id}/players/{user_id}/matches" and method == "GET":
+                response_body = self.manager.get_matches(int(path_parameters.get("ladder_id")), path_parameters.get("user_id"))
+            elif resource == "/ladders/{ladder_id}/matches" and method == "POST":
                 response_body = self.manager.report_match(int(path_parameters.get("ladder_id")), body)
             else:
                 raise ServiceException("Invalid path: '{} {}'".format(resource, method))
@@ -44,8 +50,21 @@ class Handler:
         except ServiceException as e:
             return format_response({"error": e.error_message}, e.status_code)
 
+    @staticmethod
+    def get_token(event):
+        # Lower case all the keys, then look for token
+        return {k.lower(): v for k, v in event["headers"].items()}.get("x-firebase-token")
+
 def format_response(body = None, status_code = 200):
     return {
         "statusCode": status_code,
-        "body": json.dumps(body, default = lambda x: x.__dict__) if body is not None else None
+        "body": json.dumps(body, default = default_serialize) if body is not None else None
     }
+
+def default_serialize(x):
+    if isinstance(x, datetime.date):
+        return x.isoformat()
+    elif isinstance(x, datetime.datetime):
+        return x.isoformat()
+    else:
+        return x.__dict__

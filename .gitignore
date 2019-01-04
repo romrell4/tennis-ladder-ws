@@ -2,4 +2,5 @@ properties.py
 __pycache__
 .idea
 lambda.zip
+firebase_creds.json
 .DS_Store
