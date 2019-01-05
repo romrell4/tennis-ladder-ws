@@ -1,5 +1,6 @@
 import os
 import unittest
+import json
 
 import properties
 from bl import Manager
@@ -21,7 +22,19 @@ class Test(unittest.TestCase):
 
     def test_handle(self):
         response = self.handler.handle({
-            "resource": "/users",
+            "resource": "/ladders/{ladder_id}/matches",
+            "pathParameters": {
+                "ladder_id": "3"
+            },
+            "body": json.dumps({
+                "ladder_id": 3,
+                "winner": {"user_id": "erwNxS1AGZVTIakvViXrmeRbasI3"},
+                "loser": {"user_id": "cfKrbIBjKZe4EFSr42hRqhWILyw1"},
+                "winner_set1_score": 6,
+                "loser_set1_score": 0,
+                "winner_set2_score": 6,
+                "loser_set2_score": 0
+            }),
             "httpMethod": "POST",
             "headers": {
                 "X-Firebase-Token": properties.firebase_token

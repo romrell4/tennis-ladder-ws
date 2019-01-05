@@ -69,7 +69,7 @@ class Manager:
         match.match_date = datetime.now()
 
         # Save the match to the database (which will assign it a new match_id)
-        self.dao.create_match(match)
+        match = self.dao.create_match(match)
 
         return self.transform_matches([match], ladder_id)[0]
 
