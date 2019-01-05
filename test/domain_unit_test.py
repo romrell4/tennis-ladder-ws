@@ -25,10 +25,10 @@ class Test(unittest.TestCase):
         assert_error("Missing ladder_id", create_match(None, None, None))
 
         # Test match with null winner id
-        assert_error("Missing winner_id", create_match(0, None, 1))
+        assert_error("Missing winner's user_id", create_match(0, None, 1))
 
         # Test match with null loser id
-        assert_error("Missing loser_id", create_match(0, 1, None))
+        assert_error("Missing loser's user_id", create_match(0, 1, None))
 
         # Test match against oneself
         assert_error("A match cannot be played against oneself", create_match(0, 1, 1))

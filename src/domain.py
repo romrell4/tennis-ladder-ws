@@ -39,8 +39,8 @@ class Match:
 
     def validate(self):
         if self.ladder_id is None: raise DomainException("Missing ladder_id")
-        if self.winner_id is None: raise DomainException("Missing winner_id")
-        if self.loser_id is None: raise DomainException("Missing loser_id")
+        if self.winner_id is None: raise DomainException("Missing winner's user_id")
+        if self.loser_id is None: raise DomainException("Missing loser's user_id")
         if self.winner_id == self.loser_id: raise DomainException("A match cannot be played against oneself")
 
         if not Match.is_valid_set(self.winner_set1_score, self.loser_set1_score) or \
