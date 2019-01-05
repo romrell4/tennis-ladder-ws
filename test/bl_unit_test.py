@@ -1,5 +1,6 @@
 import unittest
 from datetime import datetime
+import copy
 
 from bl import Manager
 from domain import ServiceException, Ladder, Player, Match, User
@@ -100,6 +101,7 @@ class Test(unittest.TestCase):
         self.assertEqual(2, len(self.manager.dao.updated_scores))
         self.assertEqual(10, self.manager.dao.updated_scores[0][2])
         self.assertEqual(5, self.manager.dao.updated_scores[1][2])
+        self.assertIsNotNone(match.match_id)
         self.assertIsNotNone(self.manager.dao.saved_match)
         self.assertIsNotNone(self.manager.dao.saved_match.match_date)
         self.assertIsNotNone(match)
@@ -176,7 +178,9 @@ class MockDao:
 
     def create_match(self, match):
         self.saved_match = match
-        return match
+        new_match = copy.deepcopy(match)
+        new_match.match_id = 0
+        return new_match
 
     def update_score(self, user_id, ladder_id, new_score_to_add):
         self.updated_scores.append([user_id, ladder_id, new_score_to_add])
