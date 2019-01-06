@@ -161,16 +161,6 @@
 		}
 	},
 	"definitions": {
-		"user": {
-			"properties": {
-				"user_id": {
-					"type": "integer"
-				},
-				"name": {
-					"type": "string"
-				}
-			}
-		},
 		"ladders": {
 			"type": "array",
 			"items": {
@@ -203,17 +193,10 @@
 		},
 		"player": {
 			"properties": {
-				"user_id": {
-					"type": "integer"
-				},
-				"name": {
-					"type": "string"
-				},
-				"email": {
-					"type": "string"
-				},
-				"photo_url": {
-					"type": "string"
+				"user": {
+					"schema": {
+						"$ref": "#/definitions/user"
+					}
 				},
 				"ladder_id": {
 					"type": "integer"
@@ -230,6 +213,23 @@
 				"losses": {
 					"type": "integer"
 				}
+			}
+		},
+		"user": {
+			"user_id": {
+				"type": "integer"
+			},
+			"name": {
+				"type": "string"
+			},
+			"email": {
+				"type": "string"
+			},
+			"phone_number": {
+				"type": "string"
+			},
+			"photo_url": {
+				"type": "string"
 			}
 		},
 		"matches": {

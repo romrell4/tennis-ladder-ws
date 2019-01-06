@@ -98,7 +98,10 @@ class Test(unittest.TestCase):
 
         # Test that the order is correct, and that all values were deserialized
         player = players[0]
-        self.assertEqual("TEST2", player.user_id)
+        self.assertEqual("TEST2", player.user.user_id)
+        self.assertEqual("Tester Two", player.user.name)
+        self.assertEqual("test2@mail.com", player.user.email)
+        self.assertEqual("test2.jpg", player.user.photo_url)
         self.assertEqual(-3, player.ladder_id)
         self.assertEqual(10, player.score)
         self.assertEqual(1, player.ranking)

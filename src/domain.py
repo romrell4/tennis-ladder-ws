@@ -27,8 +27,8 @@ class Match:
             match_dict.get("match_id"),
             match_dict.get("ladder_id"),
             match_dict.get("match_date"),
-            match_dict.get("winner").get("user_id") if "winner" in match_dict else None,
-            match_dict.get("loser").get("user_id") if "loser" in match_dict else None,
+            match_dict.get("winner", {}).get("user", {}).get("user_id"),
+            match_dict.get("loser", {}).get("user", {}).get("user_id"),
             match_dict.get("winner_set1_score"),
             match_dict.get("loser_set1_score"),
             match_dict.get("winner_set2_score"),
@@ -83,7 +83,7 @@ class Match:
 
 class Player:
     def __init__(self, user_id, name, email, photo_url, ladder_id, score, ranking, wins, losses):
-        self.user_id, self.name, self.email, self.photo_url, self.ladder_id, self.score, self.ranking, self.wins, self.losses = user_id, name, email, photo_url, ladder_id, score, ranking, wins, losses
+        self.user, self.ladder_id, self.score, self.ranking, self.wins, self.losses = User(user_id, name, email, photo_url), ladder_id, score, ranking, wins, losses
 
 class ServiceException(Exception):
     def __init__(self, message, status_code = 500):

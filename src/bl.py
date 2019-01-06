@@ -80,7 +80,7 @@ class Manager:
         # Create a map for quick and easy look up
         player_map = {}
         for player in players:
-            player_map[player.user_id] = player
+            player_map[player.user.user_id] = player
 
         # Attach the winners and losers to the match
         for match in matches:

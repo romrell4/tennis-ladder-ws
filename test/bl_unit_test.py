@@ -40,10 +40,10 @@ class Test(unittest.TestCase):
         self.assertIsNotNone(matches)
         self.assertEqual(1, len(matches))
         self.assertEqual(1, matches[0].match_id)
-        self.assertEqual("TEST1", matches[0].winner.user_id)
-        self.assertEqual("Player 1", matches[0].winner.name)
-        self.assertEqual("TEST2", matches[0].loser.user_id)
-        self.assertEqual("Player 2", matches[0].loser.name)
+        self.assertEqual("TEST1", matches[0].winner.user.user_id)
+        self.assertEqual("Player 1", matches[0].winner.user.name)
+        self.assertEqual("TEST2", matches[0].loser.user.user_id)
+        self.assertEqual("Player 2", matches[0].loser.user.name)
 
     def test_report_match(self):
         def assert_error(ladder_id, match_dict, status_code, error_message):
@@ -57,10 +57,14 @@ class Test(unittest.TestCase):
                 "ladder_id": 1,
                 "match_date": None,
                 "winner": {
-                    "user_id": winner_id
+                    "user": {
+                        "user_id": winner_id
+                    }
                 },
                 "loser": {
-                    "user_id": loser_id
+                    "user": {
+                        "user_id": loser_id
+                    }
                 },
                 "winner_set1_score": winner_set1_score,
                 "loser_set1_score": loser_set1_score,
