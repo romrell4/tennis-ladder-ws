@@ -68,6 +68,8 @@ class Test(unittest.TestCase):
     def test_report_match(self):
         response = self.handler.handle(create_event("/ladders/{ladder_id}/matches", {"ladder_id": "1"}, "POST", "{}"))
         self.assertEqual(200, response["statusCode"])
+        self.assertIsNotNone(MockManager.reported_match)
+        MockManager.reported_match = None
         match = json.loads(response["body"])
         self.assertEqual(1, match["match_id"])
         self.assertEqual(1, match["ladder_id"])
@@ -88,14 +90,19 @@ class Test(unittest.TestCase):
         self.assertEqual("TEST", response)
 
 def create_event(resource, path_params = {}, method = "GET", body = None):
-    return {
+    event = {
         "resource": resource,
         "pathParameters": path_params,
         "httpMethod": method,
         "headers": {"X-Firebase-Token": ""}
     }
+    if body is not None:
+        event["body"] = body
+    return event
 
 class MockManager():
+    reported_match = None
+
     def __init__(self):
         self.user = User("1", "User1", "user@test.com", "hello.jpg")
 
@@ -131,4 +138,5 @@ class MockManager():
             ]
 
     def report_match(self, ladder_id, match):
+        MockManager.reported_match = match
         return Match(1, 1, datetime(2018, 2, 2, 1, 0, 0), 2, 3, 6, 0, 5, 7, 6, 3)
