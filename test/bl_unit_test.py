@@ -125,26 +125,26 @@ class MockDao:
         1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02")
     }
     players_database = {
-        "TEST1": Player("TEST1", 1, "Player 1", "test1.jpg", 100, 1, 0, 0),
-        "TEST2": Player("TEST2", 1, "Player 2", "test2.jpg", 95, 2, 0, 0),
-        "TEST3": Player("TEST3", 1, "Player 3", "test3.jpg", 90, 3, 0, 0),
-        "TEST4": Player("TEST4", 1, "Player 4", "test4.jpg", 85, 4, 0, 0),
-        "TEST5": Player("TEST5", 1, "Player 5", "test5.jpg", 80, 5, 0, 0),
-        "TEST6": Player("TEST6", 1, "Player 6", "test6.jpg", 75, 6, 0, 0),
-        "TEST7": Player("TEST7", 1, "Player 7", "test7.jpg", 70, 7, 0, 0),
-        "TEST8": Player("TEST8", 1, "Player 8", "test8.jpg", 65, 8, 0, 0),
-        "TEST9": Player("TEST9", 1, "Player 9", "test9.jpg", 60, 9, 0, 0),
-        "TEST10": Player("TEST10", 1, "Player 10", "test10.jpg", 55, 10, 0, 0),
-        "TEST11": Player("TEST11", 1, "Player 11", "test11.jpg", 50, 11, 0, 0),
-        "TEST12": Player("TEST12", 1, "Player 12", "test12.jpg", 45, 12, 0, 0),
-        "TEST13": Player("TEST13", 1, "Player 13", "test13.jpg", 40, 13, 0, 0),
-        "TEST14": Player("TEST14", 1, "Player 14", "test14.jpg", 35, 14, 0, 0),
-        "TEST15": Player("TEST15", 1, "Player 15", "test15.jpg", 30, 15, 0, 0),
-        "TEST16": Player("TEST16", 1, "Player 16", "test16.jpg", 25, 16, 0, 0),
-        "TEST17": Player("TEST17", 1, "Player 17", "test17.jpg", 20, 17, 0, 0),
-        "TEST18": Player("TEST18", 1, "Player 18", "test18.jpg", 15, 18, 0, 0),
-        "TEST19": Player("TEST19", 1, "Player 19", "test19.jpg", 10, 19, 0, 0),
-        "TEST20": Player("TEST20", 1, "Player 20", "test20.jpg", 5, 20, 0, 0)
+        "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "test1.jpg", 1, 100, 1, 0, 0),
+        "TEST2": Player("TEST2", "Player 2", "test2@mail.com", "test2.jpg", 1, 95, 2, 0, 0),
+        "TEST3": Player("TEST3", "Player 3", "test3@mail.com", "test3.jpg", 1, 90, 3, 0, 0),
+        "TEST4": Player("TEST4", "Player 4", "test4@mail.com", "test4.jpg", 1, 85, 4, 0, 0),
+        "TEST5": Player("TEST5", "Player 5", "test5@mail.com", "test5.jpg", 1, 80, 5, 0, 0),
+        "TEST6": Player("TEST6", "Player 6", "test6@mail.com", "test6.jpg", 1, 75, 6, 0, 0),
+        "TEST7": Player("TEST7", "Player 7", "test7@mail.com", "test7.jpg", 1, 70, 7, 0, 0),
+        "TEST8": Player("TEST8", "Player 8", "test8@mail.com", "test8.jpg", 1, 65, 8, 0, 0),
+        "TEST9": Player("TEST9", "Player 9", "test9@mail.com", "test9.jpg", 1, 60, 9, 0, 0),
+        "TEST10": Player("TEST10", "Player 10", "test10@mail.com", "test10.jpg", 1, 55, 10, 0, 0),
+        "TEST11": Player("TEST11", "Player 11", "test11@mail.com", "test11.jpg", 1, 50, 11, 0, 0),
+        "TEST12": Player("TEST12", "Player 12", "test12@mail.com", "test12.jpg", 1, 45, 12, 0, 0),
+        "TEST13": Player("TEST13", "Player 13", "test13@mail.com", "test13.jpg", 1, 40, 13, 0, 0),
+        "TEST14": Player("TEST14", "Player 14", "test14@mail.com", "test14.jpg", 1, 35, 14, 0, 0),
+        "TEST15": Player("TEST15", "Player 15", "test15@mail.com", "test15.jpg", 1, 30, 15, 0, 0),
+        "TEST16": Player("TEST16", "Player 16", "test16@mail.com", "test16.jpg", 1, 25, 16, 0, 0),
+        "TEST17": Player("TEST17", "Player 17", "test17@mail.com", "test17.jpg", 1, 20, 17, 0, 0),
+        "TEST18": Player("TEST18", "Player 18", "test18@mail.com", "test18.jpg", 1, 15, 18, 0, 0),
+        "TEST19": Player("TEST19", "Player 19", "test19@mail.com", "test19.jpg", 1, 10, 19, 0, 0),
+        "TEST20": Player("TEST20", "Player 20", "test20@mail.com", "test20.jpg", 1, 5, 20, 0, 0)
     }
     updated_scores = []
     saved_match = None

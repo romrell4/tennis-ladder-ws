@@ -206,14 +206,17 @@
 				"user_id": {
 					"type": "integer"
 				},
-				"ladder_id": {
-					"type": "integer"
-				},
 				"name": {
+					"type": "string"
+				},
+				"email": {
 					"type": "string"
 				},
 				"photo_url": {
 					"type": "string"
+				},
+				"ladder_id": {
+					"type": "integer"
 				},
 				"score": {
 					"type": "integer"
