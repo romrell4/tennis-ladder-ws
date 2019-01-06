@@ -5,9 +5,9 @@ import os
 class Dao:
     PLAYER_SQL_PREFIX = """
         select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, u.PHOTO_URL, p.SCORE,
-          (select count(*) + 1 from players where SCORE > p.SCORE) as RANKING,
-          (select count(*) as WINS from matches where WINNER_ID = u.ID) as WINS,
-          (select count(*) as WINS from matches where LOSER_ID = u.ID) as LOSSES
+          (select count(*) + 1 from players where LADDER_ID = %s and SCORE > p.SCORE) as RANKING,
+          (select count(*) as WINS from matches where LADDER_ID = %s and WINNER_ID = u.ID) as WINS,
+          (select count(*) as WINS from matches where LADDER_ID = %s and LOSER_ID = u.ID) as LOSSES
         from players p
         join users u
             on p.USER_ID = u.ID
@@ -40,10 +40,10 @@ class Dao:
         return self.get_one(Ladder, "select * from ladders where ID = %s", ladder_id)
 
     def get_players(self, ladder_id):
-        return self.get_list(Player, self.PLAYERS_SQL, ladder_id)
+        return self.get_list(Player, self.PLAYERS_SQL, ladder_id, ladder_id, ladder_id, ladder_id)
 
     def get_player(self, ladder_id, user_id):
-        return self.get_one(Player, self.PLAYER_SQL, ladder_id, user_id)
+        return self.get_one(Player, self.PLAYER_SQL, ladder_id, ladder_id, ladder_id, ladder_id, user_id)
 
     def get_matches(self, ladder_id, user_id):
         return self.get_list(Match, "SELECT * FROM matches where LADDER_ID = %s and (WINNER_ID = %s or LOSER_ID = %s)", ladder_id, user_id, user_id)
