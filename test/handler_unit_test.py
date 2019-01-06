@@ -27,9 +27,10 @@ class Test(unittest.TestCase):
         players = json.loads(response["body"])
         self.assertEqual(1, len(players))
         self.assertEqual(1, players[0]["user_id"])
-        self.assertEqual(1, players[0]["ladder_id"])
         self.assertEqual("User1", players[0]["name"])
+        self.assertEqual("user1@test.com", players[0]["email"])
         self.assertEqual("test1.jpg", players[0]["photo_url"])
+        self.assertEqual(1, players[0]["ladder_id"])
         self.assertEqual(10, players[0]["score"])
         self.assertEqual(3, players[0]["ranking"])
         self.assertEqual(1, players[0]["wins"])
@@ -104,7 +105,7 @@ class MockManager():
     reported_match = None
 
     def __init__(self):
-        self.user = User("1", "User1", "user@test.com", "hello.jpg")
+        self.user = User("1", "User1", "user1@test.com", "hello.jpg")
 
     def validate_token(self, token):
         pass
@@ -118,12 +119,12 @@ class MockManager():
     def get_players(self, ladder_id):
         if ladder_id == 1:
             return [
-                Player(1, 1, "User1", "test1.jpg", 10, 3, 1, 0)
+                Player(1, "User1", "user1@test.com", "test1.jpg", 1, 10, 3, 1, 0)
             ]
         elif ladder_id == 2:
             return [
-                Player(2, 2, "User2", "test2.jpg", 0, 1, 0, 0),
-                Player(3, 2, "User3", "test3.jpg", 0, 1, 0, 0)
+                Player(2, "User2", "user2@test.com", "test2.jpg", 2, 0, 1, 0, 0),
+                Player(3, "User3", "user3@test.com", "test3.jpg", 2, 0, 1, 0, 0)
             ]
 
     def get_matches(self, ladder_id, user_id):

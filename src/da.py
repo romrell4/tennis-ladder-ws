@@ -4,7 +4,7 @@ import os
 
 class Dao:
     PLAYER_SQL_PREFIX = """
-        select u.ID as USER_ID, l.ID as LADDER_ID, u.NAME, u.PHOTO_URL, p.SCORE,
+        select u.*, l.ID as LADDER_ID, p.SCORE,
           (select count(*) + 1 from players where LADDER_ID = %s and SCORE > p.SCORE) as RANKING,
           (select count(*) as WINS from matches where LADDER_ID = %s and WINNER_ID = u.ID) as WINS,
           (select count(*) as WINS from matches where LADDER_ID = %s and LOSER_ID = u.ID) as LOSSES
