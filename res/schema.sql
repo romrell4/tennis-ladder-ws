@@ -3,6 +3,7 @@ create table users (
   ID varchar(64) key not null,
   NAME varchar(64) not null,
   EMAIL varchar(64) not null,
+  PHONE_NUMBER varchar(32),
   PHOTO_URL varchar(256) not null
 );
 

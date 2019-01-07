@@ -105,7 +105,7 @@ class MockManager():
     reported_match = None
 
     def __init__(self):
-        self.user = User("1", "User1", "user1@test.com", "hello.jpg")
+        self.user = User("1", "User1", "user1@test.com", None, "hello.jpg")
 
     def validate_token(self, token):
         pass
@@ -119,12 +119,12 @@ class MockManager():
     def get_players(self, ladder_id):
         if ladder_id == 1:
             return [
-                Player(1, "User1", "user1@test.com", "test1.jpg", 1, 10, 3, 1, 0)
+                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", 1, 10, 3, 1, 0)
             ]
         elif ladder_id == 2:
             return [
-                Player(2, "User2", "user2@test.com", "test2.jpg", 2, 0, 1, 0, 0),
-                Player(3, "User3", "user3@test.com", "test3.jpg", 2, 0, 1, 0, 0)
+                Player(2, "User2", "user2@test.com", "000-000-0000", "test2.jpg", 2, 0, 1, 0, 0),
+                Player(3, "User3", "user3@test.com", "000-000-0000", "test3.jpg", 2, 0, 1, 0, 0)
             ]
 
     def get_matches(self, ladder_id, user_id):
