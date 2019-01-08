@@ -95,6 +95,24 @@
 						"schema": {
 							"$ref": "#/definitions/players"
 						}
+					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"404": {
+						"description": "Ladder not found",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
 					}
 				},
 				"x-amazon-apigateway-integration": {
@@ -183,8 +201,20 @@
 							"$ref": "#/definitions/match"
 						}
 					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
 					"401": {
 						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"404": {
+						"description": "Ladder not found",
 						"schema": {
 							"$ref": "#/definitions/error"
 						}
