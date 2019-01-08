@@ -119,6 +119,29 @@ class Test(unittest.TestCase):
         player = self.dao.get_player(-3, "TEST1")
         self.assertIsNotNone(player)
 
+    def test_create_player(self):
+        try:
+            self.dao.create_player(-4, "TEST2")
+            score = self.dao.get_one(int, "select SCORE from players where LADDER_ID = -4 and USER_ID = 'TEST2'")
+            self.assertEqual(0, score)
+        finally:
+            self.dao.execute("DELETE FROM players where LADDER_ID = -4 and USER_ID = 'TEST2'")
+
+    def test_update_score(self):
+        get_score_sql = "select SCORE from players where USER_ID = 'TEST1' and LADDER_ID = -4"
+
+        # Make sure the user starts out with no points
+        self.assertEqual(0, self.dao.get_one(int, get_score_sql))
+        self.dao.update_score("TEST1", -4, 100)
+        self.assertEqual(100, self.dao.get_one(int, get_score_sql))
+
+        # Test updating someone who already has points (to make sure it adds to what is already there)
+        self.dao.update_score("TEST1", -4, 2)
+        self.assertEqual(102, self.dao.get_one(int, get_score_sql))
+
+        # Reset the score back to 0
+        self.dao.execute("update players set SCORE = 0 where USER_ID = 'TEST1' and LADDER_ID = -4")
+
     def test_get_matches(self):
         # Test a non-existent ladder
         matches = self.dao.get_matches(-5, "TEST1")
@@ -168,18 +191,3 @@ class Test(unittest.TestCase):
             self.assertEqual(5, match.loser_set3_score)
         finally:
             self.dao.execute("DELETE FROM matches where ID = %s", match.match_id)
-
-    def test_update_score(self):
-        get_score_sql = "select SCORE from players where USER_ID = 'TEST1' and LADDER_ID = -4"
-
-        # Make sure the user starts out with no points
-        self.assertEqual(0, self.dao.get_one(int, get_score_sql))
-        self.dao.update_score("TEST1", -4, 100)
-        self.assertEqual(100, self.dao.get_one(int, get_score_sql))
-
-        # Test updating someone who already has points (to make sure it adds to what is already there)
-        self.dao.update_score("TEST1", -4, 2)
-        self.assertEqual(102, self.dao.get_one(int, get_score_sql))
-
-        # Reset the score back to 0
-        self.dao.execute("update players set SCORE = 0 where USER_ID = 'TEST1' and LADDER_ID = -4")
