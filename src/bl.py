@@ -31,6 +31,7 @@ class Manager:
         # Get all the matches (which will only have user ids, not the full player)
         matches = self.dao.get_matches(ladder_id, user_id)
 
+        # Attach winners and losers to the matches
         return self.transform_matches(matches, ladder_id)
 
     def report_match(self, ladder_id, match_dict):
@@ -71,6 +72,7 @@ class Manager:
         # Save the match to the database (which will assign it a new match_id)
         match = self.dao.create_match(match)
 
+        # Attach winners and losers to the match
         return self.transform_matches([match], ladder_id)[0]
 
     def transform_matches(self, matches, ladder_id):

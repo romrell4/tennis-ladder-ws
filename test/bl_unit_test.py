@@ -114,6 +114,7 @@ class Test(unittest.TestCase):
         # Set mocked function back to originals
         Match.calculate_scores = old_calculate_scores
         Match.validate = old_validate
+        self.manager.user = None
 
 class MockFirebaseClient:
     valid_user = True
