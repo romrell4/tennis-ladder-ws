@@ -43,7 +43,7 @@ class Manager:
 
         # If sure that if a code exists, that it matches
         if real_code is not None and real_code != code:
-            raise ServiceException("Invalid code", 400)
+            raise ServiceException("The code provided does not match the code of the ladder. If you believe this in error, please contact the ladder's sponsor.", 400)
 
         # Create the new player, tying the user to the ladder
         self.dao.create_player(ladder_id, self.user.user_id)

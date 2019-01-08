@@ -54,10 +54,10 @@ class Test(unittest.TestCase):
         assert_error(0, None, 404, "No ladder with id: '0'")
 
         # Test with no code (when there is supposed to be one)
-        assert_error(1, None, 400, "Invalid code")
+        assert_error(1, None, 400, "The code provided does not match the code of the ladder. If you believe this in error, please contact the ladder's sponsor.")
 
         # Test with a a bad code
-        assert_error(1, "bad", 400, "Invalid code")
+        assert_error(1, "bad", 400, "The code provided does not match the code of the ladder. If you believe this in error, please contact the ladder's sponsor.")
 
         # Test valid code
         players = self.manager.add_player_to_ladder(1, "good")
