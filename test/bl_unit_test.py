@@ -36,6 +36,44 @@ class Test(unittest.TestCase):
         self.assertIsNotNone(self.manager.user)
         self.assertFalse(self.manager.dao.created_user)
 
+    def test_add_player_to_ladder(self):
+        def assert_error(ladder_id, code, status_code, error_message):
+            with self.assertRaises(ServiceException) as e:
+                self.manager.add_player_to_ladder(ladder_id, code)
+            self.assertEqual(status_code, e.exception.status_code)
+            self.assertEqual(error_message, e.exception.error_message)
+
+        # Test when not logged in
+        assert_error(None, None, 401, "Unable to authenticate")
+        self.manager.user = User("USER1", "User", "user@test.com", None, "user.jpg")
+
+        # Test with null ladder_id
+        assert_error(None, None, 400, "Null ladder_id param")
+
+        # Test with a non existent ladder
+        assert_error(0, None, 404, "No ladder with id: '0'")
+
+        # Test with no code (when there is supposed to be one)
+        assert_error(1, None, 400, "Invalid code")
+
+        # Test with a a bad code
+        assert_error(1, "bad", 400, "Invalid code")
+
+        # Test valid code
+        players = self.manager.add_player_to_ladder(1, "good")
+        self.assertIsNotNone(players)
+
+        # Test a ladder without a code
+        players = self.manager.add_player_to_ladder(2, None)
+        self.assertIsNotNone(players)
+
+        # Test passing in a code, even when there is no code
+        players = self.manager.add_player_to_ladder(2, "bad")
+        self.assertIsNotNone(players)
+
+        # Remove the user
+        self.manager.user = None
+
     def test_get_matches(self):
         matches = self.manager.get_matches(1, "TEST1")
         self.assertIsNotNone(matches)
@@ -82,7 +120,7 @@ class Test(unittest.TestCase):
         Match.validate = lambda match: match
 
         # Test when the manager doesn't have a user
-        assert_error(0, {}, 403, "Unable to authenticate")
+        assert_error(0, {}, 401, "Unable to authenticate")
         self.manager.user = User("USER1", "User", "user@test.com", None, "user.jpg")
 
         # Test with a null ladder_id
@@ -114,6 +152,7 @@ class Test(unittest.TestCase):
         # Set mocked function back to originals
         Match.calculate_scores = old_calculate_scores
         Match.validate = old_validate
+        self.manager.user = None
 
 class MockFirebaseClient:
     valid_user = True
@@ -127,7 +166,8 @@ class MockFirebaseClient:
 class MockDao:
     user_database = {}
     ladder_database = {
-        1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02")
+        1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02"),
+        2: Ladder(2, "Ladder 2", "2018-01-01", "2018-01-02")
     }
     players_database = {
         "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", 1, 100, 1, 0, 0),
@@ -171,10 +211,16 @@ class MockDao:
         return self.ladder_database.get(ladder_id)
 
     def get_players(self, ladder_id):
-        return self.players_database.values()
+        return [player for player in self.players_database.values() if player.ladder_id == ladder_id]
 
     def get_player(self, ladder_id, user_id):
         return self.players_database.get(user_id)
+
+    def create_player(self, ladder_id, user_id):
+        pass
+
+    def update_score(self, user_id, ladder_id, new_score_to_add):
+        self.updated_scores.append([user_id, ladder_id, new_score_to_add])
 
     def get_matches(self, ladder_id, user_id):
         return [
@@ -187,5 +233,5 @@ class MockDao:
         new_match.match_id = 0
         return new_match
 
-    def update_score(self, user_id, ladder_id, new_score_to_add):
-        self.updated_scores.append([user_id, ladder_id, new_score_to_add])
+    def get_ladder_code(self, ladder_id):
+        return "good" if ladder_id == 1 else None

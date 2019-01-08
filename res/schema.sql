@@ -42,3 +42,10 @@ create table matches(
   foreign key (WINNER_ID) references users(ID) on delete cascade,
   foreign key (LOSER_ID) references users(ID) on delete cascade
 );
+
+# drop table ladder_codes;
+create table ladder_codes(
+  LADDER_ID integer key not null,
+  CODE varchar(64) not null,
+  foreign key (LADDER_ID) references ladders(ID) on delete cascade
+)

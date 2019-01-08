@@ -1,5 +1,6 @@
-from domain import User, ServiceException, Match
 from datetime import datetime
+
+from domain import User, ServiceException, Match
 
 class Manager:
     INVALID_RANKING_DISTANCE = 12
@@ -27,15 +28,39 @@ class Manager:
         # The database handles all the sorting and derived fields
         return self.dao.get_players(ladder_id)
 
+    def add_player_to_ladder(self, ladder_id, code):
+        if self.user is None:
+            raise ServiceException("Unable to authenticate", 401)
+        elif ladder_id is None:
+            raise ServiceException("Null ladder_id param", 400)
+
+        # Look up ladder
+        if self.dao.get_ladder(ladder_id) is None:
+            raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
+
+        # Look up ladder code
+        real_code = self.dao.get_ladder_code(ladder_id)
+
+        # If sure that if a code exists, that it matches
+        if real_code is not None and real_code != code:
+            raise ServiceException("Invalid code", 400)
+
+        # Create the new player, tying the user to the ladder
+        self.dao.create_player(self.user.user_id, ladder_id)
+
+        # Return the new list of players in that ladder (which should include the new player)
+        return self.dao.get_players(ladder_id)
+
     def get_matches(self, ladder_id, user_id):
         # Get all the matches (which will only have user ids, not the full player)
         matches = self.dao.get_matches(ladder_id, user_id)
 
+        # Attach winners and losers to the matches
         return self.transform_matches(matches, ladder_id)
 
     def report_match(self, ladder_id, match_dict):
         if self.user is None:
-            raise ServiceException("Unable to authenticate", 403)
+            raise ServiceException("Unable to authenticate", 401)
         elif ladder_id is None:
             raise ServiceException("Null ladder_id param", 400)
         elif match_dict is None:
@@ -71,6 +96,7 @@ class Manager:
         # Save the match to the database (which will assign it a new match_id)
         match = self.dao.create_match(match)
 
+        # Attach winners and losers to the match
         return self.transform_matches([match], ladder_id)[0]
 
     def transform_matches(self, matches, ladder_id):
