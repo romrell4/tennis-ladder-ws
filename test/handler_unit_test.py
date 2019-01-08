@@ -42,6 +42,19 @@ class Test(unittest.TestCase):
         players = json.loads(response["body"])
         self.assertEqual(2, len(players))
 
+    def test_create_player(self):
+        # Test without required code (make sure it defaults instead of throwing an error)
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}, "POST"))
+        self.assertEqual(200, response["statusCode"])
+        players = json.loads(response["body"])
+        self.assertEqual(0, len(players))
+
+        # Test with code
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}, "POST", query_params = {"code": "good"}))
+        self.assertEqual(200, response["statusCode"])
+        players = json.loads(response["body"])
+        self.assertEqual(1, len(players))
+
     def test_get_matches(self):
         # Test a user who's played in a single match in a ladder
         response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}/matches", {"ladder_id": "1", "user_id": "TEST1"}))
@@ -67,6 +80,7 @@ class Test(unittest.TestCase):
         self.assertEqual(2, len(matches))
 
     def test_report_match(self):
+        # Valid test
         response = self.handler.handle(create_event("/ladders/{ladder_id}/matches", {"ladder_id": "1"}, "POST", "{}"))
         self.assertEqual(200, response["statusCode"])
         self.assertIsNotNone(MockManager.reported_match)
@@ -90,15 +104,18 @@ class Test(unittest.TestCase):
         })
         self.assertEqual("TEST", response)
 
-def create_event(resource, path_params = {}, method = "GET", body = None):
+def create_event(resource, path_params = None, method = "GET", body = None, query_params = None):
     event = {
         "resource": resource,
-        "pathParameters": path_params,
         "httpMethod": method,
         "headers": {"X-Firebase-Token": ""}
     }
+    if path_params is not None:
+        event["pathParameters"] = path_params
     if body is not None:
         event["body"] = body
+    if query_params is not None:
+        event["queryStringParameters"] = query_params
     return event
 
 class MockManager():
@@ -125,6 +142,14 @@ class MockManager():
             return [
                 Player(2, "User2", "user2@test.com", "000-000-0000", "test2.jpg", 2, 0, 1, 0, 0),
                 Player(3, "User3", "user3@test.com", "000-000-0000", "test3.jpg", 2, 0, 1, 0, 0)
+            ]
+
+    def add_player_to_ladder(self, ladder_id, code):
+        if code is None:
+            return []
+        else:
+            return [
+                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", 1, 10, 3, 1, 0)
             ]
 
     def get_matches(self, ladder_id, user_id):
