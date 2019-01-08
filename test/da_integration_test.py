@@ -32,6 +32,9 @@ class Test(unittest.TestCase):
             cls.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
                 (-1, -3, CURDATE(), 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
             """)
+            cls.dao.insert("""INSERT INTO ladder_codes (LADDER_ID, CODE) VALUES
+                (-3, 'good')
+            """)
         except:
             cls.tearDownClass()
             exit()
@@ -191,3 +194,12 @@ class Test(unittest.TestCase):
             self.assertEqual(5, match.loser_set3_score)
         finally:
             self.dao.execute("DELETE FROM matches where ID = %s", match.match_id)
+
+    def test_get_ladder_code(self):
+        # Test ladder with code
+        code = self.dao.get_ladder_code(-3)
+        self.assertEqual("good", code)
+
+        # Test ladder without code
+        code = self.dao.get_ladder_code(-4)
+        self.assertIsNone(code)

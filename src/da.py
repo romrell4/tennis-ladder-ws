@@ -58,6 +58,9 @@ class Dao:
         match_id = self.insert("INSERT INTO matches (LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", *match.get_insert_properties())
         return self.get_one(Match, "SELECT * FROM matches WHERE ID = %s", match_id)
 
+    def get_ladder_code(self, ladder_id):
+        return self.get_one(str, "select code from ladder_codes where LADDER_ID = %s", ladder_id)
+
     ### UTILS ###
 
     def get_list(self, klass, sql, *args):
