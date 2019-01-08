@@ -35,7 +35,7 @@ class Manager:
 
     def report_match(self, ladder_id, match_dict):
         if self.user is None:
-            raise ServiceException("Unable to authenticate", 403)
+            raise ServiceException("Unable to authenticate", 401)
         elif ladder_id is None:
             raise ServiceException("Null ladder_id param", 400)
         elif match_dict is None:

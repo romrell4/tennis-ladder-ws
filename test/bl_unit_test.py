@@ -82,7 +82,7 @@ class Test(unittest.TestCase):
         Match.validate = lambda match: match
 
         # Test when the manager doesn't have a user
-        assert_error(0, {}, 403, "Unable to authenticate")
+        assert_error(0, {}, 401, "Unable to authenticate")
         self.manager.user = User("USER1", "User", "user@test.com", None, "user.jpg")
 
         # Test with a null ladder_id
