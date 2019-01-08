@@ -46,7 +46,7 @@ class Manager:
             raise ServiceException("Invalid code", 400)
 
         # Create the new player, tying the user to the ladder
-        self.dao.create_player(self.user.user_id, ladder_id)
+        self.dao.create_player(ladder_id, self.user.user_id)
 
         # Return the new list of players in that ladder (which should include the new player)
         return self.dao.get_players(ladder_id)
