@@ -67,7 +67,8 @@ class Manager:
             raise ServiceException("Null match param", 400)
 
         # Look up ladder
-        if self.dao.get_ladder(ladder_id) is None:
+        ladder = self.dao.get_ladder(ladder_id)
+        if ladder is None:
             raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
 
         # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
@@ -86,7 +87,7 @@ class Manager:
             raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)
 
         # Update the scores of the players
-        winner_score, loser_score = match.calculate_scores(winner.ranking, loser.ranking)
+        winner_score, loser_score = match.calculate_scores(winner.ranking, loser.ranking, ladder.distance_penalty_on)
         self.dao.update_score(match.winner_id, match.ladder_id, winner_score)
         self.dao.update_score(match.loser_id, match.ladder_id, loser_score)
 

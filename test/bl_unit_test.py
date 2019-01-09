@@ -116,7 +116,7 @@ class Test(unittest.TestCase):
         # Overwrite the calculate scores function for easier testing
         old_calculate_scores = Match.calculate_scores
         old_validate = Match.validate
-        Match.calculate_scores = lambda _, x, y: (10, 5)
+        Match.calculate_scores = lambda _, x, y, z: (10, 5)
         Match.validate = lambda match: match
 
         # Test when the manager doesn't have a user
