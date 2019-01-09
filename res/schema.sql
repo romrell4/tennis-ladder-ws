@@ -12,7 +12,8 @@ create table ladders (
   ID integer key auto_increment not null,
   NAME varchar(32) not null,
   START_DATE date not null,
-  END_DATE date not null
+  END_DATE date not null,
+  DISTANCE_PENALTY_ON boolean not null default false
 );
 
 # drop table players;

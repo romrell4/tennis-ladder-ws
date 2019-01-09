@@ -85,6 +85,7 @@ class Test(unittest.TestCase):
         self.assertEqual("Test 2", ladder.name)
         self.assertEqual("2018-02-01", ladder.start_date)
         self.assertEqual("2018-02-02", ladder.end_date)
+        self.assertFalse(ladder.distance_penalty_on)
 
     def test_get_ladder(self):
         # Test a ladder that doesn't exist

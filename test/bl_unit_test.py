@@ -166,8 +166,8 @@ class MockFirebaseClient:
 class MockDao:
     user_database = {}
     ladder_database = {
-        1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02"),
-        2: Ladder(2, "Ladder 2", "2018-01-01", "2018-01-02")
+        1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02", False),
+        2: Ladder(2, "Ladder 2", "2018-01-01", "2018-01-02", False)
     }
     players_database = {
         "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", 1, 100, 1, 0, 0),

@@ -19,6 +19,7 @@ class Test(unittest.TestCase):
         self.assertEqual("Ladder1", ladders[0]["name"])
         self.assertEqual("2018-01-01", ladders[0]["start_date"])
         self.assertEqual("2018-02-01", ladders[0]["end_date"])
+        self.assertFalse(ladders[0]["distance_penalty_on"])
 
     def test_get_players(self):
         # Test a ladder with a single player
@@ -129,8 +130,8 @@ class MockManager():
 
     def get_ladders(self):
         return [
-            Ladder(1, "Ladder1", date(2018, 1, 1), date(2018, 2, 1)),
-            Ladder(2, "Ladder2", date(2018, 2, 1), date(2018, 3, 1))
+            Ladder(1, "Ladder1", date(2018, 1, 1), date(2018, 2, 1), False),
+            Ladder(2, "Ladder2", date(2018, 2, 1), date(2018, 3, 1), False)
         ]
 
     def get_players(self, ladder_id):

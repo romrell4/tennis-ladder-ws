@@ -8,8 +8,8 @@ class User:
         return [self.user_id, self.name, self.email, self.phone_number, self.photo_url]
 
 class Ladder:
-    def __init__(self, ladder_id, name, start_date, end_date):
-        self.ladder_id, self.name, self.start_date, self.end_date = ladder_id, name, str(start_date), str(end_date)
+    def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on):
+        self.ladder_id, self.name, self.start_date, self.end_date, self.distance_penalty_on = ladder_id, name, str(start_date), str(end_date), distance_penalty_on
 
 class Match:
     BASE_WINNER_POINTS = 39
