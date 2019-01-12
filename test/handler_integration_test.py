@@ -1,6 +1,5 @@
 import os
 import unittest
-import json
 
 import properties
 from bl import Manager
