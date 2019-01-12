@@ -6,6 +6,7 @@ from bl import Manager
 from domain import ServiceException, Ladder, Player, Match, User
 
 class Test(unittest.TestCase):
+    test_user = User("USER1", "User", "user@test.com", None, "user.jpg")
     def setUp(self):
         self.manager = Manager(MockFirebaseClient(), MockDao())
 
@@ -36,6 +37,11 @@ class Test(unittest.TestCase):
         self.assertIsNotNone(self.manager.user)
         self.assertFalse(self.manager.dao.created_user)
 
+    def test_update_user(self):
+        # Test when not logged in
+        # TODO: Finish this
+        self.manager.update_user()
+
     def test_add_player_to_ladder(self):
         def assert_error(ladder_id, code, status_code, error_message):
             with self.assertRaises(ServiceException) as e:
@@ -45,7 +51,7 @@ class Test(unittest.TestCase):
 
         # Test when not logged in
         assert_error(None, None, 401, "Unable to authenticate")
-        self.manager.user = User("USER1", "User", "user@test.com", None, "user.jpg")
+        self.manager.user = Test.test_user
 
         # Test with null ladder_id
         assert_error(None, None, 400, "Null ladder_id param")
@@ -121,7 +127,7 @@ class Test(unittest.TestCase):
 
         # Test when the manager doesn't have a user
         assert_error(0, {}, 401, "Unable to authenticate")
-        self.manager.user = User("USER1", "User", "user@test.com", None, "user.jpg")
+        self.manager.user = Test.test_user
 
         # Test with a null ladder_id
         assert_error(None, None, 400, "Null ladder_id param")
