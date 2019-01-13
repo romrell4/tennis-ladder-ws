@@ -36,7 +36,9 @@ class Handler:
 
             self.manager.validate_token(self.get_token(event))
 
-            if resource == "/ladders" and method == "GET":
+            if resource == "/users" and method == "PUT":
+                response_body = self.manager.update_user(body)
+            elif resource == "/ladders" and method == "GET":
                 response_body = self.manager.get_ladders()
             elif resource == "/ladders/{ladder_id}/players" and method == "GET":
                 response_body = self.manager.get_players(int(path_params.get("ladder_id")))
