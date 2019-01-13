@@ -31,7 +31,9 @@ class Manager:
         if self.user.user_id != user.user_id:
             raise ServiceException("You are only allowed to update your own profile information", 403)
 
+        # Update the logged in user with all editable information
         self.user.phone_number = user.phone_number
+        
         return self.dao.update_user(self.user)
 
     def get_ladders(self):
