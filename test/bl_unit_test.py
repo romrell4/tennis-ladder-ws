@@ -38,9 +38,31 @@ class Test(unittest.TestCase):
         self.assertFalse(self.manager.dao.created_user)
 
     def test_update_user(self):
+        def assert_error(user, status_code, error_message):
+            with self.assertRaises(ServiceException) as e:
+                self.manager.update_user(user)
+            self.assertEqual(status_code, e.exception.status_code)
+            self.assertEqual(error_message, e.exception.error_message)
+
         # Test when not logged in
-        # TODO: Finish this
-        self.manager.update_user()
+        assert_error(None, 401, "Unable to authenticate")
+        self.manager.user = Test.test_user
+
+        # Test with no user param
+        assert_error(None, 400, "No user passed in to update")
+
+        # Test updating another user
+        new_user = copy.copy(Test.test_user)
+        new_user.user_id = None
+        assert_error(User("-1", None, None, None, None), 403, "You are only allowed to update your own profile information")
+
+        # Test which info can be updated
+        new_user = copy.copy(Test.test_user)
+        new_user.name = "Something Else"
+        new_user.phone_number = "phone"
+        saved_user = self.manager.update_user(new_user)
+        self.assertEqual("User", saved_user.name)
+        self.assertEqual("phone", saved_user.phone_number)
 
     def test_add_player_to_ladder(self):
         def assert_error(ladder_id, code, status_code, error_message):
@@ -208,6 +230,9 @@ class MockDao:
     def create_user(self, user):
         self.user_database[user.user_id] = user
         self.created_user = True
+        return user
+
+    def update_user(self, user):
         return user
 
     def get_ladders(self):

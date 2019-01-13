@@ -15,11 +15,24 @@ class Manager:
 
         try:
             firebase_user = self.firebase_client.get_firebase_user(token)
-            self.user = User(firebase_user["user_id"], firebase_user["name"], firebase_user["email"], None, firebase_user["picture"])
-            if self.dao.get_user(self.user.user_id) is None:
+            self.user = self.dao.get_user(firebase_user["user_id"])
+            if self.user is None:
+                self.user = User(firebase_user["user_id"], firebase_user["name"], firebase_user["email"], None, firebase_user["picture"])
                 self.dao.create_user(self.user)
         except (KeyError, ValueError):
             pass
+
+    def update_user(self, user):
+        if self.user is None:
+            raise ServiceException("Unable to authenticate", 401)
+        if user is None:
+            raise ServiceException("No user passed in to update", 400)
+
+        if self.user.user_id != user.user_id:
+            raise ServiceException("You are only allowed to update your own profile information", 403)
+
+        self.user.phone_number = user.phone_number
+        return self.dao.update_user(self.user)
 
     def get_ladders(self):
         return self.dao.get_ladders()
