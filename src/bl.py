@@ -33,8 +33,9 @@ class Manager:
 
         # Update the logged in user with all editable information
         self.user.phone_number = user.phone_number
-        
-        return self.dao.update_user(self.user)
+
+        self.dao.update_user(self.user)
+        return self.dao.get_user(self.user.user_id)
 
     def get_ladders(self):
         return self.dao.get_ladders()

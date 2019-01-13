@@ -33,6 +33,9 @@ class Dao:
     def create_user(self, user):
         self.insert("insert into users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL) values (%s, %s, %s, %s, %s)", *user.get_insert_properties())
 
+    def update_user(self, user):
+        self.execute("update users set PHONE_NUMBER = %s where ID = %s", user.phone_number, user.user_id)
+
     def get_ladders(self):
         return self.get_list(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON from ladders order by START_DATE DESC")
 

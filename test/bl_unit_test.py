@@ -233,6 +233,7 @@ class MockDao:
         return user
 
     def update_user(self, user):
+        self.user_database[user.user_id] = user
         return user
 
     def get_ladders(self):

@@ -72,6 +72,17 @@ class Test(unittest.TestCase):
         finally:
             self.dao.execute("DELETE FROM users where ID = '__TEST'")
 
+    def test_update_user(self):
+        sql = "select * from users where ID = 'TEST1'"
+        old_user = self.dao.get_one(User, sql)
+        old_phone = old_user.phone_number
+        old_user.phone_number = "phone"
+        try:
+            self.dao.update_user(old_user)
+            self.assertEqual("phone", self.dao.get_one(User, sql).phone_number)
+        finally:
+            self.dao.execute("update users set PHONE_NUMBER = %s where ID = 'TEST1'", old_phone)
+
     def test_get_ladders(self):
         # Test running the SQL and creating the objects
         ladders = self.dao.get_ladders()
