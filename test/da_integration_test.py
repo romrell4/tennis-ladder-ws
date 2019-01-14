@@ -16,14 +16,25 @@ class Test(unittest.TestCase):
 
         cls.dao = Dao()
         try:
-            cls.dao.insert("INSERT INTO users (ID, NAME, EMAIL, PHOTO_URL) VALUES ('TEST1', 'Tester One', 'test1@mail.com', 'test1.jpg')")
-            cls.dao.insert("INSERT INTO users (ID, NAME, EMAIL, PHOTO_URL) VALUES ('TEST2', 'Tester Two', 'test2@mail.com', 'test2.jpg')")
-            cls.dao.insert("INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02')")
-            cls.dao.insert("INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02')")
-            cls.dao.insert("INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES ('TEST1', -3, 5)")
-            cls.dao.insert("INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES ('TEST2', -3, 10)")
-            cls.dao.insert("INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES ('TEST1', -4, 0)")
-            cls.dao.insert("INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) values (-1, -4, CURDATE(), 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)")
+            cls.dao.insert("""INSERT INTO users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL) VALUES 
+                ('TEST1', 'Tester One', 'test1@mail.com', '111-111-1111', 'test1.jpg'),
+                ('TEST2', 'Tester Two', 'test2@mail.com', null, 'test2.jpg')
+            """)
+            cls.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES 
+                (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
+                (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02')
+            """)
+            cls.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES 
+                ('TEST1', -3, 5),
+                ('TEST2', -3, 10),
+                ('TEST1', -4, 0)
+            """)
+            cls.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
+                (-1, -3, CURDATE(), 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
+            """)
+            cls.dao.insert("""INSERT INTO ladder_codes (LADDER_ID, CODE) VALUES
+                (-3, 'good')
+            """)
         except:
             cls.tearDownClass()
             exit()
@@ -45,19 +56,32 @@ class Test(unittest.TestCase):
         self.assertEqual("TEST1", user.user_id)
         self.assertEqual("Tester One", user.name)
         self.assertEqual("test1@mail.com", user.email)
+        self.assertEqual("111-111-1111", user.phone_number)
         self.assertEqual("test1.jpg", user.photo_url)
 
     def test_create_user(self):
         try:
-            self.dao.create_user(User("__TEST", "Tester", "test@test.com", "test.jpg"))
+            self.dao.create_user(User("__TEST", "Tester", "test@test.com", "123-456-7890", "test.jpg"))
             user = self.dao.get_one(User, "SELECT * FROM users where ID = '__TEST'")
             self.assertIsNotNone(user)
             self.assertEqual("__TEST", user.user_id)
             self.assertEqual("Tester", user.name)
             self.assertEqual("test@test.com", user.email)
+            self.assertEqual("123-456-7890", user.phone_number)
             self.assertEqual("test.jpg", user.photo_url)
         finally:
             self.dao.execute("DELETE FROM users where ID = '__TEST'")
+
+    def test_update_user(self):
+        sql = "select * from users where ID = 'TEST1'"
+        old_user = self.dao.get_one(User, sql)
+        old_phone = old_user.phone_number
+        old_user.phone_number = "phone"
+        try:
+            self.dao.update_user(old_user)
+            self.assertEqual("phone", self.dao.get_one(User, sql).phone_number)
+        finally:
+            self.dao.execute("update users set PHONE_NUMBER = %s where ID = 'TEST1'", old_phone)
 
     def test_get_ladders(self):
         # Test running the SQL and creating the objects
@@ -72,6 +96,7 @@ class Test(unittest.TestCase):
         self.assertEqual("Test 2", ladder.name)
         self.assertEqual("2018-02-01", ladder.start_date)
         self.assertEqual("2018-02-02", ladder.end_date)
+        self.assertFalse(ladder.distance_penalty_on)
 
     def test_get_ladder(self):
         # Test a ladder that doesn't exist
@@ -88,11 +113,17 @@ class Test(unittest.TestCase):
         self.assertIsNotNone(players)
         self.assertEqual(2, len(players))
 
-        # Test that the order is correct
+        # Test that the order is correct, and that all values were deserialized
         player = players[0]
-        self.assertEqual("TEST2", player.user_id)
+        self.assertEqual("TEST2", player.user.user_id)
+        self.assertEqual("Tester Two", player.user.name)
+        self.assertEqual("test2@mail.com", player.user.email)
+        self.assertEqual("test2.jpg", player.user.photo_url)
         self.assertEqual(-3, player.ladder_id)
         self.assertEqual(10, player.score)
+        self.assertEqual(1, player.ranking)
+        self.assertEqual(0, player.wins)
+        self.assertEqual(1, player.losses)
 
     def test_get_player(self):
         # Test a non-existent player
@@ -103,57 +134,84 @@ class Test(unittest.TestCase):
         player = self.dao.get_player(-3, "TEST1")
         self.assertIsNotNone(player)
 
+    def test_create_player(self):
+        try:
+            self.dao.create_player(-4, "TEST2")
+            score = self.dao.get_one(int, "select SCORE from players where LADDER_ID = -4 and USER_ID = 'TEST2'")
+            self.assertEqual(0, score)
+        finally:
+            self.dao.execute("DELETE FROM players where LADDER_ID = -4 and USER_ID = 'TEST2'")
+
+    def test_update_score(self):
+        get_score_sql = "select SCORE from players where USER_ID = 'TEST1' and LADDER_ID = -4"
+
+        # Make sure the user starts out with no points
+        self.assertEqual(0, self.dao.get_one(int, get_score_sql))
+        self.dao.update_score("TEST1", -4, 100)
+        self.assertEqual(100, self.dao.get_one(int, get_score_sql))
+
+        # Test updating someone who already has points (to make sure it adds to what is already there)
+        self.dao.update_score("TEST1", -4, 2)
+        self.assertEqual(102, self.dao.get_one(int, get_score_sql))
+
+        # Reset the score back to 0
+        self.dao.execute("update players set SCORE = 0 where USER_ID = 'TEST1' and LADDER_ID = -4")
+
     def test_get_matches(self):
         # Test a non-existent ladder
         matches = self.dao.get_matches(-5, "TEST1")
         self.assertEqual(0, len(matches))
 
         # Test a valid ladder, but a non-existent user
-        matches = self.dao.get_matches(-4, "TEST0")
+        matches = self.dao.get_matches(-3, "TEST0")
         self.assertEqual(0, len(matches))
 
         # Test searching for a winner
-        matches = self.dao.get_matches(-4, "TEST1")
+        matches = self.dao.get_matches(-3, "TEST1")
         self.assertEqual(1, len(matches))
 
-        # Test searching for a winner
-        matches = self.dao.get_matches(-4, "TEST2")
+        # Test searching for a loser
+        matches = self.dao.get_matches(-3, "TEST2")
         self.assertEqual(1, len(matches))
 
     def test_create_match(self):
         # Test with null values
         match = self.dao.create_match(Match(None, -3, datetime(2018, 1, 1, 1, 0, 0), "TEST1", "TEST2", 6, 1, 6, 2))
-        self.assertEqual(-3, match.ladder_id)
-        self.assertEqual(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
-        self.assertEqual("TEST1", match.winner_id)
-        self.assertEqual("TEST2", match.loser_id)
-        self.assertEqual(6, match.winner_set1_score)
-        self.assertEqual(1, match.loser_set1_score)
-        self.assertEqual(6, match.winner_set2_score)
-        self.assertEqual(2, match.loser_set2_score)
-        self.assertIsNone(match.winner_set3_score)
-        self.assertIsNone(match.loser_set3_score)
+        try:
+            self.assertEqual(-3, match.ladder_id)
+            self.assertEqual(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
+            self.assertEqual("TEST1", match.winner_id)
+            self.assertEqual("TEST2", match.loser_id)
+            self.assertEqual(6, match.winner_set1_score)
+            self.assertEqual(1, match.loser_set1_score)
+            self.assertEqual(6, match.winner_set2_score)
+            self.assertEqual(2, match.loser_set2_score)
+            self.assertIsNone(match.winner_set3_score)
+            self.assertIsNone(match.loser_set3_score)
+        finally:
+            self.dao.execute("DELETE FROM matches where ID = %s", match.match_id)
 
         # Test with a third set
         match = self.dao.create_match(Match(None, -3, datetime(2018, 1, 1, 1, 0, 0), "TEST1", "TEST2", 6, 1, 2, 6, 7, 5))
-        self.assertEqual(-3, match.ladder_id)
-        self.assertEqual(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
-        self.assertEqual("TEST1", match.winner_id)
-        self.assertEqual("TEST2", match.loser_id)
-        self.assertEqual(6, match.winner_set1_score)
-        self.assertEqual(1, match.loser_set1_score)
-        self.assertEqual(2, match.winner_set2_score)
-        self.assertEqual(6, match.loser_set2_score)
-        self.assertEqual(7, match.winner_set3_score)
-        self.assertEqual(5, match.loser_set3_score)
+        try:
+            self.assertEqual(-3, match.ladder_id)
+            self.assertEqual(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
+            self.assertEqual("TEST1", match.winner_id)
+            self.assertEqual("TEST2", match.loser_id)
+            self.assertEqual(6, match.winner_set1_score)
+            self.assertEqual(1, match.loser_set1_score)
+            self.assertEqual(2, match.winner_set2_score)
+            self.assertEqual(6, match.loser_set2_score)
+            self.assertEqual(7, match.winner_set3_score)
+            self.assertEqual(5, match.loser_set3_score)
+        finally:
+            self.dao.execute("DELETE FROM matches where ID = %s", match.match_id)
 
-    def test_update_score(self):
-        GET_SCORE_SQL = "select SCORE from players where USER_ID = %s and LADDER_ID = %s"
+    def test_get_ladder_code(self):
+        # Test ladder with code
+        code = self.dao.get_ladder_code(-3)
+        self.assertEqual("good", code)
 
-        # Test updating someone who doesn't have any points yet
-        self.dao.update_score("TEST1", -4, 100)
-        self.assertEqual(100, self.dao.get_one(int, GET_SCORE_SQL, "TEST1", -4))
-
-        # Test updating someone who already has points (to make sure it adds to what is already there)
-        self.dao.update_score("TEST1", -3, 2)
-        self.assertEqual(7, self.dao.get_one(int, GET_SCORE_SQL, "TEST1", -3))
+        # Test ladder without code
+        code = self.dao.get_ladder_code(-4)
+        self.assertIsNone(code)

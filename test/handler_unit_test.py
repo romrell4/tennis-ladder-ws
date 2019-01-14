@@ -10,6 +10,26 @@ class Test(unittest.TestCase):
         cls.manager = MockManager()
         cls.handler = handler.Handler(cls.manager)
 
+    def test_get_user(self):
+        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}))
+        self.assertEqual(200, response["statusCode"])
+        user = json.loads(response["body"])
+        self.assertEqual("1", user["user_id"])
+        self.assertEqual("User1", user["name"])
+        self.assertEqual("user1@test.com", user["email"])
+        self.assertEqual("555-555-5555", user["phone_number"])
+        self.assertEqual("hello.jpg", user["photo_url"])
+
+    def test_update_user(self):
+        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}, "PUT", "{}"))
+        self.assertEqual(200, response["statusCode"])
+        user = json.loads(response["body"])
+        self.assertEqual("1", user["user_id"])
+        self.assertEqual("User1", user["name"])
+        self.assertEqual("user1@test.com", user["email"])
+        self.assertEqual("555-555-5555", user["phone_number"])
+        self.assertEqual("hello.jpg", user["photo_url"])
+
     def test_get_ladders(self):
         response = self.handler.handle(create_event("/ladders"))
         self.assertEqual(200, response["statusCode"])
@@ -19,6 +39,7 @@ class Test(unittest.TestCase):
         self.assertEqual("Ladder1", ladders[0]["name"])
         self.assertEqual("2018-01-01", ladders[0]["start_date"])
         self.assertEqual("2018-02-01", ladders[0]["end_date"])
+        self.assertFalse(ladders[0]["distance_penalty_on"])
 
     def test_get_players(self):
         # Test a ladder with a single player
@@ -26,10 +47,11 @@ class Test(unittest.TestCase):
         self.assertEqual(200, response["statusCode"])
         players = json.loads(response["body"])
         self.assertEqual(1, len(players))
-        self.assertEqual(1, players[0]["user_id"])
+        self.assertEqual(1, players[0]["user"]["user_id"])
+        self.assertEqual("User1", players[0]["user"]["name"])
+        self.assertEqual("user1@test.com", players[0]["user"]["email"])
+        self.assertEqual("test1.jpg", players[0]["user"]["photo_url"])
         self.assertEqual(1, players[0]["ladder_id"])
-        self.assertEqual("User1", players[0]["name"])
-        self.assertEqual("test1.jpg", players[0]["photo_url"])
         self.assertEqual(10, players[0]["score"])
         self.assertEqual(3, players[0]["ranking"])
         self.assertEqual(1, players[0]["wins"])
@@ -40,6 +62,19 @@ class Test(unittest.TestCase):
         self.assertEqual(200, response["statusCode"])
         players = json.loads(response["body"])
         self.assertEqual(2, len(players))
+
+    def test_create_player(self):
+        # Test without required code (make sure it defaults instead of throwing an error)
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}, "POST"))
+        self.assertEqual(200, response["statusCode"])
+        players = json.loads(response["body"])
+        self.assertEqual(0, len(players))
+
+        # Test with code
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}, "POST", query_params = {"code": "good"}))
+        self.assertEqual(200, response["statusCode"])
+        players = json.loads(response["body"])
+        self.assertEqual(1, len(players))
 
     def test_get_matches(self):
         # Test a user who's played in a single match in a ladder
@@ -66,8 +101,11 @@ class Test(unittest.TestCase):
         self.assertEqual(2, len(matches))
 
     def test_report_match(self):
+        # Valid test
         response = self.handler.handle(create_event("/ladders/{ladder_id}/matches", {"ladder_id": "1"}, "POST", "{}"))
         self.assertEqual(200, response["statusCode"])
+        self.assertIsNotNone(MockManager.reported_match)
+        MockManager.reported_match = None
         match = json.loads(response["body"])
         self.assertEqual(1, match["match_id"])
         self.assertEqual(1, match["ladder_id"])
@@ -87,36 +125,58 @@ class Test(unittest.TestCase):
         })
         self.assertEqual("TEST", response)
 
-def create_event(resource, path_params = {}, method = "GET", body = None):
-    return {
+def create_event(resource, path_params = None, method = "GET", body = None, query_params = None):
+    event = {
         "resource": resource,
-        "pathParameters": path_params,
         "httpMethod": method,
         "headers": {"X-Firebase-Token": ""}
     }
+    if path_params is not None:
+        event["pathParameters"] = path_params
+    if body is not None:
+        event["body"] = body
+    if query_params is not None:
+        event["queryStringParameters"] = query_params
+    return event
 
 class MockManager():
+    reported_match = None
+
     def __init__(self):
-        self.user = User("1", "User1", "user@test.com", "hello.jpg")
+        self.user = User("1", "User1", "user1@test.com", "555-555-5555", "hello.jpg")
 
     def validate_token(self, token):
         pass
 
+    def get_user(self, user_id):
+        return self.user
+
+    def update_user(self, user_id, user):
+        return self.user
+
     def get_ladders(self):
         return [
-            Ladder(1, "Ladder1", date(2018, 1, 1), date(2018, 2, 1)),
-            Ladder(2, "Ladder2", date(2018, 2, 1), date(2018, 3, 1))
+            Ladder(1, "Ladder1", date(2018, 1, 1), date(2018, 2, 1), False),
+            Ladder(2, "Ladder2", date(2018, 2, 1), date(2018, 3, 1), False)
         ]
 
     def get_players(self, ladder_id):
         if ladder_id == 1:
             return [
-                Player(1, 1, "User1", "test1.jpg", 10, 3, 1, 0)
+                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", 1, 10, 3, 1, 0)
             ]
         elif ladder_id == 2:
             return [
-                Player(2, 2, "User2", "test2.jpg", 0, 1, 0, 0),
-                Player(3, 2, "User3", "test3.jpg", 0, 1, 0, 0)
+                Player(2, "User2", "user2@test.com", "000-000-0000", "test2.jpg", 2, 0, 1, 0, 0),
+                Player(3, "User3", "user3@test.com", "000-000-0000", "test3.jpg", 2, 0, 1, 0, 0)
+            ]
+
+    def add_player_to_ladder(self, ladder_id, code):
+        if code is None:
+            return []
+        else:
+            return [
+                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", 1, 10, 3, 1, 0)
             ]
 
     def get_matches(self, ladder_id, user_id):
@@ -131,4 +191,5 @@ class MockManager():
             ]
 
     def report_match(self, ladder_id, match):
+        MockManager.reported_match = match
         return Match(1, 1, datetime(2018, 2, 2, 1, 0, 0), 2, 3, 6, 0, 5, 7, 6, 3)

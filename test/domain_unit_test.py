@@ -25,10 +25,10 @@ class Test(unittest.TestCase):
         assert_error("Missing ladder_id", create_match(None, None, None))
 
         # Test match with null winner id
-        assert_error("Missing winner_id", create_match(0, None, 1))
+        assert_error("Missing winner's user_id", create_match(0, None, 1))
 
         # Test match with null loser id
-        assert_error("Missing loser_id", create_match(0, 1, None))
+        assert_error("Missing loser's user_id", create_match(0, 1, None))
 
         # Test match against oneself
         assert_error("A match cannot be played against oneself", create_match(0, 1, 1))
@@ -90,7 +90,7 @@ class Test(unittest.TestCase):
 
     def test_calculate_scores(self):
         def assert_success(match, new_winner_score, new_loser_score):
-            winner_score, loser_score = match.calculate_scores(0, 0)
+            winner_score, loser_score = match.calculate_scores(0, 0, False)
             self.assertEqual(new_winner_score, winner_score)
             self.assertEqual(new_loser_score, loser_score)
 
@@ -99,7 +99,7 @@ class Test(unittest.TestCase):
 
         # Temporarily overwrite the calculate_distance_penalty function for easier testing
         old_calculate_distance_penalty = Match.calculate_distance_penalty
-        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: 0
+        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank, penalty: 0
         old_played_tiebreak = Match.played_tiebreak
         Match.played_tiebreak = lambda _: False
 
@@ -125,17 +125,17 @@ class Test(unittest.TestCase):
         Match.played_tiebreak = lambda _: False
 
         # Pretend that there is distance penalty of 10
-        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: 10
+        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank, penalty: 10
         assert_success(create_match(6, 0, 6, 0), 29, 0)
         assert_success(create_match(7, 6, 6, 7, 7, 6), 10, 19)
 
         # Pretend that there is a distance premium of 10
-        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: -10
+        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank, penalty: -10
         assert_success(create_match(6, 0, 6, 0), 49, 0)
         assert_success(create_match(7, 6, 6, 7, 7, 6), 30, 19)
 
         # Test that with a large penalty, the winner's score cannot go below 0
-        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank: 100
+        Match.calculate_distance_penalty = lambda _, winner_rank, loser_rank, penalty: 100
         assert_success(create_match(7, 6, 6, 7, 7, 6), 0, 19)
 
         # Reset the function to the real one (so that other tests can run)
@@ -162,14 +162,17 @@ class Test(unittest.TestCase):
         self.assertTrue(match_played_tiebreak(200, 198))
 
     def test_calculate_distance_penalty(self):
+        # Test when distance penalty is off
+        self.assertEqual(0, Match.calculate_distance_penalty(1, 2, False))
+
         # Test penalties
-        self.assertEqual(3, Match.calculate_distance_penalty(1, 2))
-        self.assertEqual(12, Match.calculate_distance_penalty(1, 5))
-        self.assertEqual(12, Match.calculate_distance_penalty(7, 11))
-        self.assertEqual(15, Match.calculate_distance_penalty(1, 6))
+        self.assertEqual(3, Match.calculate_distance_penalty(1, 2, True))
+        self.assertEqual(12, Match.calculate_distance_penalty(1, 5, True))
+        self.assertEqual(12, Match.calculate_distance_penalty(7, 11, True))
+        self.assertEqual(15, Match.calculate_distance_penalty(1, 6, True))
 
         # Test premiums
-        self.assertEqual(-3, Match.calculate_distance_penalty(2, 1))
-        self.assertEqual(-12, Match.calculate_distance_penalty(5, 1))
-        self.assertEqual(-12, Match.calculate_distance_penalty(11, 7))
-        self.assertEqual(-15, Match.calculate_distance_penalty(6, 1))
+        self.assertEqual(-3, Match.calculate_distance_penalty(2, 1, True))
+        self.assertEqual(-12, Match.calculate_distance_penalty(5, 1, True))
+        self.assertEqual(-12, Match.calculate_distance_penalty(11, 7, True))
+        self.assertEqual(-15, Match.calculate_distance_penalty(6, 1, True))

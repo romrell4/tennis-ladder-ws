@@ -10,6 +10,121 @@
 		"https"
 	],
 	"paths": {
+		"/users/{user_id}": {
+			"get": {
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/user"
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			},
+			"put": {
+				"produces": [
+					"application/json"
+				],
+				"consumes": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "user",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/user"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/user"
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			}
+		},
 		"/ladders": {
 			"get": {
 				"produces": [
@@ -55,6 +170,63 @@
 						"description": "200 response",
 						"schema": {
 							"$ref": "#/definitions/players"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			},
+			"post": {
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "ladder_id",
+						"in": "path",
+						"required": true,
+						"type": "integer"
+					},
+					{
+						"name": "code",
+						"in": "query",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/players"
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"404": {
+						"description": "Ladder not found",
+						"schema": {
+							"$ref": "#/definitions/error"
 						}
 					}
 				},
@@ -143,6 +315,24 @@
 						"schema": {
 							"$ref": "#/definitions/match"
 						}
+					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"404": {
+						"description": "Ladder not found",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
 					}
 				},
 				"x-amazon-apigateway-integration": {
@@ -161,16 +351,6 @@
 		}
 	},
 	"definitions": {
-		"user": {
-			"properties": {
-				"user_id": {
-					"type": "integer"
-				},
-				"name": {
-					"type": "string"
-				}
-			}
-		},
 		"ladders": {
 			"type": "array",
 			"items": {
@@ -203,17 +383,13 @@
 		},
 		"player": {
 			"properties": {
-				"user_id": {
-					"type": "integer"
+				"user": {
+					"schema": {
+						"$ref": "#/definitions/user"
+					}
 				},
 				"ladder_id": {
 					"type": "integer"
-				},
-				"name": {
-					"type": "string"
-				},
-				"photo_url": {
-					"type": "string"
 				},
 				"score": {
 					"type": "integer"
@@ -227,6 +403,23 @@
 				"losses": {
 					"type": "integer"
 				}
+			}
+		},
+		"user": {
+			"user_id": {
+				"type": "integer"
+			},
+			"name": {
+				"type": "string"
+			},
+			"email": {
+				"type": "string"
+			},
+			"phone_number": {
+				"type": "string"
+			},
+			"photo_url": {
+				"type": "string"
 			}
 		},
 		"matches": {
@@ -267,6 +460,13 @@
 				},
 				"loser_set3_score": {
 					"type": "integer"
+				}
+			}
+		},
+		"error": {
+			"properties": {
+				"error": {
+					"type": "string"
 				}
 			}
 		}

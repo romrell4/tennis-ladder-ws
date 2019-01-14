@@ -27,7 +27,8 @@ class Handler:
                 raise ServiceException("Invalid request. No 'resource', or 'httpMethod' found in the event", 400)
 
             resource, method = event["resource"], event["httpMethod"]  # These will be used to specify which endpoint was being hit
-            path_parameters = event.get("pathParameters", {}) if event.get("pathParameters") is not None else {}  # This will be used to get IDs and other parameters from the URL
+            path_params = event.get("pathParameters", {}) if event.get("pathParameters") is not None else {}  # This will be used to get IDs and other parameters from the URL
+            query_params = event.get("queryStringParameters", {}) if event.get("queryStringParameters") is not None else {}  # This will be used to get IDs and other parameters from the URL
             try:
                 body = json.loads(event["body"])  # This will be used for most POSTs and PUTs
             except (TypeError, KeyError, ValueError):
@@ -35,14 +36,20 @@ class Handler:
 
             self.manager.validate_token(self.get_token(event))
 
-            if resource == "/ladders" and method == "GET":
+            if resource == "/users/{user_id}" and method == "GET":
+                response_body = self.manager.get_user(path_params.get("user_id"))
+            elif resource == "/users/{user_id}" and method == "PUT":
+                response_body = self.manager.update_user(path_params.get("user_id"), body)
+            elif resource == "/ladders" and method == "GET":
                 response_body = self.manager.get_ladders()
             elif resource == "/ladders/{ladder_id}/players" and method == "GET":
-                response_body = self.manager.get_players(int(path_parameters.get("ladder_id")))
+                response_body = self.manager.get_players(int(path_params.get("ladder_id")))
+            elif resource == "/ladders/{ladder_id}/players" and method == "POST":
+                response_body = self.manager.add_player_to_ladder(int(path_params.get("ladder_id")), query_params.get("code"))
             elif resource == "/ladders/{ladder_id}/players/{user_id}/matches" and method == "GET":
-                response_body = self.manager.get_matches(int(path_parameters.get("ladder_id")), path_parameters.get("user_id"))
+                response_body = self.manager.get_matches(int(path_params.get("ladder_id")), path_params.get("user_id"))
             elif resource == "/ladders/{ladder_id}/matches" and method == "POST":
-                response_body = self.manager.report_match(int(path_parameters.get("ladder_id")), body)
+                response_body = self.manager.report_match(int(path_params.get("ladder_id")), body)
             else:
                 raise ServiceException("Invalid path: '{} {}'".format(resource, method))
 

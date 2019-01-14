@@ -3,7 +3,8 @@ create table users (
   ID varchar(64) key not null,
   NAME varchar(64) not null,
   EMAIL varchar(64) not null,
-  PHOTO_URL varchar(256) not null
+  PHONE_NUMBER varchar(32),
+  PHOTO_URL varchar(256)
 );
 
 # drop table ladders;
@@ -11,7 +12,8 @@ create table ladders (
   ID integer key auto_increment not null,
   NAME varchar(32) not null,
   START_DATE date not null,
-  END_DATE date not null
+  END_DATE date not null,
+  DISTANCE_PENALTY_ON boolean not null default false
 );
 
 # drop table players;
@@ -41,3 +43,10 @@ create table matches(
   foreign key (WINNER_ID) references users(ID) on delete cascade,
   foreign key (LOSER_ID) references users(ID) on delete cascade
 );
+
+# drop table ladder_codes;
+create table ladder_codes(
+  LADDER_ID integer key not null,
+  CODE varchar(64) not null,
+  foreign key (LADDER_ID) references ladders(ID) on delete cascade
+)

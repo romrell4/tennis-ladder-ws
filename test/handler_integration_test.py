@@ -19,9 +19,15 @@ class Test(unittest.TestCase):
         os.environ["DB_DATABASE_NAME"] = properties.db_database_name
         cls.handler = Handler(Manager(FirebaseClient(), Dao()))
 
-    def test_handle(self):
+    def test(self):
         response = self.handler.handle({
-            "resource": "/users",
+            "resource": "/ladders/{ladder_id}/players",
+            "pathParameters": {
+                "ladder_id": "1"
+            },
+            "queryStringParameters": {
+                "code": ""
+            },
             "httpMethod": "POST",
             "headers": {
                 "X-Firebase-Token": properties.firebase_token
