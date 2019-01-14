@@ -11,7 +11,7 @@ class Test(unittest.TestCase):
         cls.handler = handler.Handler(cls.manager)
 
     def test_get_user(self):
-        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "1"}))
+        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}))
         self.assertEqual(200, response["statusCode"])
         user = json.loads(response["body"])
         self.assertEqual("1", user["user_id"])
@@ -21,7 +21,7 @@ class Test(unittest.TestCase):
         self.assertEqual("hello.jpg", user["photo_url"])
 
     def test_update_user(self):
-        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "1"}, "PUT", "{}"))
+        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}, "PUT", "{}"))
         self.assertEqual(200, response["statusCode"])
         user = json.loads(response["body"])
         self.assertEqual("1", user["user_id"])
