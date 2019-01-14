@@ -54,7 +54,7 @@ class Test(unittest.TestCase):
         Match.is_valid_set = old_is_valid_set
         Match.is_valid_tiebreak = old_is_valid_tiebreak
 
-    def _test_is_valid_set(self):
+    def test_is_valid_set(self):
         self.assertFalse(Match.is_valid_set(None, None))
         self.assertFalse(Match.is_valid_set(0, 0))
         self.assertFalse(Match.is_valid_set(2, 1))

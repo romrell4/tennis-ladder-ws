@@ -52,15 +52,8 @@ class Match:
     @staticmethod
     def is_valid_set(winner_score, loser_score):
         if winner_score is None or loser_score is None: return False
-        if winner_score < 0 or loser_score < 0: return False
-        if winner_score > 7 or loser_score > 7: return False
-        difference = winner_score - loser_score
-        if difference == 0: return False
-        if winner_score < 7 and loser_score < 7:
-            if difference < 2 and difference > -2: return False
-        if winner_score > 6 or loser_score > 6:
-            if difference > 2 or difference < -2: return False
-        return True
+        set_loser_score, set_winner_score = sorted([winner_score, loser_score])
+        return (set_winner_score == 7 and 5 <= set_loser_score <= 6) or (set_winner_score == 6 and 0 <= set_loser_score <= 4)
 
     @staticmethod
     def is_valid_tiebreak(winner_score, loser_score):
