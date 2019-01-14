@@ -51,13 +51,14 @@ class Match:
 
     @staticmethod
     def is_valid_set(winner_score, loser_score):
-        # TODO: Mark
-        return True
+        if winner_score is None or loser_score is None: return False
+        set_loser_score, set_winner_score = sorted([winner_score, loser_score])
+        return (set_winner_score == 7 and 5 <= set_loser_score <= 6) or (set_winner_score == 6 and 0 <= set_loser_score <= 4)
 
     @staticmethod
     def is_valid_tiebreak(winner_score, loser_score):
-        # TODO: Mark
-        return True
+        if winner_score is None or loser_score is None: return False
+        return (winner_score == 10 and 0 <= loser_score <= 8) or (winner_score > 10 and loser_score == winner_score - 2)
 
     def calculate_scores(self, winner_rank, loser_rank, distance_penalty_on):
         loser_score = self.loser_set1_score + self.loser_set2_score
