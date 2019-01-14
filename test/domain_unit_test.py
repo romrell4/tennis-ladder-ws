@@ -82,7 +82,7 @@ class Test(unittest.TestCase):
         self.assertFalse(Match.is_valid_tiebreak(10, 9))
         self.assertFalse(Match.is_valid_tiebreak(8, 11))
         self.assertFalse(Match.is_valid_tiebreak(10, -1))
-        self.assertTrue(Match.is_valid_tiebreak(0, 10))
+        self.assertFalse(Match.is_valid_tiebreak(0, 10))
         self.assertTrue(Match.is_valid_tiebreak(10, 0))
         self.assertTrue(Match.is_valid_tiebreak(10, 8))
         self.assertTrue(Match.is_valid_tiebreak(11, 9))
