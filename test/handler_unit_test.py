@@ -10,8 +10,18 @@ class Test(unittest.TestCase):
         cls.manager = MockManager()
         cls.handler = handler.Handler(cls.manager)
 
+    def test_get_user(self):
+        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "1"}))
+        self.assertEqual(200, response["statusCode"])
+        user = json.loads(response["body"])
+        self.assertEqual("1", user["user_id"])
+        self.assertEqual("User1", user["name"])
+        self.assertEqual("user1@test.com", user["email"])
+        self.assertEqual("555-555-5555", user["phone_number"])
+        self.assertEqual("hello.jpg", user["photo_url"])
+
     def test_update_user(self):
-        response = self.handler.handle(create_event("/users", method = "PUT", body = "{}"))
+        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "1"}, "PUT", "{}"))
         self.assertEqual(200, response["statusCode"])
         user = json.loads(response["body"])
         self.assertEqual("1", user["user_id"])
@@ -138,7 +148,10 @@ class MockManager():
     def validate_token(self, token):
         pass
 
-    def update_user(self, user):
+    def get_user(self, user_id):
+        return self.user
+
+    def update_user(self, user_id, user):
         return self.user
 
     def get_ladders(self):

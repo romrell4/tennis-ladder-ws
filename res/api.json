@@ -10,7 +10,58 @@
 		"https"
 	],
 	"paths": {
-		"/users": {
+		"/users/{user_id}": {
+			"get": {
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/user"
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			},
 			"put": {
 				"produces": [
 					"application/json"
@@ -19,6 +70,12 @@
 					"application/json"
 				],
 				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					},
 					{
 						"name": "user",
 						"in": "body",
@@ -33,6 +90,24 @@
 						"description": "200 response",
 						"schema": {
 							"$ref": "#/definitions/user"
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"schema": {
+							"$ref": "#/definitions/error"
 						}
 					}
 				},

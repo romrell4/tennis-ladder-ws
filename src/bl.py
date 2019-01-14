@@ -22,20 +22,33 @@ class Manager:
         except (KeyError, ValueError):
             pass
 
-    def update_user(self, user):
+    def get_user(self, user_id):
         if self.user is None:
             raise ServiceException("Unable to authenticate", 401)
-        if user is None:
+        elif user_id is None:
+            raise ServiceException("No user_id passed in", 400)
+
+        if self.user.user_id != user_id:
+            raise ServiceException("You are only allowed to get your own profile information", 403)
+
+        return self.dao.get_user(user_id)
+
+    def update_user(self, user_id, user):
+        if self.user is None:
+            raise ServiceException("Unable to authenticate", 401)
+        elif user_id is None:
+            raise ServiceException("No user_id passed in", 400)
+        elif user is None:
             raise ServiceException("No user passed in to update", 400)
 
-        if self.user.user_id != user.user_id:
+        if self.user.user_id != user_id:
             raise ServiceException("You are only allowed to update your own profile information", 403)
 
         # Update the logged in user with all editable information
-        self.user.phone_number = user.phone_number
+        self.user.phone_number = user.get("phone_number")
 
         self.dao.update_user(self.user)
-        return self.dao.get_user(self.user.user_id)
+        return self.dao.get_user(user_id)
 
     def get_ladders(self):
         return self.dao.get_ladders()

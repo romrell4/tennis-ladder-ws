@@ -6,7 +6,7 @@ from bl import Manager
 from domain import ServiceException, Ladder, Player, Match, User
 
 class Test(unittest.TestCase):
-    test_user = User("USER1", "User", "user@test.com", None, "user.jpg")
+    test_user = User("USER1", "User", "user@test.com", "555-555-5555", "user.jpg")
     def setUp(self):
         self.manager = Manager(MockFirebaseClient(), MockDao())
 
@@ -37,10 +37,10 @@ class Test(unittest.TestCase):
         self.assertIsNotNone(self.manager.user)
         self.assertFalse(self.manager.dao.created_user)
 
-    def test_update_user(self):
-        def assert_error(user, status_code, error_message):
+    def test_get_user(self):
+        def assert_error(user_id, status_code, error_message):
             with self.assertRaises(ServiceException) as e:
-                self.manager.update_user(user)
+                self.manager.get_user(user_id)
             self.assertEqual(status_code, e.exception.status_code)
             self.assertEqual(error_message, e.exception.error_message)
 
@@ -48,19 +48,42 @@ class Test(unittest.TestCase):
         assert_error(None, 401, "Unable to authenticate")
         self.manager.user = Test.test_user
 
+        # Test with no user id param
+        assert_error(None, 400, "No user_id passed in")
+
+        # Test getting another user
+        assert_error("ANOTHER_USER", 403, "You are only allowed to get your own profile information")
+
+        # Test getting yourself
+        user = self.manager.get_user(Test.test_user.user_id)
+        self.assertEqual(user, Test.test_user)
+
+    def test_update_user(self):
+        def assert_error(user_id, user, status_code, error_message):
+            with self.assertRaises(ServiceException) as e:
+                self.manager.update_user(user_id, user)
+            self.assertEqual(status_code, e.exception.status_code)
+            self.assertEqual(error_message, e.exception.error_message)
+
+        # Test when not logged in
+        assert_error(None, None, 401, "Unable to authenticate")
+        self.manager.user = Test.test_user
+
+        # Test with no user id param
+        assert_error(None, None, 400, "No user_id passed in")
+
         # Test with no user param
-        assert_error(None, 400, "No user passed in to update")
+        assert_error("-1", None, 400, "No user passed in to update")
 
         # Test updating another user
-        new_user = copy.copy(Test.test_user)
-        new_user.user_id = None
-        assert_error(User("-1", None, None, None, None), 403, "You are only allowed to update your own profile information")
+        assert_error("ANOTHER_USER", Test.test_user, 403, "You are only allowed to update your own profile information")
+
+        # Test without phone
+        saved_user = self.manager.update_user(Test.test_user.user_id, {"name": "Something Else"})
+        self.assertEqual(None, saved_user.phone_number)
 
         # Test which info can be updated
-        new_user = copy.copy(Test.test_user)
-        new_user.name = "Something Else"
-        new_user.phone_number = "phone"
-        saved_user = self.manager.update_user(new_user)
+        saved_user = self.manager.update_user(Test.test_user.user_id, {"name": "Something Else", "phone_number": "phone"})
         self.assertEqual("User", saved_user.name)
         self.assertEqual("phone", saved_user.phone_number)
 
@@ -192,7 +215,9 @@ class MockFirebaseClient:
             return {}
 
 class MockDao:
-    user_database = {}
+    user_database = {
+        Test.test_user.user_id: Test.test_user
+    }
     ladder_database = {
         1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02", False),
         2: Ladder(2, "Ladder 2", "2018-01-01", "2018-01-02", False)
