@@ -57,8 +57,9 @@ class Match:
 
     @staticmethod
     def is_valid_tiebreak(winner_score, loser_score):
-        # TODO: Mark
-        return True
+        if winner_score is None or loser_score is None: return False
+        tiebreak_loser_score, tiebreak_winner_score = sorted([winner_score, loser_score])
+        return (tiebreak_winner_score == 10 and 0 <= tiebreak_loser_score <= 8) or (tiebreak_winner_score > 10 and tiebreak_loser_score == tiebreak_winner_score - 2)
 
     def calculate_scores(self, winner_rank, loser_rank, distance_penalty_on):
         loser_score = self.loser_set1_score + self.loser_set2_score
