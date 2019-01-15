@@ -121,7 +121,7 @@ class Manager:
         self.dao.update_score(match.loser_id, match.ladder_id, loser_score)
 
         # Set match date to right now (to avoid issues with device times being changed)
-        match.match_date = datetime.now()
+        match.match_date = datetime.utcnow()
 
         # Save the match to the database (which will assign it a new match_id)
         match = self.dao.create_match(match)
