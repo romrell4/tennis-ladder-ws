@@ -43,10 +43,25 @@ class Match:
         if self.loser_id is None: raise DomainException("Missing loser's user_id")
         if self.winner_id == self.loser_id: raise DomainException("A match cannot be played against oneself")
 
-        if not Match.is_valid_set(self.winner_set1_score, self.loser_set1_score) or \
-                not Match.is_valid_set(self.winner_set2_score, self.loser_set2_score) or \
-                (self.winner_set3_score is not None and self.loser_set3_score is not None and not Match.is_valid_set(self.winner_set3_score, self.loser_set3_score) and not Match.is_valid_tiebreak(self.winner_set3_score, self.loser_set3_score)):
-            raise DomainException("Invalid set scores")
+        if not Match.is_valid_set(self.winner_set1_score, self.loser_set1_score):
+            raise DomainException("Invalid scores for set 1")
+        elif not Match.is_valid_set(self.winner_set2_score, self.loser_set2_score):
+            raise DomainException("Invalid scores for set 2")
+        elif self.winner_set3_score is not None and self.loser_set3_score is not None:
+            if not Match.is_valid_set(self.winner_set3_score, self.loser_set3_score) and not Match.is_valid_tiebreak(self.winner_set3_score, self.loser_set3_score):
+                raise DomainException("Invalid scores for set 3")
+
+            # Check if the same person won all three sets
+            set_scores = [
+                [self.winner_set1_score, self.loser_set1_score],
+                [self.winner_set2_score, self.loser_set2_score],
+                [self.winner_set3_score, self.loser_set3_score]
+            ]
+            set_winners = [set_score[0] > set_score[1] for set_score in set_scores]
+
+            if len(set(set_winners)) == 1:
+                raise DomainException("Invalid scores. This is a best 2 out of 3 set format. One player cannot win all three sets.")
+
         return self
 
     @staticmethod
@@ -92,7 +107,5 @@ class ServiceException(Exception):
         self.status_code = status_code
 
 class DomainException(ServiceException):
-    MESSAGE_FORMAT = "Invalid request. {}"
-
     def __init__(self, message):
-        super().__init__(DomainException.MESSAGE_FORMAT.format(message), 400)
+        super().__init__(message, 400)
