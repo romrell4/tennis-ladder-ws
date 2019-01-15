@@ -69,9 +69,9 @@ def format_response(body = None, status_code = 200):
     }
 
 def default_serialize(x):
-    if isinstance(x, datetime.date):
-        return x.isoformat()
-    elif isinstance(x, datetime.datetime):
+    if isinstance(x, datetime.datetime):
+        return x.isoformat() + "Z"
+    elif isinstance(x, datetime.date):
         return x.isoformat()
     else:
         return x.__dict__
