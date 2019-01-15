@@ -21,14 +21,12 @@ class Test(unittest.TestCase):
 
     def test(self):
         response = self.handler.handle({
-            "resource": "/ladders/{ladder_id}/players",
+            "resource": "/ladders/{ladder_id}/players/{user_id}/matches",
             "pathParameters": {
-                "ladder_id": "1"
+                "ladder_id": "1",
+                "user_id": "2jNVL3e87xTYbpyCsEU2djVaHVP2"
             },
-            "queryStringParameters": {
-                "code": ""
-            },
-            "httpMethod": "POST",
+            "httpMethod": "GET",
             "headers": {
                 "X-Firebase-Token": properties.firebase_token
             }

@@ -1,6 +1,6 @@
 import unittest
 import os
-from datetime import datetime
+from datetime import datetime, date
 
 import properties
 from da import Dao
@@ -94,8 +94,8 @@ class Test(unittest.TestCase):
         self.assertIsNotNone(ladder)
         self.assertEqual(-4, ladder.ladder_id)
         self.assertEqual("Test 2", ladder.name)
-        self.assertEqual("2018-02-01", ladder.start_date)
-        self.assertEqual("2018-02-02", ladder.end_date)
+        self.assertEqual(date(2018, 2, 1), ladder.start_date)
+        self.assertEqual(date(2018, 2, 2), ladder.end_date)
         self.assertFalse(ladder.distance_penalty_on)
 
     def test_get_ladder(self):
