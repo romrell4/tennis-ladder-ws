@@ -47,20 +47,23 @@ class Match:
             raise DomainException("Invalid scores for set 1")
         elif not Match.is_valid_set(self.winner_set2_score, self.loser_set2_score):
             raise DomainException("Invalid scores for set 2")
-        elif self.winner_set3_score is not None and self.loser_set3_score is not None:
-            if not Match.is_valid_set(self.winner_set3_score, self.loser_set3_score) and not Match.is_valid_tiebreak(self.winner_set3_score, self.loser_set3_score):
-                raise DomainException("Invalid scores for set 3")
+        elif self.winner_set3_score is not None and self.loser_set3_score is not None and not Match.is_valid_set(self.winner_set3_score, self.loser_set3_score) and not Match.is_valid_tiebreak(self.winner_set3_score, self.loser_set3_score):
+            raise DomainException("Invalid scores for set 3")
 
-            # Check if the same person won all three sets
-            set_scores = [
-                [self.winner_set1_score, self.loser_set1_score],
-                [self.winner_set2_score, self.loser_set2_score],
-                [self.winner_set3_score, self.loser_set3_score]
-            ]
-            set_winners = [set_score[0] > set_score[1] for set_score in set_scores]
+        set_scores = [
+            [self.winner_set1_score, self.loser_set1_score],
+            [self.winner_set2_score, self.loser_set2_score],
+            [self.winner_set3_score, self.loser_set3_score]
+        ]
+        set_winners = [set_score[0] > set_score[1] for set_score in set_scores if set_score[0] is not None and set_score[1] is not None]
 
-            if len(set(set_winners)) == 1:
-                raise DomainException("Invalid scores. This is a best 2 out of 3 set format. One player cannot win all three sets.")
+        # Check if the loser reported the score
+        if len([winner for winner in set_winners if not winner]) >= 2:
+            raise DomainException("Invalid scores. Only winners report the scores. Please contact the winner for your scores to be reported.")
+
+        # Check if the same person won all three sets
+        if len([winner for winner in set_winners if winner]) == 3:
+            raise DomainException("Invalid scores. This is a best 2 out of 3 set format. One player cannot win all three sets.")
 
         return self
 

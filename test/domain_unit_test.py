@@ -46,16 +46,18 @@ class Test(unittest.TestCase):
         # Test winning all three sets
         assert_error("Invalid scores. This is a best 2 out of 3 set format. One player cannot win all three sets.", create_match(0, 1, 2, [1, 0, 1, 0, 1, 0]))
 
-        # TODO: Test loser reporting score
+        # Test loser reporting score
+        assert_error("Invalid scores. Only winners report the scores. Please contact the winner for your scores to be reported.", create_match(0, 1, 2, [0, 1, 0, 1, None, None]))
+        assert_error("Invalid scores. Only winners report the scores. Please contact the winner for your scores to be reported.", create_match(0, 1, 2, [0, 1, 1, 0, 0, 1]))
 
         # Test no third set
-        create_match(0, 1, 2, [0, 0, 0, 0, None, None]).validate()
+        create_match(0, 1, 2, [1, 0, 1, 0, None, None]).validate()
 
         # Test valid third set
         create_match(0, 1, 2, [1, 0, 0, 1, 1, -2]).validate()
 
         # Test valid third tiebreak
-        create_match(0, 1, 2, [0, 0, 0, 0, 1, -1]).validate()
+        create_match(0, 1, 2, [1, 0, 0, 1, 1, -1]).validate()
 
         Match.is_valid_set = old_is_valid_set
         Match.is_valid_tiebreak = old_is_valid_tiebreak
