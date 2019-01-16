@@ -75,13 +75,17 @@ class Test(unittest.TestCase):
     def test_update_user(self):
         sql = "select * from users where ID = 'TEST1'"
         old_user = self.dao.get_one(User, sql)
-        old_phone = old_user.phone_number
-        old_user.phone_number = "phone"
+        new_user = User(old_user.user_id, "new name", "new email", "new phone", "new photo")
+
         try:
-            self.dao.update_user(old_user)
-            self.assertEqual("phone", self.dao.get_one(User, sql).phone_number)
+            self.dao.update_user(new_user)
+            saved_user = self.dao.get_one(User, sql)
+            self.assertEqual("new name", saved_user.name)
+            self.assertEqual("new email", saved_user.email)
+            self.assertEqual("new phone", saved_user.phone_number)
+            self.assertEqual("new photo", saved_user.photo_url)
         finally:
-            self.dao.execute("update users set PHONE_NUMBER = %s where ID = 'TEST1'", old_phone)
+            self.dao.update_user(old_user)
 
     def test_get_ladders(self):
         # Test running the SQL and creating the objects
