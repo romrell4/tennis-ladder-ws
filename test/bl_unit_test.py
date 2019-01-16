@@ -78,14 +78,21 @@ class Test(unittest.TestCase):
         # Test updating another user
         assert_error("ANOTHER_USER", Test.test_user, 403, "You are only allowed to update your own profile information")
 
-        # Test without phone
-        saved_user = self.manager.update_user(Test.test_user.user_id, {"name": "Something Else"})
-        self.assertEqual(None, saved_user.phone_number)
+        # Test without specifying phone (shouldn't update)
+        saved_user = self.manager.update_user(Test.test_user.user_id, {})
+        self.assertIsNotNone(saved_user.phone_number)
+
+        # Test specifying null phone (should update)
+        saved_user = self.manager.update_user(Test.test_user.user_id, {"phone_number": None})
+        self.assertIsNone(saved_user.phone_number)
 
         # Test which info can be updated
-        saved_user = self.manager.update_user(Test.test_user.user_id, {"name": "Something Else", "phone_number": "phone"})
-        self.assertEqual("User", saved_user.name)
-        self.assertEqual("phone", saved_user.phone_number)
+        saved_user = self.manager.update_user(Test.test_user.user_id, {"user_id": "bad", "name": "new name", "email": "new email", "phone_number": "new phone", "photo_url": "new url"})
+        self.assertNotEqual("bad", saved_user.user_id)
+        self.assertEqual("new name", saved_user.name)
+        self.assertEqual("new email", saved_user.email)
+        self.assertEqual("new phone", saved_user.phone_number)
+        self.assertEqual("new url", saved_user.photo_url)
 
     def test_add_player_to_ladder(self):
         def assert_error(ladder_id, code, status_code, error_message):

@@ -45,7 +45,10 @@ class Manager:
             raise ServiceException("You are only allowed to update your own profile information", 403)
 
         # Update the logged in user with all editable information
-        self.user.phone_number = user.get("phone_number")
+        if "name" in user: self.user.name = user.get("name")
+        if "email" in user: self.user.email = user.get("email")
+        if "phone_number" in user: self.user.phone_number = user.get("phone_number")
+        if "photo_url" in user: self.user.photo_url = user.get("photo_url")
 
         self.dao.update_user(self.user)
         return self.dao.get_user(user_id)
