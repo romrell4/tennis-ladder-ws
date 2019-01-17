@@ -120,6 +120,11 @@ class Manager:
 
         # Update the scores of the players
         winner_score, loser_score = match.calculate_scores(winner.ranking, loser.ranking, ladder.distance_penalty_on)
+        print("---MATCH_REPORTING--- {} ({}) vs {} ({}): {}-{}, {}-{}, {}-{}. Winner Score: {}. Loser Score: {}".format(
+            winner.user.name, winner.ranking, loser.user.name, loser.ranking,
+            match.winner_set1_score, match.loser_set1_score, match.winner_set2_score, match.loser_set2_score, match.winner_set3_score, match.loser_set3_score,
+            winner_score, loser_score
+        ))
         self.dao.update_score(match.winner_id, match.ladder_id, winner_score)
         self.dao.update_score(match.loser_id, match.ladder_id, loser_score)
 
