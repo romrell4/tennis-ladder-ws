@@ -4,7 +4,8 @@ create table users (
   NAME varchar(64) not null,
   EMAIL varchar(64) not null,
   PHONE_NUMBER varchar(32),
-  PHOTO_URL varchar(256)
+  PHOTO_URL varchar(256),
+  AVAILABILITY_TEXT varchar(512)
 );
 
 # drop table ladders;

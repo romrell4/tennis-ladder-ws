@@ -62,7 +62,7 @@ class Test(unittest.TestCase):
     def test_create_user(self):
         try:
             self.dao.create_user(User("__TEST", "Tester", "test@test.com", "123-456-7890", "test.jpg"))
-            user = self.dao.get_one(User, "SELECT * FROM users where ID = '__TEST'")
+            user = self.dao.get_one(User, "SELECT ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL FROM users where ID = '__TEST'")
             self.assertIsNotNone(user)
             self.assertEqual("__TEST", user.user_id)
             self.assertEqual("Tester", user.name)
@@ -73,7 +73,7 @@ class Test(unittest.TestCase):
             self.dao.execute("DELETE FROM users where ID = '__TEST'")
 
     def test_update_user(self):
-        sql = "select * from users where ID = 'TEST1'"
+        sql = "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL from users where ID = 'TEST1'"
         old_user = self.dao.get_one(User, sql)
         new_user = User(old_user.user_id, "new name", "new email", "new phone", "new photo")
 
