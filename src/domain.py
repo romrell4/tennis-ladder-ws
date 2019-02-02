@@ -1,11 +1,8 @@
 import math
 
 class User:
-    def __init__(self, user_id, name, email, phone_number, photo_url):
-        self.user_id, self.name, self.email, self.phone_number, self.photo_url = user_id, name, email, phone_number, photo_url
-
-    def get_insert_properties(self):
-        return [self.user_id, self.name, self.email, self.phone_number, self.photo_url]
+    def __init__(self, user_id, name, email, phone_number, photo_url, availability_text):
+        self.user_id, self.name, self.email, self.phone_number, self.photo_url, self.availability_text = user_id, name, email, phone_number, photo_url, availability_text
 
 class Ladder:
     def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on):
@@ -101,8 +98,8 @@ class Match:
 #### Non-DB Objects ####
 
 class Player:
-    def __init__(self, user_id, name, email, phone_number, photo_url, ladder_id, score, ranking, wins, losses):
-        self.user, self.ladder_id, self.score, self.ranking, self.wins, self.losses = User(user_id, name, email, phone_number, photo_url), ladder_id, score, ranking, wins, losses
+    def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, ladder_id, score, ranking, wins, losses):
+        self.user, self.ladder_id, self.score, self.ranking, self.wins, self.losses = User(user_id, name, email, phone_number, photo_url, availability_text), ladder_id, score, ranking, wins, losses
 
 class ServiceException(Exception):
     def __init__(self, message, status_code = 500):
