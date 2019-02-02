@@ -194,10 +194,13 @@ class Test(unittest.TestCase):
         assert_error(1, create_match("TEST0", "TEST1", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
         assert_error(1, create_match("TEST1", "TEST0", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
 
-        # Test with a match where players are too far apart
-        assert_error(1, create_match("TEST1", "TEST14", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
+        # Test with a match where players are too far apart (should work if distance penalty is off)
+        self.manager.report_match(1, create_match("TEST1", "TEST14", 6, 0, 6, 0))
+        assert_error(2, create_match("TEST1", "TEST14", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
         # Test valid match (scores should get updated, and match should be saved with a new date value)
+        self.manager.dao.updated_scores = []
+        self.manager.dao.saved_match = None
         match = self.manager.report_match(1, create_match("TEST1", "TEST2", 6, 0, 6, 0))
         self.assertEqual(2, len(self.manager.dao.updated_scores))
         self.assertEqual(10, self.manager.dao.updated_scores[0][2])
@@ -227,7 +230,7 @@ class MockDao:
     }
     ladder_database = {
         1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02", False),
-        2: Ladder(2, "Ladder 2", "2018-01-01", "2018-01-02", False)
+        2: Ladder(2, "Ladder 2", "2018-01-01", "2018-01-02", True)
     }
     players_database = {
         "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", 1, 100, 1, 0, 0),

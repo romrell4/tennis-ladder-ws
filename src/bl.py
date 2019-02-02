@@ -115,7 +115,7 @@ class Manager:
         if loser is None:
             raise ServiceException("No user with id: '{}'".format(match.loser_id), 400)
 
-        if abs(winner.ranking - loser.ranking) > Manager.INVALID_RANKING_DISTANCE:
+        if ladder.distance_penalty_on and abs(winner.ranking - loser.ranking) > Manager.INVALID_RANKING_DISTANCE:
             raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)
 
         # Update the scores of the players
