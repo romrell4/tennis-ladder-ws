@@ -18,7 +18,8 @@ class Test(unittest.TestCase):
         try:
             cls.dao.insert("""INSERT INTO users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT) VALUES 
                 ('TEST1', 'Tester One', 'test1@mail.com', '111-111-1111', 'test1.jpg', 'avail 1'),
-                ('TEST2', 'Tester Two', 'test2@mail.com', null, 'test2.jpg', 'avail 2')
+                ('TEST2', 'Tester Two', 'test2@mail.com', null, 'test2.jpg', 'avail 2'),
+                ('TEST3', 'Tester Three', 'test3@mail.com', null, 'test3.jpg', 'avail 3')
             """)
             cls.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES 
                 (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
@@ -27,6 +28,7 @@ class Test(unittest.TestCase):
             cls.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES 
                 ('TEST1', -3, 5),
                 ('TEST2', -3, 10),
+                ('TEST3', -3, 10),
                 ('TEST1', -4, 0)
             """)
             cls.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
@@ -42,7 +44,7 @@ class Test(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # These will cascade in order to delete the other ones
-        cls.dao.execute("DELETE FROM users where ID in ('TEST1', 'TEST2')")
+        cls.dao.execute("DELETE FROM users where ID in ('TEST1', 'TEST2', 'TEST3')")
         cls.dao.execute("DELETE FROM ladders where ID in (-3, -4)")
 
     def test_get_user(self):
@@ -118,7 +120,7 @@ class Test(unittest.TestCase):
         # Test running the SQL, and deserializing a result set
         players = self.dao.get_players(-3)
         self.assertIsNotNone(players)
-        self.assertEqual(2, len(players))
+        self.assertEqual(3, len(players))
 
         # Test that the order is correct, and that all values were deserialized
         player = players[0]
@@ -131,6 +133,11 @@ class Test(unittest.TestCase):
         self.assertEqual(1, player.ranking)
         self.assertEqual(0, player.wins)
         self.assertEqual(1, player.losses)
+
+        # Test ranking system
+        self.assertEqual(1, players[0].ranking)
+        self.assertEqual(1, players[1].ranking)
+        self.assertEqual(2, players[2].ranking)
 
     def test_get_player(self):
         # Test a non-existent player
