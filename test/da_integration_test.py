@@ -16,10 +16,10 @@ class Test(unittest.TestCase):
 
         cls.dao = Dao()
         try:
-            cls.dao.insert("""INSERT INTO users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL) VALUES 
-                ('TEST1', 'Tester One', 'test1@mail.com', '111-111-1111', 'test1.jpg'),
-                ('TEST2', 'Tester Two', 'test2@mail.com', null, 'test2.jpg'),
-                ('TEST3', 'Tester Three', 'test3@mail.com', null, 'test3.jpg')
+            cls.dao.insert("""INSERT INTO users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT) VALUES 
+                ('TEST1', 'Tester One', 'test1@mail.com', '111-111-1111', 'test1.jpg', 'avail 1'),
+                ('TEST2', 'Tester Two', 'test2@mail.com', null, 'test2.jpg', 'avail 2'),
+                ('TEST3', 'Tester Three', 'test3@mail.com', null, 'test3.jpg', 'avail 3')
             """)
             cls.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES 
                 (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
@@ -60,24 +60,26 @@ class Test(unittest.TestCase):
         self.assertEqual("test1@mail.com", user.email)
         self.assertEqual("111-111-1111", user.phone_number)
         self.assertEqual("test1.jpg", user.photo_url)
+        self.assertEqual("avail 1", user.availability_text)
 
     def test_create_user(self):
         try:
-            self.dao.create_user(User("__TEST", "Tester", "test@test.com", "123-456-7890", "test.jpg"))
-            user = self.dao.get_one(User, "SELECT ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL FROM users where ID = '__TEST'")
+            self.dao.create_user(User("__TEST", "Tester", "test@test.com", "123-456-7890", "test.jpg", "avail"))
+            user = self.dao.get_one(User, "SELECT ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT FROM users where ID = '__TEST'")
             self.assertIsNotNone(user)
             self.assertEqual("__TEST", user.user_id)
             self.assertEqual("Tester", user.name)
             self.assertEqual("test@test.com", user.email)
             self.assertEqual("123-456-7890", user.phone_number)
             self.assertEqual("test.jpg", user.photo_url)
+            self.assertEqual("avail", user.availability_text)
         finally:
             self.dao.execute("DELETE FROM users where ID = '__TEST'")
 
     def test_update_user(self):
-        sql = "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL from users where ID = 'TEST1'"
+        sql = "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT from users where ID = 'TEST1'"
         old_user = self.dao.get_one(User, sql)
-        new_user = User(old_user.user_id, "new name", "new email", "new phone", "new photo")
+        new_user = User(old_user.user_id, "new name", "new email", "new phone", "new photo", "new availability")
 
         try:
             self.dao.update_user(new_user)
@@ -86,6 +88,7 @@ class Test(unittest.TestCase):
             self.assertEqual("new email", saved_user.email)
             self.assertEqual("new phone", saved_user.phone_number)
             self.assertEqual("new photo", saved_user.photo_url)
+            self.assertEqual("new availability", saved_user.availability_text)
         finally:
             self.dao.update_user(old_user)
 

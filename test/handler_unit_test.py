@@ -19,6 +19,7 @@ class Test(unittest.TestCase):
         self.assertEqual("user1@test.com", user["email"])
         self.assertEqual("555-555-5555", user["phone_number"])
         self.assertEqual("hello.jpg", user["photo_url"])
+        self.assertEqual("avail", user["availability_text"])
 
     def test_update_user(self):
         response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}, "PUT", "{}"))
@@ -29,6 +30,7 @@ class Test(unittest.TestCase):
         self.assertEqual("user1@test.com", user["email"])
         self.assertEqual("555-555-5555", user["phone_number"])
         self.assertEqual("hello.jpg", user["photo_url"])
+        self.assertEqual("avail", user["availability_text"])
 
     def test_get_ladders(self):
         response = self.handler.handle(create_event("/ladders"))
@@ -51,6 +53,7 @@ class Test(unittest.TestCase):
         self.assertEqual("User1", players[0]["user"]["name"])
         self.assertEqual("user1@test.com", players[0]["user"]["email"])
         self.assertEqual("test1.jpg", players[0]["user"]["photo_url"])
+        self.assertEqual("avail 1", players[0]["user"]["availability_text"])
         self.assertEqual(1, players[0]["ladder_id"])
         self.assertEqual(10, players[0]["score"])
         self.assertEqual(3, players[0]["ranking"])
@@ -143,7 +146,7 @@ class MockManager():
     reported_match = None
 
     def __init__(self):
-        self.user = User("1", "User1", "user1@test.com", "555-555-5555", "hello.jpg")
+        self.user = User("1", "User1", "user1@test.com", "555-555-5555", "hello.jpg", "avail")
 
     def validate_token(self, token):
         pass
@@ -163,12 +166,12 @@ class MockManager():
     def get_players(self, ladder_id):
         if ladder_id == 1:
             return [
-                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", 1, 10, 3, 1, 0)
+                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", "avail 1", 1, 10, 3, 1, 0)
             ]
         elif ladder_id == 2:
             return [
-                Player(2, "User2", "user2@test.com", "000-000-0000", "test2.jpg", 2, 0, 1, 0, 0),
-                Player(3, "User3", "user3@test.com", "000-000-0000", "test3.jpg", 2, 0, 1, 0, 0)
+                Player(2, "User2", "user2@test.com", "000-000-0000", "test2.jpg", "avail 2", 2, 0, 1, 0, 0),
+                Player(3, "User3", "user3@test.com", "000-000-0000", "test3.jpg", "avail 3", 2, 0, 1, 0, 0)
             ]
 
     def add_player_to_ladder(self, ladder_id, code):
@@ -176,7 +179,7 @@ class MockManager():
             return []
         else:
             return [
-                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", 1, 10, 3, 1, 0)
+                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", "avail 1", 1, 10, 3, 1, 0)
             ]
 
     def get_matches(self, ladder_id, user_id):

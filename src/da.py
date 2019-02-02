@@ -4,7 +4,7 @@ import os
 
 class Dao:
     PLAYER_SQL_PREFIX = """
-        select u.ID, u.NAME, u.EMAIL, u.PHONE_NUMBER, u.PHOTO_URL, l.ID as LADDER_ID, p.SCORE,
+        select u.ID, u.NAME, u.EMAIL, u.PHONE_NUMBER, u.PHOTO_URL, u.AVAILABILITY_TEXT, l.ID as LADDER_ID, p.SCORE,
           (select count(distinct SCORE) + 1 from players where LADDER_ID = %s and SCORE > p.SCORE) as RANKING,
           (select count(*) as WINS from matches where LADDER_ID = %s and WINNER_ID = u.ID) as WINS,
           (select count(*) as WINS from matches where LADDER_ID = %s and LOSER_ID = u.ID) as LOSSES
@@ -28,13 +28,13 @@ class Dao:
             raise ServiceException("Failed to connect to database")
 
     def get_user(self, user_id):
-        return self.get_one(User, "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL from users where ID = %s", user_id)
+        return self.get_one(User, "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT from users where ID = %s", user_id)
 
     def create_user(self, user):
-        self.insert("insert into users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL) values (%s, %s, %s, %s, %s)", *user.get_insert_properties())
+        self.insert("insert into users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT) values (%s, %s, %s, %s, %s, %s)", user.user_id, user.name, user.email, user.phone_number, user.photo_url, user.availability_text)
 
     def update_user(self, user):
-        self.execute("update users set NAME = %s, EMAIL = %s, PHONE_NUMBER = %s, PHOTO_URL = %s where ID = %s", user.name, user.email, user.phone_number, user.photo_url, user.user_id)
+        self.execute("update users set NAME = %s, EMAIL = %s, PHONE_NUMBER = %s, PHOTO_URL = %s, AVAILABILITY_TEXT = %s where ID = %s", user.name, user.email, user.phone_number, user.photo_url, user.availability_text, user.user_id)
 
     def get_ladders(self):
         return self.get_list(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON from ladders order by START_DATE DESC")

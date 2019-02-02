@@ -17,7 +17,7 @@ class Manager:
             firebase_user = self.firebase_client.get_firebase_user(token)
             self.user = self.dao.get_user(firebase_user["user_id"])
             if self.user is None:
-                self.user = User(firebase_user["user_id"], firebase_user["name"], firebase_user["email"], None, firebase_user.get("picture"))
+                self.user = User(firebase_user["user_id"], firebase_user["name"], firebase_user["email"], None, firebase_user.get("picture"), None)
                 self.dao.create_user(self.user)
         except (KeyError, ValueError):
             pass
@@ -49,6 +49,7 @@ class Manager:
         if "email" in user: self.user.email = user.get("email")
         if "phone_number" in user: self.user.phone_number = user.get("phone_number")
         if "photo_url" in user: self.user.photo_url = user.get("photo_url")
+        if "availability_text" in user: self.user.availability_text = user.get("availability_text")
 
         self.dao.update_user(self.user)
         return self.dao.get_user(user_id)
