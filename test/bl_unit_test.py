@@ -53,11 +53,15 @@ class Test(unittest.TestCase):
         assert_error(None, 400, "No user_id passed in")
 
         # Test getting another user
-        assert_error("ANOTHER_USER", 403, "You are only allowed to get your own profile information")
+        assert_error("BAD_USER", 403, "You are only allowed to access profile information for users who are playing in the same ladder as you")
 
         # Test getting yourself
         user = self.manager.get_user(Test.test_user.user_id)
         self.assertEqual(user, Test.test_user)
+
+        # Test getting another player
+        user = self.manager.get_user("TEST1")
+        self.assertEqual(user.user_id, "TEST1")
 
     def test_update_user(self):
         def assert_error(user_id, user, status_code, error_message):
@@ -228,7 +232,8 @@ class MockFirebaseClient:
 
 class MockDao:
     user_database = {
-        Test.test_user.user_id: Test.test_user
+        Test.test_user.user_id: Test.test_user,
+        "TEST1": User("TEST1", None, None, None, None, None)
     }
     ladder_database = {
         1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02", False),
@@ -263,6 +268,9 @@ class MockDao:
     def get_user(self, user_id):
         self.created_user = False
         return self.user_database.get(user_id)
+
+    def in_same_ladder(self, user1_id, user2_id):
+        return user2_id != "BAD_USER"
 
     def create_user(self, user):
         self.user_database[user.user_id] = user
