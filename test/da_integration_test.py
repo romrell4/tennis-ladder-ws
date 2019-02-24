@@ -19,7 +19,8 @@ class Test(unittest.TestCase):
             cls.dao.insert("""INSERT INTO users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT) VALUES 
                 ('TEST1', 'Tester One', 'test1@mail.com', '111-111-1111', 'test1.jpg', 'avail 1'),
                 ('TEST2', 'Tester Two', 'test2@mail.com', null, 'test2.jpg', 'avail 2'),
-                ('TEST3', 'Tester Three', 'test3@mail.com', null, 'test3.jpg', 'avail 3')
+                ('TEST3', 'Tester Three', 'test3@mail.com', null, 'test3.jpg', 'avail 3'),
+                ('TEST4', 'Tester Four', 'test4@mail.com', null, 'test4.jpg', 'avail 4')
             """)
             cls.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES 
                 (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
@@ -29,7 +30,8 @@ class Test(unittest.TestCase):
                 ('TEST1', -3, 5),
                 ('TEST2', -3, 10),
                 ('TEST3', -3, 10),
-                ('TEST1', -4, 0)
+                ('TEST1', -4, 0),
+                ('TEST4', -4, 0)
             """)
             cls.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
                 (-1, -3, CURDATE(), 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
@@ -44,7 +46,7 @@ class Test(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # These will cascade in order to delete the other ones
-        cls.dao.execute("DELETE FROM users where ID in ('TEST1', 'TEST2', 'TEST3')")
+        cls.dao.execute("DELETE FROM users where ID in ('TEST1', 'TEST2', 'TEST3', 'TEST4')")
         cls.dao.execute("DELETE FROM ladders where ID in (-3, -4)")
 
     def test_get_user(self):
@@ -61,6 +63,13 @@ class Test(unittest.TestCase):
         self.assertEqual("111-111-1111", user.phone_number)
         self.assertEqual("test1.jpg", user.photo_url)
         self.assertEqual("avail 1", user.availability_text)
+
+    def test_in_same_ladder(self):
+        self.assertFalse(self.dao.in_same_ladder("TEST1", "TEST0"))
+        self.assertFalse(self.dao.in_same_ladder("TEST0", "TEST1"))
+        self.assertTrue(self.dao.in_same_ladder("TEST1", "TEST1"))
+        self.assertFalse(self.dao.in_same_ladder("TEST2", "TEST4"))
+        self.assertTrue(self.dao.in_same_ladder("TEST1", "TEST4"))
 
     def test_create_user(self):
         try:
