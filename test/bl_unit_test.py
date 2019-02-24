@@ -59,6 +59,13 @@ class Test(unittest.TestCase):
         user = self.manager.get_user(Test.test_user.user_id)
         self.assertEqual(user, Test.test_user)
 
+        # Test getting yourself, when you aren't in a ladder
+        old_user_id = self.manager.user.user_id
+        self.manager.user.user_id = "BAD_USER"
+        user = self.manager.get_user("BAD_USER")
+        self.assertEqual(user.user_id, "BAD_USER")
+        self.manager.user.user_id = old_user_id
+
         # Test getting another player
         user = self.manager.get_user("TEST1")
         self.assertEqual(user.user_id, "TEST1")
@@ -233,7 +240,8 @@ class MockFirebaseClient:
 class MockDao:
     user_database = {
         Test.test_user.user_id: Test.test_user,
-        "TEST1": User("TEST1", None, None, None, None, None)
+        "TEST1": User("TEST1", None, None, None, None, None),
+        "BAD_USER": User("BAD_USER", None, None, None, None, None)
     }
     ladder_database = {
         1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02", False),

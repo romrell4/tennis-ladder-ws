@@ -28,7 +28,7 @@ class Manager:
         elif user_id is None:
             raise ServiceException("No user_id passed in", 400)
 
-        if not self.dao.in_same_ladder(self.user.user_id, user_id):
+        if self.user.user_id != user_id and not self.dao.in_same_ladder(self.user.user_id, user_id):
             raise ServiceException("You are only allowed to access profile information for users who are playing in the same ladder as you", 403)
 
         return self.dao.get_user(user_id)

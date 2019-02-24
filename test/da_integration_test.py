@@ -67,6 +67,7 @@ class Test(unittest.TestCase):
     def test_in_same_ladder(self):
         self.assertFalse(self.dao.in_same_ladder("TEST1", "TEST0"))
         self.assertFalse(self.dao.in_same_ladder("TEST0", "TEST1"))
+        self.assertTrue(self.dao.in_same_ladder("TEST1", "TEST1"))
         self.assertFalse(self.dao.in_same_ladder("TEST2", "TEST4"))
         self.assertTrue(self.dao.in_same_ladder("TEST1", "TEST4"))
 
