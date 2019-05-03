@@ -1,4 +1,5 @@
-from datetime import datetime, date
+from datetime import datetime
+from pytz import timezone
 
 from domain import User, ServiceException, Match
 
@@ -105,9 +106,10 @@ class Manager:
             raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
 
         # Check that the ladder is currently active
-        if ladder.start_date > date.today():
+        current_date = datetime.now(timezone("US/Mountain")).date()
+        if ladder.start_date > current_date:
             raise ServiceException("This ladder is not open yet", 400)
-        elif ladder.end_date < date.today():
+        elif ladder.end_date < current_date:
             raise ServiceException("This ladder is now closed", 400)
 
         # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
