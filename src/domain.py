@@ -1,4 +1,6 @@
 import math
+from datetime import datetime
+from pytz import timezone
 
 class User:
     def __init__(self, user_id, name, email, phone_number, photo_url, availability_text):
@@ -7,6 +9,9 @@ class User:
 class Ladder:
     def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on):
         self.ladder_id, self.name, self.start_date, self.end_date, self.distance_penalty_on = ladder_id, name, start_date, end_date, distance_penalty_on
+
+    def can_report_match(self):
+        return self.start_date <= datetime.now(timezone("US/Mountain")).date() <= self.end_date
 
 class Match:
     BASE_WINNER_POINTS = 39

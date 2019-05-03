@@ -7,6 +7,7 @@ from domain import ServiceException, Ladder, Player, Match, User
 
 class Test(unittest.TestCase):
     test_user = User("USER1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability")
+
     def setUp(self):
         self.manager = Manager(MockFirebaseClient(), MockDao())
 
@@ -203,11 +204,11 @@ class Test(unittest.TestCase):
         # Test with a non-existent ladder
         assert_error(0, {}, 404, "No ladder with id: '0'")
 
-        # Test reporting a match before the ladder is open
-        assert_error(3, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not open yet")
-
-        # Test reporting a match after the ladder is closed
-        assert_error(4, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is now closed")
+        # Test reporting a match when the ladder is not open
+        Ladder.can_report_match = lambda _: False
+        assert_error(1, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
+        assert_error(1, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
+        Ladder.can_report_match = lambda _: True
 
         # Test with a winner/loser not in the specified ladder
         assert_error(1, create_match("TEST0", "TEST1", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
@@ -254,9 +255,7 @@ class MockDao:
     }
     ladder_database = {
         1: Ladder(1, "Ladder 1", create_date(-1), create_date(1), False),
-        2: Ladder(2, "Ladder 2", create_date(-1), create_date(1), True),
-        3: Ladder(3, "Ladder 3", create_date(1), create_date(2), False),
-        4: Ladder(4, "Ladder 4", create_date(-2), create_date(-1), False)
+        2: Ladder(2, "Ladder 2", create_date(-1), create_date(1), True)
     }
     players_database = {
         "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", "availability 1", 1, 100, 1, 0, 0),

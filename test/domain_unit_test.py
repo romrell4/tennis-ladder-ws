@@ -1,8 +1,23 @@
 import unittest
+from datetime import date, timedelta
 
-from domain import Match, DomainException
+from domain import Ladder, Match, DomainException
 
 class Test(unittest.TestCase):
+    def test_ladder_can_report_match(self):
+        # Test before a ladder is open
+        ladder = Ladder(0, None, date.today() + timedelta(days = 1), date.today() + timedelta(days = 2), False)
+        self.assertFalse(ladder.can_report_match())
+
+        # Test after a ladder is closed
+        ladder.start_date = date.today() - timedelta(days = 2)
+        ladder.end_date = date.today() - timedelta(days = 1)
+        self.assertFalse(ladder.can_report_match())
+
+        # Test a valid ladder
+        ladder.end_date = date.today() + timedelta(days = 1)
+        self.assertTrue(ladder.can_report_match())
+
     def test_validate_match(self):
         def assert_error(expected_error_message, match):
             with self.assertRaises(DomainException) as e:

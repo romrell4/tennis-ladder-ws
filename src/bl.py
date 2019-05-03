@@ -106,11 +106,8 @@ class Manager:
             raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
 
         # Check that the ladder is currently active
-        current_date = datetime.now(timezone("US/Mountain")).date()
-        if ladder.start_date > current_date:
-            raise ServiceException("This ladder is not open yet", 400)
-        elif ladder.end_date < current_date:
-            raise ServiceException("This ladder is now closed", 400)
+        if not ladder.can_report_match():
+            raise ServiceException("This ladder is not currently open. You can only report matches between the ladder's start and end dates", 400)
 
         # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
         match = Match.from_dict(match_dict)
