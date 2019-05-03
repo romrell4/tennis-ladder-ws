@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timedelta, date
 import copy
 
@@ -205,10 +206,8 @@ class Test(unittest.TestCase):
         assert_error(0, {}, 404, "No ladder with id: '0'")
 
         # Test reporting a match when the ladder is not open
-        Ladder.can_report_match = lambda _: False
-        assert_error(1, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
-        assert_error(1, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
-        Ladder.can_report_match = lambda _: True
+        with patch.object(Ladder, "can_report_match", return_value = False):
+            assert_error(1, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
 
         # Test with a winner/loser not in the specified ladder
         assert_error(1, create_match("TEST0", "TEST1", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
