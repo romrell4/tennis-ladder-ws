@@ -244,7 +244,7 @@ class MockFirebaseClient:
             return {}
 
 def create_date(day_offset):
-    return (datetime.today() + timedelta(days = day_offset)).strftime("%Y-%m-%d")
+    return datetime.today() + timedelta(days = day_offset)
 
 class MockDao:
     user_database = {
@@ -255,8 +255,8 @@ class MockDao:
     ladder_database = {
         1: Ladder(1, "Ladder 1", create_date(-1), create_date(1), False),
         2: Ladder(2, "Ladder 2", create_date(-1), create_date(1), True),
-        3: Ladder(3, "Ladder 3", (datetime.today() + timedelta(days = 1)).strftime("%Y-%m-%d"), (datetime.today() + timedelta(days = 2)).strftime("%Y-%m-%d"), False),
-        4: Ladder(4, "Ladder 4", (datetime.today() - timedelta(days = 2)).strftime("%Y-%m-%d"), (datetime.today() - timedelta(days = 1)).strftime("%Y-%m-%d"), False)
+        3: Ladder(3, "Ladder 3", create_date(1), create_date(2), False),
+        4: Ladder(4, "Ladder 4", create_date(-2), create_date(-1), False)
     }
     players_database = {
         "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", "availability 1", 1, 100, 1, 0, 0),
