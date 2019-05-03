@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import copy
 
 from bl import Manager
@@ -244,7 +244,7 @@ class MockFirebaseClient:
             return {}
 
 def create_date(day_offset):
-    return datetime.today() + timedelta(days = day_offset)
+    return date.today() + timedelta(days = day_offset)
 
 class MockDao:
     user_database = {

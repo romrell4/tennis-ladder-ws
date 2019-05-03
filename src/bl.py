@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from domain import User, ServiceException, Match
 
@@ -105,9 +105,9 @@ class Manager:
             raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
 
         # Check that the ladder is currently active
-        if ladder.start_date > datetime.today():
+        if ladder.start_date > date.today():
             raise ServiceException("This ladder is not open yet", 400)
-        elif ladder.end_date < datetime.today():
+        elif ladder.end_date < date.today():
             raise ServiceException("This ladder is now closed", 400)
 
         # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
