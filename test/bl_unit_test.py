@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 import copy
 
 from bl import Manager
@@ -203,6 +203,12 @@ class Test(unittest.TestCase):
         # Test with a non-existent ladder
         assert_error(0, {}, 404, "No ladder with id: '0'")
 
+        # Test reporting a match before the ladder is open
+        assert_error(3, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not open yet")
+
+        # Test reporting a match after the ladder is closed
+        assert_error(4, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is now closed")
+
         # Test with a winner/loser not in the specified ladder
         assert_error(1, create_match("TEST0", "TEST1", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
         assert_error(1, create_match("TEST1", "TEST0", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
@@ -237,6 +243,9 @@ class MockFirebaseClient:
         else:
             return {}
 
+def create_date(day_offset):
+    return (datetime.today() + timedelta(days = day_offset)).strftime("%Y-%m-%d")
+
 class MockDao:
     user_database = {
         Test.test_user.user_id: Test.test_user,
@@ -244,8 +253,10 @@ class MockDao:
         "BAD_USER": User("BAD_USER", None, None, None, None, None)
     }
     ladder_database = {
-        1: Ladder(1, "Ladder 1", "2018-01-01", "2018-01-02", False),
-        2: Ladder(2, "Ladder 2", "2018-01-01", "2018-01-02", True)
+        1: Ladder(1, "Ladder 1", create_date(-1), create_date(1), False),
+        2: Ladder(2, "Ladder 2", create_date(-1), create_date(1), True),
+        3: Ladder(3, "Ladder 3", (datetime.today() + timedelta(days = 1)).strftime("%Y-%m-%d"), (datetime.today() + timedelta(days = 2)).strftime("%Y-%m-%d"), False),
+        4: Ladder(4, "Ladder 4", (datetime.today() - timedelta(days = 2)).strftime("%Y-%m-%d"), (datetime.today() - timedelta(days = 1)).strftime("%Y-%m-%d"), False)
     }
     players_database = {
         "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", "availability 1", 1, 100, 1, 0, 0),

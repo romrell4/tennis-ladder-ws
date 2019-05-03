@@ -104,6 +104,12 @@ class Manager:
         if ladder is None:
             raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
 
+        # Check that the ladder is currently active
+        if datetime.strptime(ladder.start_date, "%Y-%m-%d") > datetime.today():
+            raise ServiceException("This ladder is not open yet", 400)
+        elif datetime.strptime(ladder.end_date, "%Y-%m-%d") < datetime.today():
+            raise ServiceException("This ladder is now closed", 400)
+
         # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
         match = Match.from_dict(match_dict)
 
