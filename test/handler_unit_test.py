@@ -56,6 +56,8 @@ class Test(unittest.TestCase):
         self.assertEqual("avail 1", players[0]["user"]["availability_text"])
         self.assertEqual(1, players[0]["ladder_id"])
         self.assertEqual(10, players[0]["score"])
+        self.assertEqual(10, players[0]["earned_points"])
+        self.assertEqual(0, players[0]["borrowed_points"])
         self.assertEqual(3, players[0]["ranking"])
         self.assertEqual(1, players[0]["wins"])
         self.assertEqual(0, players[0]["losses"])

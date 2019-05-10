@@ -160,7 +160,7 @@ class Test(unittest.TestCase):
     def test_create_player(self):
         try:
             self.dao.create_player(-4, "TEST2")
-            score = self.dao.get_one(int, "select SCORE from players where LADDER_ID = -4 and USER_ID = 'TEST2'")
+            score = self.dao.get_one(int, "select SCORE from players_vw where LADDER_ID = -4 and USER_ID = 'TEST2'")
             self.assertEqual(0, score)
         finally:
             self.dao.execute("DELETE FROM players where LADDER_ID = -4 and USER_ID = 'TEST2'")
