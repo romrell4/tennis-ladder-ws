@@ -218,12 +218,12 @@ class Test(unittest.TestCase):
         assert_error(2, create_match("TEST1", "TEST14", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
         # Test valid match (scores should get updated, and match should be saved with a new date value)
-        self.manager.dao.updated_scores = []
+        self.manager.dao.updated_points = []
         self.manager.dao.saved_match = None
         match = self.manager.report_match(1, create_match("TEST1", "TEST2", 6, 0, 6, 0))
-        self.assertEqual(2, len(self.manager.dao.updated_scores))
-        self.assertEqual(10, self.manager.dao.updated_scores[0][2])
-        self.assertEqual(5, self.manager.dao.updated_scores[1][2])
+        self.assertEqual(2, len(self.manager.dao.updated_points))
+        self.assertEqual(10, self.manager.dao.updated_points[0][2])
+        self.assertEqual(5, self.manager.dao.updated_points[1][2])
         self.assertIsNotNone(match.match_id)
         self.assertIsNotNone(self.manager.dao.saved_match)
         self.assertIsNotNone(self.manager.dao.saved_match.match_date)
@@ -278,7 +278,7 @@ class MockDao:
         "TEST19": Player("TEST19", "Player 19", "test19@mail.com", "000-000-0019", "test19.jpg", "availability 19", 1, 10, 19, 0, 0),
         "TEST20": Player("TEST20", "Player 20", "test20@mail.com", "000-000-0020", "test20.jpg", "availability 20", 1, 5, 20, 0, 0)
     }
-    updated_scores = []
+    updated_points = []
     saved_match = None
     created_user = False
 
@@ -313,8 +313,8 @@ class MockDao:
     def create_player(self, ladder_id, user_id):
         pass
 
-    def update_score(self, user_id, ladder_id, new_score_to_add):
-        self.updated_scores.append([user_id, ladder_id, new_score_to_add])
+    def update_earned_points(self, user_id, ladder_id, new_points_to_add):
+        self.updated_points.append([user_id, ladder_id, new_points_to_add])
 
     def get_matches(self, ladder_id, user_id):
         return [

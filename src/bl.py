@@ -131,8 +131,8 @@ class Manager:
             match.winner_set1_score, match.loser_set1_score, match.winner_set2_score, match.loser_set2_score, match.winner_set3_score, match.loser_set3_score,
             winner_score, loser_score
         ))
-        self.dao.update_score(match.winner_id, match.ladder_id, winner_score)
-        self.dao.update_score(match.loser_id, match.ladder_id, loser_score)
+        self.dao.update_earned_points(match.winner_id, match.ladder_id, winner_score)
+        self.dao.update_earned_points(match.loser_id, match.ladder_id, loser_score)
 
         # Set match date to right now (to avoid issues with device times being changed)
         match.match_date = datetime.utcnow()

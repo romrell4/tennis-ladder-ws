@@ -26,7 +26,7 @@ class Test(unittest.TestCase):
                 (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
                 (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02')
             """)
-            cls.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, SCORE) VALUES 
+            cls.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, EARNED_POINTS) VALUES
                 ('TEST1', -3, 5),
                 ('TEST2', -3, 10),
                 ('TEST3', -3, 10),
@@ -166,19 +166,19 @@ class Test(unittest.TestCase):
             self.dao.execute("DELETE FROM players where LADDER_ID = -4 and USER_ID = 'TEST2'")
 
     def test_update_score(self):
-        get_score_sql = "select SCORE from players where USER_ID = 'TEST1' and LADDER_ID = -4"
+        get_score_sql = "select SCORE from players_vw where USER_ID = 'TEST1' and LADDER_ID = -4"
 
         # Make sure the user starts out with no points
         self.assertEqual(0, self.dao.get_one(int, get_score_sql))
-        self.dao.update_score("TEST1", -4, 100)
+        self.dao.update_earned_points("TEST1", -4, 100)
         self.assertEqual(100, self.dao.get_one(int, get_score_sql))
 
         # Test updating someone who already has points (to make sure it adds to what is already there)
-        self.dao.update_score("TEST1", -4, 2)
+        self.dao.update_earned_points("TEST1", -4, 2)
         self.assertEqual(102, self.dao.get_one(int, get_score_sql))
 
         # Reset the score back to 0
-        self.dao.execute("update players set SCORE = 0 where USER_ID = 'TEST1' and LADDER_ID = -4")
+        self.dao.execute("update players set EARNED_POINTS = 0 where USER_ID = 'TEST1' and LADDER_ID = -4")
 
     def test_get_matches(self):
         # Test a non-existent ladder
