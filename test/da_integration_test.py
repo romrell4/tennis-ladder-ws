@@ -1,6 +1,6 @@
-import unittest
 import os
-from datetime import datetime, date
+import unittest
+from datetime import date
 
 import properties
 from da import Dao
