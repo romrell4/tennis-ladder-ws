@@ -103,8 +103,8 @@ class Match:
 #### Non-DB Objects ####
 
 class Player:
-    def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, ladder_id, score, ranking, wins, losses):
-        self.user, self.ladder_id, self.score, self.ranking, self.wins, self.losses = User(user_id, name, email, phone_number, photo_url, availability_text), ladder_id, score, ranking, wins, losses
+    def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, ladder_id, score, earned_points, borrowed_points, ranking, wins, losses):
+        self.user, self.ladder_id, self.score, self.earned_points, self.borrowed_points, self.ranking, self.wins, self.losses = User(user_id, name, email, phone_number, photo_url, availability_text), ladder_id, score, earned_points, borrowed_points, ranking, wins, losses
 
 class ServiceException(Exception):
     def __init__(self, message, status_code = 500):

@@ -257,26 +257,26 @@ class MockDao:
         2: Ladder(2, "Ladder 2", create_date(-1), create_date(1), True)
     }
     players_database = {
-        "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", "availability 1", 1, 100, 1, 0, 0),
-        "TEST2": Player("TEST2", "Player 2", "test2@mail.com", "000-000-0002", "test2.jpg", "availability 2", 1, 95, 2, 0, 0),
-        "TEST3": Player("TEST3", "Player 3", "test3@mail.com", "000-000-0003", "test3.jpg", "availability 3", 1, 90, 3, 0, 0),
-        "TEST4": Player("TEST4", "Player 4", "test4@mail.com", "000-000-0004", "test4.jpg", "availability 4", 1, 85, 4, 0, 0),
-        "TEST5": Player("TEST5", "Player 5", "test5@mail.com", "000-000-0005", "test5.jpg", "availability 5", 1, 80, 5, 0, 0),
-        "TEST6": Player("TEST6", "Player 6", "test6@mail.com", "000-000-0006", "test6.jpg", "availability 6", 1, 75, 6, 0, 0),
-        "TEST7": Player("TEST7", "Player 7", "test7@mail.com", "000-000-0007", "test7.jpg", "availability 7", 1, 70, 7, 0, 0),
-        "TEST8": Player("TEST8", "Player 8", "test8@mail.com", "000-000-0008", "test8.jpg", "availability 8", 1, 65, 8, 0, 0),
-        "TEST9": Player("TEST9", "Player 9", "test9@mail.com", "000-000-0009", "test9.jpg", "availability 9", 1, 60, 9, 0, 0),
-        "TEST10": Player("TEST10", "Player 10", "test10@mail.com", "000-000-0010", "test10.jpg", "availability 10", 1, 55, 10, 0, 0),
-        "TEST11": Player("TEST11", "Player 11", "test11@mail.com", "000-000-0011", "test11.jpg", "availability 11", 1, 50, 11, 0, 0),
-        "TEST12": Player("TEST12", "Player 12", "test12@mail.com", "000-000-0012", "test12.jpg", "availability 12", 1, 45, 12, 0, 0),
-        "TEST13": Player("TEST13", "Player 13", "test13@mail.com", "000-000-0013", "test13.jpg", "availability 13", 1, 40, 13, 0, 0),
-        "TEST14": Player("TEST14", "Player 14", "test14@mail.com", "000-000-0014", "test14.jpg", "availability 14", 1, 35, 14, 0, 0),
-        "TEST15": Player("TEST15", "Player 15", "test15@mail.com", "000-000-0015", "test15.jpg", "availability 15", 1, 30, 15, 0, 0),
-        "TEST16": Player("TEST16", "Player 16", "test16@mail.com", "000-000-0016", "test16.jpg", "availability 16", 1, 25, 16, 0, 0),
-        "TEST17": Player("TEST17", "Player 17", "test17@mail.com", "000-000-0017", "test17.jpg", "availability 17", 1, 20, 17, 0, 0),
-        "TEST18": Player("TEST18", "Player 18", "test18@mail.com", "000-000-0018", "test18.jpg", "availability 18", 1, 15, 18, 0, 0),
-        "TEST19": Player("TEST19", "Player 19", "test19@mail.com", "000-000-0019", "test19.jpg", "availability 19", 1, 10, 19, 0, 0),
-        "TEST20": Player("TEST20", "Player 20", "test20@mail.com", "000-000-0020", "test20.jpg", "availability 20", 1, 5, 20, 0, 0)
+        "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", "availability 1", 1, 100, 100, 0, 1, 0, 0),
+        "TEST2": Player("TEST2", "Player 2", "test2@mail.com", "000-000-0002", "test2.jpg", "availability 2", 1, 95, 95, 0, 2, 0, 0),
+        "TEST3": Player("TEST3", "Player 3", "test3@mail.com", "000-000-0003", "test3.jpg", "availability 3", 1, 90, 90, 0, 3, 0, 0),
+        "TEST4": Player("TEST4", "Player 4", "test4@mail.com", "000-000-0004", "test4.jpg", "availability 4", 1, 85, 85, 0, 4, 0, 0),
+        "TEST5": Player("TEST5", "Player 5", "test5@mail.com", "000-000-0005", "test5.jpg", "availability 5", 1, 80, 80, 0, 5, 0, 0),
+        "TEST6": Player("TEST6", "Player 6", "test6@mail.com", "000-000-0006", "test6.jpg", "availability 6", 1, 75, 75, 0, 6, 0, 0),
+        "TEST7": Player("TEST7", "Player 7", "test7@mail.com", "000-000-0007", "test7.jpg", "availability 7", 1, 70, 70, 0, 7, 0, 0),
+        "TEST8": Player("TEST8", "Player 8", "test8@mail.com", "000-000-0008", "test8.jpg", "availability 8", 1, 65, 65, 0, 8, 0, 0),
+        "TEST9": Player("TEST9", "Player 9", "test9@mail.com", "000-000-0009", "test9.jpg", "availability 9", 1, 60, 60, 0, 9, 0, 0),
+        "TEST10": Player("TEST10", "Player 10", "test10@mail.com", "000-000-0010", "test10.jpg", "availability 10", 1, 55, 55, 0, 10, 0, 0),
+        "TEST11": Player("TEST11", "Player 11", "test11@mail.com", "000-000-0011", "test11.jpg", "availability 11", 1, 50, 50, 0, 11, 0, 0),
+        "TEST12": Player("TEST12", "Player 12", "test12@mail.com", "000-000-0012", "test12.jpg", "availability 12", 1, 45, 45, 0, 12, 0, 0),
+        "TEST13": Player("TEST13", "Player 13", "test13@mail.com", "000-000-0013", "test13.jpg", "availability 13", 1, 40, 40, 0, 13, 0, 0),
+        "TEST14": Player("TEST14", "Player 14", "test14@mail.com", "000-000-0014", "test14.jpg", "availability 14", 1, 35, 35, 0, 14, 0, 0),
+        "TEST15": Player("TEST15", "Player 15", "test15@mail.com", "000-000-0015", "test15.jpg", "availability 15", 1, 30, 30, 0, 15, 0, 0),
+        "TEST16": Player("TEST16", "Player 16", "test16@mail.com", "000-000-0016", "test16.jpg", "availability 16", 1, 25, 25, 0, 16, 0, 0),
+        "TEST17": Player("TEST17", "Player 17", "test17@mail.com", "000-000-0017", "test17.jpg", "availability 17", 1, 20, 20, 0, 17, 0, 0),
+        "TEST18": Player("TEST18", "Player 18", "test18@mail.com", "000-000-0018", "test18.jpg", "availability 18", 1, 15, 15, 0, 18, 0, 0),
+        "TEST19": Player("TEST19", "Player 19", "test19@mail.com", "000-000-0019", "test19.jpg", "availability 19", 1, 10, 10, 0, 19, 0, 0),
+        "TEST20": Player("TEST20", "Player 20", "test20@mail.com", "000-000-0020", "test20.jpg", "availability 20", 1, 5, 5, 0, 20, 0, 0)
     }
     updated_points = []
     saved_match = None
