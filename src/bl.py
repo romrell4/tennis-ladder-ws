@@ -1,10 +1,10 @@
 from datetime import datetime
-from pytz import timezone
 
 from domain import User, ServiceException, Match
 
 class Manager:
     INVALID_RANKING_DISTANCE = 12
+    MAX_MATCHES_BETWEEN_PLAYERS = 5
 
     def __init__(self, firebase_client, dao):
         self.firebase_client = firebase_client
@@ -123,6 +123,11 @@ class Manager:
 
         if ladder.distance_penalty_on and abs(winner.ranking - loser.ranking) > Manager.INVALID_RANKING_DISTANCE:
             raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)
+
+        # Find out if the players have already played the maximum amount of times
+        matches_between_players = [m for m in self.dao.get_matches(ladder_id, match.winner_id) if m.winner_id == match.loser_id or m.loser_id == match.loser_id]
+        if len(matches_between_players) >= Manager.MAX_MATCHES_BETWEEN_PLAYERS:
+            raise ServiceException("Players have already played {} times.".format(Manager.MAX_MATCHES_BETWEEN_PLAYERS), 400)
 
         # Update the scores of the players
         winner_score, loser_score = match.calculate_scores(winner.ranking, loser.ranking, ladder.distance_penalty_on)

@@ -217,6 +217,14 @@ class Test(unittest.TestCase):
         self.manager.report_match(1, create_match("TEST1", "TEST14", 6, 0, 6, 0))
         assert_error(2, create_match("TEST1", "TEST14", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
+        # Test if the players have already played too many times
+        test_match = Match(0, 0, None, "TEST1", "TEST2", 0, 0, 0, 0)
+        with patch.object(MockDao, "get_matches", return_value = [test_match] * 5):
+            assert_error(1, create_match("TEST1", "TEST2", 0, 0, 0, 0), 400, "Players have already played 5 times.")
+            assert_error(1, create_match("TEST2", "TEST1", 0, 0, 0, 0), 400, "Players have already played 5 times.")
+        with patch.object(MockDao, "get_matches", return_value = [test_match] * 4):
+            self.manager.report_match(1, create_match("TEST1", "TEST2", 0, 0, 0, 0))
+
         # Test valid match (scores should get updated, and match should be saved with a new date value)
         self.manager.dao.updated_points = []
         self.manager.dao.saved_match = None
