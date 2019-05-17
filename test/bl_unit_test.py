@@ -92,13 +92,17 @@ class Test(unittest.TestCase):
         # Test updating another user
         assert_error("ANOTHER_USER", Test.test_user, 403, "You are only allowed to update your own profile information")
 
-        # Test without specifying phone (shouldn't update)
+        # Test without specifying phone (should update to null)
         saved_user = self.manager.update_user(Test.test_user.user_id, {})
-        self.assertIsNotNone(saved_user.phone_number)
+        self.assertIsNone(saved_user.phone_number)
 
-        # Test specifying null phone (should update)
+        # Test specifying null phone (should update to null)
         saved_user = self.manager.update_user(Test.test_user.user_id, {"phone_number": None})
         self.assertIsNone(saved_user.phone_number)
+
+        # Test specifying non-null phone (should update to non-null)
+        saved_user = self.manager.update_user(Test.test_user.user_id, {"phone_number": "123"})
+        self.assertEqual("123", saved_user.phone_number)
 
         # Test which info can be updated
         saved_user = self.manager.update_user(Test.test_user.user_id, {"user_id": "bad", "name": "new name", "email": "new email", "phone_number": "new phone", "photo_url": "new url", "availability_text": "new availability"})
