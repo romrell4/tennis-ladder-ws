@@ -182,12 +182,16 @@ class Test(unittest.TestCase):
 
     def test_get_matches(self):
         # Test a non-existent ladder
-        matches = self.dao.get_matches(-5, "TEST1")
+        matches = self.dao.get_matches(-5)
         self.assertEqual(0, len(matches))
 
         # Test a valid ladder, but a non-existent user
         matches = self.dao.get_matches(-3, "TEST0")
         self.assertEqual(0, len(matches))
+
+        # Test searching without a player
+        matches = self.dao.get_matches(-3)
+        self.assertEqual(1, len(matches))
 
         # Test searching for a winner
         matches = self.dao.get_matches(-3, "TEST1")
