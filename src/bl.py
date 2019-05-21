@@ -4,7 +4,7 @@ from pytz import timezone
 from domain import User, ServiceException, Match
 
 class Manager:
-    INVALID_RANKING_DISTANCE = 12
+    INVALID_RANKING_DISTANCE = 15
     MAX_MATCHES_BETWEEN_PLAYERS = 5
     MAX_MATCHES_PER_DAY = 1
 

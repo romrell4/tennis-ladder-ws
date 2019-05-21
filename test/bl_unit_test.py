@@ -221,8 +221,8 @@ class Test(unittest.TestCase):
 
         # Test with a match where players are too far apart (should work if distance penalty is off)
         with patch.object(self.manager.dao, "get_matches", return_value = []):
-            self.manager.report_match(1, create_match("TEST1", "TEST14", 6, 0, 6, 0))
-            assert_error(2, create_match("TEST1", "TEST14", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
+            self.manager.report_match(1, create_match("TEST1", "TEST17", 6, 0, 6, 0))
+            assert_error(2, create_match("TEST1", "TEST17", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
         # Test if the players have already played too many times
         test_match = Match(0, 0, None, "TEST1", "TEST2", 0, 0, 0, 0)
