@@ -68,7 +68,7 @@ class Dao:
             return self.get_list(Match, sql_prefix + sql_postfix, ladder_id)
 
     def create_match(self, match):
-        match_id = self.insert("insert into matches (LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_set1_SCORE, LOSER_set1_SCORE, WINNER_set2_SCORE, LOSER_set2_SCORE, WINNER_set3_SCORE, LOSER_set3_SCORE) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", *match.get_insert_properties())
+        match_id = self.insert("insert into matches (LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", *match.get_insert_properties())
         return self.get_one(Match, "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE from matches where ID = %s", match_id)
 
     def get_ladder_code(self, ladder_id):

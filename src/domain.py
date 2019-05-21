@@ -21,8 +21,8 @@ class Match:
     DISTANCE_PENALTY_MULTIPLIER = -2
     DISTANCE_PREMIUM_MULTIPLIER = 3
 
-    def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None):
-        self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score
+    def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None, winner_points = 0, loser_points = 0):
+        self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points
 
     @staticmethod
     def from_dict(match_dict):
@@ -112,7 +112,7 @@ class Match:
         return abs(loser_rank - winner_rank) * (Match.DISTANCE_PENALTY_MULTIPLIER if loser_rank > winner_rank else Match.DISTANCE_PREMIUM_MULTIPLIER)
 
     def get_insert_properties(self):
-        return [self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score]
+        return [self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points]
 
 #### Non-DB Objects ####
 
