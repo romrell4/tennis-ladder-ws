@@ -1,22 +1,29 @@
 import unittest
-from datetime import date, timedelta
+from datetime import datetime, timedelta
+from pytz import timezone
+from freezegun import freeze_time
 
 from domain import Ladder, Match, DomainException
 
 class Test(unittest.TestCase):
+    # LADDER
+
     def test_ladder_can_report_match(self):
         # Test before a ladder is open
-        ladder = Ladder(0, None, date.today() + timedelta(days = 1), date.today() + timedelta(days = 2), False)
+        today = datetime.today().date()
+        ladder = Ladder(0, None, today + timedelta(days = 1), today + timedelta(days = 2), False)
         self.assertFalse(ladder.can_report_match())
 
         # Test after a ladder is closed
-        ladder.start_date = date.today() - timedelta(days = 2)
-        ladder.end_date = date.today() - timedelta(days = 1)
+        ladder.start_date = today - timedelta(days = 2)
+        ladder.end_date = today - timedelta(days = 1)
         self.assertFalse(ladder.can_report_match())
 
         # Test a valid ladder
-        ladder.end_date = date.today() + timedelta(days = 1)
+        ladder.end_date = today + timedelta(days = 1)
         self.assertTrue(ladder.can_report_match())
+
+    # MATCH
 
     def test_validate_match(self):
         def assert_error(expected_error_message, match):
@@ -76,6 +83,39 @@ class Test(unittest.TestCase):
 
         Match.is_valid_set = old_is_valid_set
         Match.is_valid_tiebreak = old_is_valid_tiebreak
+
+    def test_played_today(self):
+        test_date = datetime(2019, 1, 1, tzinfo = timezone("US/Mountain"))
+        test_match = Match(None, None, test_date, None, None, None, None, None, None)
+
+        # Test exact same time (beginning of today)
+        with freeze_time(test_date):
+            self.assertTrue(test_match.played_today())
+
+        # Test last second of today (end of today)
+        with freeze_time(test_date + timedelta(days = 1) - timedelta(seconds = 1)):
+            self.assertTrue(test_match.played_today())
+
+        # Test one second before (end of previous day)
+        with freeze_time(test_date - timedelta(seconds = 1)):
+            self.assertFalse(test_match.played_today())
+
+        # Test one day after (beginning of next day)
+        with freeze_time(test_date + timedelta(days = 1)):
+            self.assertFalse(test_match.played_today())
+
+    def test_has_players(self):
+        def create_match(winner_id, loser_id):
+            return Match(None, None, None, winner_id, loser_id, None, None, None, None)
+
+        self.assertTrue(create_match("TEST0", "TEST1").has_players("TEST0"))
+        self.assertTrue(create_match("TEST0", "TEST1").has_players("TEST1"))
+        self.assertFalse(create_match("TEST0", "TEST1").has_players("TEST2"))
+        self.assertTrue(create_match("TEST0", "TEST1").has_players("TEST0", "TEST1"))
+        self.assertTrue(create_match("TEST0", "TEST1").has_players("TEST1", "TEST0"))
+        self.assertFalse(create_match("TEST0", "TEST1").has_players("TEST0", "TEST2"))
+        self.assertFalse(create_match("TEST0", "TEST1").has_players("TEST2", "TEST1"))
+        self.assertFalse(create_match("TEST0", "TEST1").has_players("TEST2", "TEST3"))
 
     def test_is_valid_set(self):
         self.assertFalse(Match.is_valid_set(None, None))

@@ -69,6 +69,15 @@ class Match:
 
         return self
 
+    def played_today(self):
+        return datetime.now(timezone("US/Mountain")).date() == self.match_date.date()
+
+    def has_players(self, player1_id, player2_id = None):
+        if player2_id is None:
+            return player1_id == self.winner_id or player1_id == self.loser_id
+        else:
+            return player1_id == self.winner_id and player2_id == self.loser_id or player2_id == self.winner_id and player1_id == self.loser_id
+
     @staticmethod
     def is_valid_set(winner_score, loser_score):
         if winner_score is None or loser_score is None: return False
