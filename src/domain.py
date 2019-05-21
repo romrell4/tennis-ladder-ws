@@ -18,7 +18,8 @@ class Match:
     MIN_WINNER_POINTS = 0
     MAX_TIEBREAK_POINTS = 6
     MIN_TIEBREAK_WINNER_SCORE = 10
-    DISTANCE_PENALTY_MULTIPLIER = -3
+    DISTANCE_PENALTY_MULTIPLIER = -2
+    DISTANCE_PREMIUM_MULTIPLIER = 3
 
     def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None):
         self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score
@@ -96,15 +97,19 @@ class Match:
             loser_score += min(int(math.ceil(self.loser_set3_score / 2)) if self.played_tiebreak() else self.loser_set3_score, Match.MAX_TIEBREAK_POINTS)
 
         # The winners score cannot go below zero (if there is a large distance penalty)
-        winner_score = max(Match.BASE_WINNER_POINTS - loser_score - self.calculate_distance_penalty(winner_rank, loser_rank, distance_penalty_on), Match.MIN_WINNER_POINTS)
+        winner_score = max(Match.BASE_WINNER_POINTS - loser_score + self.calculate_distance_points(winner_rank, loser_rank, distance_penalty_on), Match.MIN_WINNER_POINTS)
         return winner_score, loser_score
 
     def played_tiebreak(self):
         return self.winner_set3_score is not None and self.loser_set3_score is not None and max(self.winner_set3_score, self.loser_set3_score) >= Match.MIN_TIEBREAK_WINNER_SCORE
 
     @staticmethod
-    def calculate_distance_penalty(winner_rank, loser_rank, distance_penalty_on):
-        return (winner_rank - loser_rank) * Match.DISTANCE_PENALTY_MULTIPLIER if distance_penalty_on else 0
+    def calculate_distance_points(winner_rank, loser_rank, distance_penalty_on):
+        if not distance_penalty_on:
+            return 0
+
+        # If the winner has a better rank, use the PENALTY. Otherwise, use the PREMIUM
+        return abs(loser_rank - winner_rank) * (Match.DISTANCE_PENALTY_MULTIPLIER if loser_rank > winner_rank else Match.DISTANCE_PREMIUM_MULTIPLIER)
 
     def get_insert_properties(self):
         return [self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score]
