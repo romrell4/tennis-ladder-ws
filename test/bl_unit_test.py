@@ -152,10 +152,12 @@ class Test(unittest.TestCase):
         self.manager.user = None
 
     def test_get_matches(self):
-        matches = self.manager.get_matches(1, "TEST1")
+        with patch.object(self.manager.dao, "get_matches", return_value = [Match(1, 1, datetime(2018, 1, 1, 12, 30, 0), "TEST1", "TEST2", 6, 0, 6, 0)]):
+            matches = self.manager.get_matches(1, "TEST1")
         self.assertIsNotNone(matches)
         self.assertEqual(1, len(matches))
         self.assertEqual(1, matches[0].match_id)
+        self.assertEqual(datetime(2018, 1, 1, 12, 30, 0), matches[0].match_date)
         self.assertEqual("TEST1", matches[0].winner.user.user_id)
         self.assertEqual("Player 1", matches[0].winner.user.name)
         self.assertEqual("TEST2", matches[0].loser.user.user_id)
@@ -218,21 +220,28 @@ class Test(unittest.TestCase):
         assert_error(1, create_match("TEST1", "TEST0", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
 
         # Test with a match where players are too far apart (should work if distance penalty is off)
-        self.manager.report_match(1, create_match("TEST1", "TEST14", 6, 0, 6, 0))
-        assert_error(2, create_match("TEST1", "TEST14", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
+        with patch.object(self.manager.dao, "get_matches", return_value = []):
+            self.manager.report_match(1, create_match("TEST1", "TEST14", 6, 0, 6, 0))
+            assert_error(2, create_match("TEST1", "TEST14", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
         # Test if the players have already played too many times
         test_match = Match(0, 0, None, "TEST1", "TEST2", 0, 0, 0, 0)
-        with patch.object(MockDao, "get_matches", return_value = [test_match] * 5):
+        with patch.object(self.manager.dao, "get_matches", return_value = [test_match] * 5):
             assert_error(1, create_match("TEST1", "TEST2", 0, 0, 0, 0), 400, "Players have already played 5 times.")
             assert_error(1, create_match("TEST2", "TEST1", 0, 0, 0, 0), 400, "Players have already played 5 times.")
-        with patch.object(MockDao, "get_matches", return_value = [test_match] * 4):
+
+            # You should be able to play somebody else after playing 5 times, just not the same person
+            self.manager.report_match(1, create_match("TEST1", "TEST3", 0, 0, 0, 0))
+
+        # Test if the players have played one less than the max
+        with patch.object(self.manager.dao, "get_matches", return_value = [test_match] * 4):
             self.manager.report_match(1, create_match("TEST1", "TEST2", 0, 0, 0, 0))
 
         # Test valid match (scores should get updated, and match should be saved with a new date value)
         self.manager.dao.updated_points = []
         self.manager.dao.saved_match = None
-        match = self.manager.report_match(1, create_match("TEST1", "TEST2", 6, 0, 6, 0))
+        with patch.object(self.manager.dao, "get_matches", return_value = []):
+            match = self.manager.report_match(1, create_match("TEST1", "TEST2", 6, 0, 6, 0))
         self.assertEqual(2, len(self.manager.dao.updated_points))
         self.assertEqual(10, self.manager.dao.updated_points[0][2])
         self.assertEqual(5, self.manager.dao.updated_points[1][2])
@@ -328,10 +337,7 @@ class MockDao:
     def update_earned_points(self, user_id, ladder_id, new_points_to_add):
         self.updated_points.append([user_id, ladder_id, new_points_to_add])
 
-    def get_matches(self, ladder_id, user_id):
-        return [
-            Match(1, ladder_id, datetime(2018, 1, 1, 12, 30, 0), "TEST1", "TEST2", 6, 0, 6, 0)
-        ]
+    def get_matches(self, ladder_id, user_id): raise NotImplementedError()
 
     def create_match(self, match):
         self.saved_match = match

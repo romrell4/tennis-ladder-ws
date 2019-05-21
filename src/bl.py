@@ -1,10 +1,12 @@
 from datetime import datetime
+from pytz import timezone
 
 from domain import User, ServiceException, Match
 
 class Manager:
     INVALID_RANKING_DISTANCE = 12
     MAX_MATCHES_BETWEEN_PLAYERS = 5
+    MAX_MATCHES_PER_DAY = 1
 
     def __init__(self, firebase_client, dao):
         self.firebase_client = firebase_client
@@ -112,6 +114,9 @@ class Manager:
         # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
         match = Match.from_dict(match_dict)
 
+        # Set match date to right now (to avoid issues with device times being changed)
+        match.match_date = datetime.now(timezone("US/Mountain"))
+
         # Look up players in ladder
         winner = self.dao.get_player(ladder_id, match.winner_id)
         if winner is None:
@@ -138,9 +143,6 @@ class Manager:
         ))
         self.dao.update_earned_points(match.winner_id, match.ladder_id, winner_score)
         self.dao.update_earned_points(match.loser_id, match.ladder_id, loser_score)
-
-        # Set match date to right now (to avoid issues with device times being changed)
-        match.match_date = datetime.utcnow()
 
         # Save the match to the database (which will assign it a new match_id)
         match = self.dao.create_match(match)
