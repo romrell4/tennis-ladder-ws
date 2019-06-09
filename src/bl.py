@@ -129,8 +129,17 @@ class Manager:
         if ladder.distance_penalty_on and abs(winner.ranking - loser.ranking) > Manager.INVALID_RANKING_DISTANCE:
             raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)
 
+        # Get all matches for this ladder (to enforce some of the rules below)
+        ladder_matches = self.dao.get_matches(ladder_id)
+
+        # Find out if either player has already played a match today
+        if len([m for m in ladder_matches if m.has_players(match.winner_id) and m.played_today()]) > 0:
+            raise ServiceException("Reported winner has already played a match today. Only one match can be played each day.", 400)
+        if len([m for m in ladder_matches if m.has_players(match.loser_id) and m.played_today()]) > 0:
+            raise ServiceException("Reported loser has already played a match today. Only one match can be played each day.", 400)
+
         # Find out if the players have already played the maximum amount of times
-        matches_between_players = [m for m in self.dao.get_matches(ladder_id, match.winner_id) if m.winner_id == match.loser_id or m.loser_id == match.loser_id]
+        matches_between_players = [m for m in ladder_matches if m.has_players(match.winner_id, match.loser_id)]
         if len(matches_between_players) >= Manager.MAX_MATCHES_BETWEEN_PLAYERS:
             raise ServiceException("Players have already played {} times.".format(Manager.MAX_MATCHES_BETWEEN_PLAYERS), 400)
 

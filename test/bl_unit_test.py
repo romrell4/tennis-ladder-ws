@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 from datetime import datetime, timedelta, date
+from pytz import timezone
 import copy
 
 from bl import Manager
@@ -224,8 +225,15 @@ class Test(unittest.TestCase):
             self.manager.report_match(1, create_match("TEST1", "TEST17", 6, 0, 6, 0))
             assert_error(2, create_match("TEST1", "TEST17", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
+        # Test when each player has already played a match that day
+        with patch.object(self.manager.dao, "get_matches", return_value = [Match(0, 0, datetime.now(tz = timezone("US/Mountain")), "TEST1", "TEST2", 0, 0, 0, 0)]):
+            assert_error(1, create_match("TEST1", "TEST3", 0, 0, 0, 0), 400, "Reported winner has already played a match today. Only one match can be played each day.")
+            assert_error(1, create_match("TEST2", "TEST3", 0, 0, 0, 0), 400, "Reported winner has already played a match today. Only one match can be played each day.")
+            assert_error(1, create_match("TEST3", "TEST1", 0, 0, 0, 0), 400, "Reported loser has already played a match today. Only one match can be played each day.")
+            assert_error(1, create_match("TEST3", "TEST2", 0, 0, 0, 0), 400, "Reported loser has already played a match today. Only one match can be played each day.")
+
         # Test if the players have already played too many times
-        test_match = Match(0, 0, None, "TEST1", "TEST2", 0, 0, 0, 0)
+        test_match = Match(0, 0, datetime.now(tz = timezone("US/Mountain")) - timedelta(days = 1), "TEST1", "TEST2", 0, 0, 0, 0)
         with patch.object(self.manager.dao, "get_matches", return_value = [test_match] * 5):
             assert_error(1, create_match("TEST1", "TEST2", 0, 0, 0, 0), 400, "Players have already played 5 times.")
             assert_error(1, create_match("TEST2", "TEST1", 0, 0, 0, 0), 400, "Players have already played 5 times.")
