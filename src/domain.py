@@ -15,7 +15,7 @@ class Ladder:
 
 class Match:
     BASE_WINNER_POINTS = 39
-    MIN_WINNER_POINTS = 0
+    MIN_WINNER_POINTS = 12
     MAX_TIEBREAK_POINTS = 6
     MIN_TIEBREAK_WINNER_SCORE = 10
     DISTANCE_PENALTY_MULTIPLIER = -2
@@ -96,8 +96,11 @@ class Match:
             # If a tiebreak, half of the score - rounded up. Otherwise, just the score. However, you can never get more than 6 point for a tiebreak
             loser_score += min(int(math.ceil(self.loser_set3_score / 2)) if self.played_tiebreak() else self.loser_set3_score, Match.MAX_TIEBREAK_POINTS)
 
-        # The winners score cannot go below zero (if there is a large distance penalty)
-        winner_score = max(Match.BASE_WINNER_POINTS - loser_score + self.calculate_distance_points(winner_rank, loser_rank, distance_penalty_on), Match.MIN_WINNER_POINTS)
+        # The winner's score cannot go below the threshold (if there is a large distance penalty, or if they get pummeled)
+        winner_score = max(
+            Match.BASE_WINNER_POINTS - loser_score + self.calculate_distance_points(winner_rank, loser_rank, distance_penalty_on),
+            Match.MIN_WINNER_POINTS
+        )
         return winner_score, loser_score
 
     def played_tiebreak(self):

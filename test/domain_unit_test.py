@@ -174,19 +174,19 @@ class Test(unittest.TestCase):
                 assert_success(create_match(6, 0, 0, 6, 200, 198), 27, 12)
                 assert_success(create_match(7, 6, 6, 7, 200, 198), 20, 19)
 
-        # Pretend that there is distance penalty of 10
-        with patch.object(Match, "calculate_distance_points", return_value = -10):
-            assert_success(create_match(6, 0, 6, 0), 29, 0)
-            assert_success(create_match(7, 6, 6, 7, 7, 6), 10, 19)
+        # Pretend that there is distance penalty of 5
+        with patch.object(Match, "calculate_distance_points", return_value = -5):
+            assert_success(create_match(6, 0, 6, 0), 34, 0)
+            assert_success(create_match(7, 6, 6, 7, 7, 6), 15, 19)
 
         # Pretend that there is a distance premium of 10
         with patch.object(Match, "calculate_distance_points", return_value = 10):
             assert_success(create_match(6, 0, 6, 0), 49, 0)
             assert_success(create_match(7, 6, 6, 7, 7, 6), 30, 19)
 
-        # Test that with a large penalty, the winner's score cannot go below 0
+        # Test that with a large penalty, the winner's score cannot go below 12
         with patch.object(Match, "calculate_distance_points", return_value = -100):
-            assert_success(create_match(7, 6, 6, 7, 7, 6), 0, 19)
+            assert_success(create_match(7, 6, 6, 7, 7, 6), 12, 19)
 
     def test_played_tiebreak(self):
         def match_played_tiebreak(winner_set3_score, loser_set3_score):
