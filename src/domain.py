@@ -3,8 +3,8 @@ from datetime import datetime
 from pytz import timezone
 
 class User:
-    def __init__(self, user_id, name, email, phone_number, photo_url, availability_text):
-        self.user_id, self.name, self.email, self.phone_number, self.photo_url, self.availability_text = user_id, name, email, phone_number, photo_url, availability_text
+    def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, admin: bool):
+        self.user_id, self.name, self.email, self.phone_number, self.photo_url, self.availability_text, self.admin = user_id, name, email, phone_number, photo_url, availability_text, admin
 
 class Ladder:
     def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on):
@@ -120,8 +120,8 @@ class Match:
 #### Non-DB Objects ####
 
 class Player:
-    def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, ladder_id, score, earned_points, borrowed_points, ranking, wins, losses):
-        self.user, self.ladder_id, self.score, self.earned_points, self.borrowed_points, self.ranking, self.wins, self.losses = User(user_id, name, email, phone_number, photo_url, availability_text), ladder_id, score, earned_points, borrowed_points, ranking, wins, losses
+    def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, admin: bool, ladder_id, score, earned_points, borrowed_points, ranking, wins, losses):
+        self.user, self.ladder_id, self.score, self.earned_points, self.borrowed_points, self.ranking, self.wins, self.losses = User(user_id, name, email, phone_number, photo_url, availability_text, admin), ladder_id, score, earned_points, borrowed_points, ranking, wins, losses
 
 class ServiceException(Exception):
     def __init__(self, message, status_code = 500):

@@ -4,7 +4,7 @@ import os
 
 class Dao:
     PLAYER_SQL_PREFIX = """
-        select u.ID, u.NAME, u.EMAIL, u.PHONE_NUMBER, u.PHOTO_URL, u.AVAILABILITY_TEXT, l.ID as LADDER_ID, p.SCORE, p.EARNED_POINTS, p.BORROWED_POINTS,
+        select u.ID, u.NAME, u.EMAIL, u.PHONE_NUMBER, u.PHOTO_URL, u.AVAILABILITY_TEXT, u.ADMIN, l.ID as LADDER_ID, p.SCORE, p.EARNED_POINTS, p.BORROWED_POINTS,
           (select count(distinct SCORE) + 1 from players_vw where LADDER_ID = %s and SCORE > p.SCORE) as RANKING,
           (select count(*) as WINS from matches where LADDER_ID = %s and WINNER_ID = u.ID) as WINS,
           (select count(*) as WINS from matches where LADDER_ID = %s and LOSER_ID = u.ID) as LOSSES
@@ -28,7 +28,7 @@ class Dao:
             raise ServiceException("Failed to connect to database")
 
     def get_user(self, user_id):
-        return self.get_one(User, "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT from users where ID = %s", user_id)
+        return self.get_one(User, "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT, ADMIN from users where ID = %s", user_id)
 
     def in_same_ladder(self, user1_id, user2_id):
         return self.get_one(bool, "select count(*) > 0 as IN_SAME_LADDER from ladders l join players p1 on l.ID = p1.LADDER_ID and p1.USER_ID = %s join players p2 on l.ID = p2.LADDER_ID and p2.USER_ID = %s", user1_id, user2_id)

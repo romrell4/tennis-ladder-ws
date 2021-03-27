@@ -73,8 +73,8 @@ class Test(unittest.TestCase):
 
     def test_create_user(self):
         try:
-            self.dao.create_user(User("__TEST", "Tester", "test@test.com", "123-456-7890", "test.jpg", "avail"))
-            user = self.dao.get_one(User, "SELECT ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT FROM users where ID = '__TEST'")
+            self.dao.create_user(User("__TEST", "Tester", "test@test.com", "123-456-7890", "test.jpg", "avail", True))
+            user = self.dao.get_one(User, "SELECT ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT, ADMIN FROM users where ID = '__TEST'")
             self.assertIsNotNone(user)
             self.assertEqual("__TEST", user.user_id)
             self.assertEqual("Tester", user.name)
@@ -82,13 +82,15 @@ class Test(unittest.TestCase):
             self.assertEqual("123-456-7890", user.phone_number)
             self.assertEqual("test.jpg", user.photo_url)
             self.assertEqual("avail", user.availability_text)
+            # Create user doesn't allow setting admin status
+            self.assertEqual(False, user.admin)
         finally:
             self.dao.execute("DELETE FROM users where ID = '__TEST'")
 
     def test_update_user(self):
-        sql = "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT from users where ID = 'TEST1'"
+        sql = "select ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT, ADMIN from users where ID = 'TEST1'"
         old_user = self.dao.get_one(User, sql)
-        new_user = User(old_user.user_id, "new name", "new email", "new phone", "new photo", "new availability")
+        new_user = User(old_user.user_id, "new name", "new email", "new phone", "new photo", "new availability", True)
 
         try:
             self.dao.update_user(new_user)
@@ -98,6 +100,8 @@ class Test(unittest.TestCase):
             self.assertEqual("new phone", saved_user.phone_number)
             self.assertEqual("new photo", saved_user.photo_url)
             self.assertEqual("new availability", saved_user.availability_text)
+            # Update user doesn't allow setting admin status
+            self.assertEqual(False, saved_user.admin)
         finally:
             self.dao.update_user(old_user)
 
