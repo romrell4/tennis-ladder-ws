@@ -244,6 +244,79 @@
 				}
 			}
 		},
+		"/ladders/{ladder_id}/players/{user_id}": {
+			"put": {
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "ladder_id",
+						"in": "path",
+						"required": true,
+						"type": "integer"
+					},
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "player",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/player"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200 response",
+						"schema": {
+							"$ref": "#/definitions/players"
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"schema": {
+							"$ref": "#/definitions/errors"
+						}
+					},
+					"404": {
+						"description": "Ladder not found",
+						"schema": {
+							"$ref": "#/definitions/error"
+						}
+					}
+				},
+				"x-amazon-apigateway-integration": {
+					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+					"responses": {
+						"default": {
+							"statusCode": "200"
+						}
+					},
+					"passthroughBehavior": "when_no_match",
+					"httpMethod": "POST",
+					"contentHandling": "CONVERT_TO_TEXT",
+					"type": "aws_proxy"
+				}
+			}
+		},
 		"/ladders/{ladder_id}/players/{user_id}/matches": {
 			"get": {
 				"produces": [
