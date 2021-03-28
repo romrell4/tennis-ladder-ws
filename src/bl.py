@@ -87,6 +87,25 @@ class Manager:
         # Return the new list of players in that ladder (which should include the new player)
         return self.dao.get_players(ladder_id)
 
+    def update_player(self, ladder_id, user_id, player_dict):
+        if self.user is None:
+            raise ServiceException("Unable to authenticate", 401)
+        elif not self.user.admin:
+            raise ServiceException("Only admins can update players", 403)
+        elif ladder_id is None:
+            raise ServiceException("No ladder_id passed in", 400)
+        elif user_id is None:
+            raise ServiceException("No user_id passed in", 400)
+        elif player_dict is None:
+            raise ServiceException("No player passed in", 400)
+
+        new_borrowed_points = player_dict.get("borrowed_points")
+        if new_borrowed_points is None or not new_borrowed_points.isdigit():
+            raise ServiceException("New player has no borrowed points", 400)
+
+        self.dao.update_borrowed_points(ladder_id, user_id, new_borrowed_points)
+        return self.get_players(ladder_id)
+
     def get_matches(self, ladder_id, user_id):
         # Get all the matches (which will only have user ids, not the full player)
         matches = self.dao.get_matches(ladder_id, user_id)

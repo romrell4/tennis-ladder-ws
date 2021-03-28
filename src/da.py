@@ -54,6 +54,9 @@ class Dao:
     def create_player(self, ladder_id, user_id):
         self.execute("insert into players (USER_ID, LADDER_ID) values (%s, %s)", user_id, ladder_id)
 
+    def update_borrowed_points(self, user_id, ladder_id, new_borrowed_points):
+        self.execute("UPDATE players set BORROWED_POINTS = %s where USER_ID = %s and LADDER_ID = %s", new_borrowed_points, user_id, ladder_id)
+
     def update_earned_points(self, user_id, ladder_id, new_points_to_add):
         self.execute("UPDATE players set EARNED_POINTS = EARNED_POINTS + %s where USER_ID = %s and LADDER_ID = %s", new_points_to_add, user_id, ladder_id)
 

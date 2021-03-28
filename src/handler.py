@@ -46,6 +46,8 @@ class Handler:
                 response_body = self.manager.get_players(int(path_params.get("ladder_id")))
             elif resource == "/ladders/{ladder_id}/players" and method == "POST":
                 response_body = self.manager.add_player_to_ladder(int(path_params.get("ladder_id")), query_params.get("code"))
+            elif resource == "/ladders/{ladder_id}/players/{user_id}" and method == "PUT":
+                response_body = self.manager.update_player(int(path_params.get("ladder_id")), int(path_params.get("user_id")), body)
             elif resource == "/ladders/{ladder_id}/players/{user_id}/matches" and method == "GET":
                 response_body = self.manager.get_matches(int(path_params.get("ladder_id")), path_params.get("user_id"))
             elif resource == "/ladders/{ladder_id}/matches" and method == "POST":

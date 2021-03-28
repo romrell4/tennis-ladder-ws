@@ -81,6 +81,12 @@ class Test(unittest.TestCase):
         players = json.loads(response["body"])
         self.assertEqual(1, len(players))
 
+    def test_update_player(self):
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}", {"ladder_id": "1", "user_id": "2"}, "PUT", {"borrowed_points": "50"}))
+        self.assertEqual(200, response["statusCode"])
+        players = json.loads(response["body"])
+        self.assertEqual(1, len(players))
+
     def test_get_matches(self):
         # Test a user who's played in a single match in a ladder
         response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}/matches", {"ladder_id": "1", "user_id": "TEST1"}))
@@ -183,6 +189,11 @@ class MockManager():
             return [
                 Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", "avail 1", False, 1, 10, 10, 0, 3, 1, 0)
             ]
+
+    def update_player(self, ladder_id, user_id, player_dict):
+        return [
+            Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", "avail 1", False, 1, 10, 10, 0, 3, 1, 0)
+        ]
 
     def get_matches(self, ladder_id, user_id):
         if ladder_id == 1:

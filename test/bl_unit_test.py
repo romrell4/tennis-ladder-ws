@@ -9,6 +9,7 @@ from domain import ServiceException, Ladder, Player, Match, User
 
 class Test(unittest.TestCase):
     test_user = User("USER1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
+    admin_user = User("USER1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", True)
 
     def setUp(self):
         self.manager = Manager(MockFirebaseClient(), MockDao())
@@ -152,6 +153,43 @@ class Test(unittest.TestCase):
         # Remove the user
         self.manager.user = None
 
+    def test_update_player(self):
+        def assert_error(ladder_id, user_id, player_dict, status_code, error_message):
+            with self.assertRaises(ServiceException) as e:
+                self.manager.update_player(ladder_id, user_id, player_dict)
+            self.assertEqual(status_code, e.exception.status_code)
+            self.assertEqual(error_message, e.exception.error_message)
+
+        # Test when not logged in
+        assert_error(None, None, None, 401, "Unable to authenticate")
+
+        # Test when not an admin
+        self.manager.user = Test.test_user
+        assert_error(None, None, None, 403, "Only admins can update players")
+        self.manager.user = Test.admin_user
+
+        # Test with no ladder id param
+        assert_error(None, None, None, 400, "No ladder_id passed in")
+
+        # Test with no user id param
+        assert_error("-1", None, None, 400, "No user_id passed in")
+
+        # Test with no player param
+        assert_error("-1", "-1", None, 400, "No player passed in")
+
+        # Test a player param without borrowed points
+        assert_error("-1", "-1", {}, 400, "New player has no borrowed points")
+        assert_error("-1", "-1", {"borrowed_points": None}, 400, "New player has no borrowed points")
+        assert_error("-1", "-1", {"borrowed_points": "abc"}, 400, "New player has no borrowed points")
+
+        # Test updating borrowed points
+        self.assertEqual(0, len(self.manager.dao.updated_borrowed_points))
+        self.manager.update_player("1", "2", {"borrowed_points": "5"})
+        self.assertEqual(1, len(self.manager.dao.updated_borrowed_points))
+        self.assertEqual("1", self.manager.dao.updated_borrowed_points[0][0])
+        self.assertEqual("2", self.manager.dao.updated_borrowed_points[0][1])
+        self.assertEqual("5", self.manager.dao.updated_borrowed_points[0][2])
+
     def test_get_matches(self):
         with patch.object(self.manager.dao, "get_matches", return_value = [Match(1, 1, datetime(2018, 1, 1, 12, 30, 0), "TEST1", "TEST2", 6, 0, 6, 0)]):
             matches = self.manager.get_matches(1, "TEST1")
@@ -246,13 +284,13 @@ class Test(unittest.TestCase):
             self.manager.report_match(1, create_match("TEST1", "TEST2", 0, 0, 0, 0))
 
         # Test valid match (scores should get updated, and match should be saved with a new date value)
-        self.manager.dao.updated_points = []
+        self.manager.dao.updated_earned_points = []
         self.manager.dao.saved_match = None
         with patch.object(self.manager.dao, "get_matches", return_value = []):
             match = self.manager.report_match(1, create_match("TEST1", "TEST2", 6, 0, 6, 0))
-        self.assertEqual(2, len(self.manager.dao.updated_points))
-        self.assertEqual(10, self.manager.dao.updated_points[0][2])
-        self.assertEqual(5, self.manager.dao.updated_points[1][2])
+        self.assertEqual(2, len(self.manager.dao.updated_earned_points))
+        self.assertEqual(10, self.manager.dao.updated_earned_points[0][2])
+        self.assertEqual(5, self.manager.dao.updated_earned_points[1][2])
         self.assertIsNotNone(match.match_id)
         self.assertIsNotNone(self.manager.dao.saved_match)
         self.assertIsNotNone(self.manager.dao.saved_match.match_date)
@@ -307,7 +345,8 @@ class MockDao:
         "TEST19": Player("TEST19", "Player 19", "test19@mail.com", "000-000-0019", "test19.jpg", "availability 19", False, 1, 10, 10, 0, 19, 0, 0),
         "TEST20": Player("TEST20", "Player 20", "test20@mail.com", "000-000-0020", "test20.jpg", "availability 20", False, 1, 5, 5, 0, 20, 0, 0)
     }
-    updated_points = []
+    updated_borrowed_points = []
+    updated_earned_points = []
     saved_match = None
     created_user = False
 
@@ -342,8 +381,11 @@ class MockDao:
     def create_player(self, ladder_id, user_id):
         pass
 
+    def update_borrowed_points(self, user_id, ladder_id, new_borrowed_points):
+        self.updated_borrowed_points.append([user_id, ladder_id, new_borrowed_points])
+
     def update_earned_points(self, user_id, ladder_id, new_points_to_add):
-        self.updated_points.append([user_id, ladder_id, new_points_to_add])
+        self.updated_earned_points.append([user_id, ladder_id, new_points_to_add])
 
     def get_matches(self, ladder_id, user_id): raise NotImplementedError()
 

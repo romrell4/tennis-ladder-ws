@@ -169,7 +169,18 @@ class Test(unittest.TestCase):
         finally:
             self.dao.execute("DELETE FROM players where LADDER_ID = -4 and USER_ID = 'TEST2'")
 
-    def test_update_score(self):
+    def test_update_borrowed_points(self):
+        get_score_sql = "select SCORE from players_vw where USER_ID = 'TEST1' and LADDER_ID = -4"
+
+        # Make sure the user starts out with no points
+        self.assertEqual(0, self.dao.get_one(int, get_score_sql))
+        self.dao.update_borrowed_points("TEST1", -4, 100)
+        self.assertEqual(100, self.dao.get_one(int, get_score_sql))
+
+        # Reset the score back to 0
+        self.dao.execute("update players set BORROWED_POINTS = 0 where USER_ID = 'TEST1' and LADDER_ID = -4")
+
+    def test_update_earned_points(self):
         get_score_sql = "select SCORE from players_vw where USER_ID = 'TEST1' and LADDER_ID = -4"
 
         # Make sure the user starts out with no points
