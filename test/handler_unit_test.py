@@ -82,7 +82,7 @@ class Test(unittest.TestCase):
         self.assertEqual(1, len(players))
 
     def test_update_player(self):
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}", {"ladder_id": "1", "user_id": "2"}, "PUT", {"borrowed_points": "50"}))
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}", {"ladder_id": "1", "user_id": "abc"}, "PUT", {"borrowed_points": "50"}))
         self.assertEqual(200, response["statusCode"])
         players = json.loads(response["body"])
         self.assertEqual(1, len(players))
