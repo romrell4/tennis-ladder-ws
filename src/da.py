@@ -54,11 +54,11 @@ class Dao:
     def create_player(self, ladder_id, user_id):
         self.execute("insert into players (USER_ID, LADDER_ID) values (%s, %s)", user_id, ladder_id)
 
-    def update_borrowed_points(self, user_id, ladder_id, new_borrowed_points):
-        self.execute("UPDATE players set BORROWED_POINTS = %s where USER_ID = %s and LADDER_ID = %s", new_borrowed_points, user_id, ladder_id)
+    def update_borrowed_points(self, ladder_id, user_id, new_borrowed_points):
+        self.execute("UPDATE players set BORROWED_POINTS = %s where LADDER_ID = %s and USER_ID = %s", new_borrowed_points, ladder_id, user_id)
 
-    def update_earned_points(self, user_id, ladder_id, new_points_to_add):
-        self.execute("UPDATE players set EARNED_POINTS = EARNED_POINTS + %s where USER_ID = %s and LADDER_ID = %s", new_points_to_add, user_id, ladder_id)
+    def update_earned_points(self, ladder_id, user_id, new_points_to_add):
+        self.execute("UPDATE players set EARNED_POINTS = EARNED_POINTS + %s where LADDER_ID = %s and USER_ID = %s", new_points_to_add, ladder_id, user_id)
 
     def get_matches(self, ladder_id, user_id = None):
         sql_prefix = "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE from matches where LADDER_ID = %s"
@@ -115,7 +115,8 @@ class Dao:
     def execute(self, sql, *args):
         try:
             with self.conn.cursor() as cur:
-                cur.execute(sql, args)
+                affected_rows = cur.execute(sql, args)
+                print(sql, args, affected_rows)
         except Exception as e:
             print(e)
             raise ServiceException("Error executing database command")

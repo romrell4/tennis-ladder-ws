@@ -180,15 +180,14 @@ class Test(unittest.TestCase):
         # Test a player param without borrowed points
         assert_error("-1", "-1", {}, 400, "New player has no borrowed points")
         assert_error("-1", "-1", {"borrowed_points": None}, 400, "New player has no borrowed points")
-        assert_error("-1", "-1", {"borrowed_points": "abc"}, 400, "New player has no borrowed points")
 
         # Test updating borrowed points
         self.assertEqual(0, len(self.manager.dao.updated_borrowed_points))
-        self.manager.update_player("1", "2", {"borrowed_points": "5"})
+        self.manager.update_player("1", "2", {"borrowed_points": 5})
         self.assertEqual(1, len(self.manager.dao.updated_borrowed_points))
         self.assertEqual("1", self.manager.dao.updated_borrowed_points[0][0])
         self.assertEqual("2", self.manager.dao.updated_borrowed_points[0][1])
-        self.assertEqual("5", self.manager.dao.updated_borrowed_points[0][2])
+        self.assertEqual(5, self.manager.dao.updated_borrowed_points[0][2])
 
     def test_get_matches(self):
         with patch.object(self.manager.dao, "get_matches", return_value = [Match(1, 1, datetime(2018, 1, 1, 12, 30, 0), "TEST1", "TEST2", 6, 0, 6, 0)]):

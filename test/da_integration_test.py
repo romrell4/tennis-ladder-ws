@@ -174,7 +174,7 @@ class Test(unittest.TestCase):
 
         # Make sure the user starts out with no points
         self.assertEqual(0, self.dao.get_one(int, get_score_sql))
-        self.dao.update_borrowed_points("TEST1", -4, 100)
+        self.dao.update_borrowed_points(-4, "TEST1", 100)
         self.assertEqual(100, self.dao.get_one(int, get_score_sql))
 
         # Reset the score back to 0
@@ -185,11 +185,11 @@ class Test(unittest.TestCase):
 
         # Make sure the user starts out with no points
         self.assertEqual(0, self.dao.get_one(int, get_score_sql))
-        self.dao.update_earned_points("TEST1", -4, 100)
+        self.dao.update_earned_points(-4, "TEST1", 100)
         self.assertEqual(100, self.dao.get_one(int, get_score_sql))
 
         # Test updating someone who already has points (to make sure it adds to what is already there)
-        self.dao.update_earned_points("TEST1", -4, 2)
+        self.dao.update_earned_points(-4, "TEST1", 2)
         self.assertEqual(102, self.dao.get_one(int, get_score_sql))
 
         # Reset the score back to 0

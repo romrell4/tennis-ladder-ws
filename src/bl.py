@@ -100,7 +100,7 @@ class Manager:
             raise ServiceException("No player passed in", 400)
 
         new_borrowed_points = player_dict.get("borrowed_points")
-        if new_borrowed_points is None or not new_borrowed_points.isdigit():
+        if new_borrowed_points is None:
             raise ServiceException("New player has no borrowed points", 400)
 
         self.dao.update_borrowed_points(ladder_id, user_id, new_borrowed_points)
@@ -169,8 +169,8 @@ class Manager:
             match.winner_set1_score, match.loser_set1_score, match.winner_set2_score, match.loser_set2_score, match.winner_set3_score, match.loser_set3_score,
             match.winner_points, match.loser_points
         ))
-        self.dao.update_earned_points(match.winner_id, match.ladder_id, match.winner_points)
-        self.dao.update_earned_points(match.loser_id, match.ladder_id, match.loser_points)
+        self.dao.update_earned_points(match.ladder_id, match.winner_id, match.winner_points)
+        self.dao.update_earned_points(match.ladder_id, match.loser_id, match.loser_points)
 
         # Save the match to the database (which will assign it a new match_id)
         match = self.dao.create_match(match)
