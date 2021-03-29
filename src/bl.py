@@ -23,7 +23,7 @@ class Manager:
                 self.user = User(firebase_user["user_id"], firebase_user["name"], firebase_user["email"], None, firebase_user.get("picture"), None, False)
                 self.dao.create_user(self.user)
         except (KeyError, ValueError):
-            pass
+            self.user = None
 
     def get_user(self, user_id):
         if self.user is None:
