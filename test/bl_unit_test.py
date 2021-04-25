@@ -208,28 +208,6 @@ class Test(unittest.TestCase):
             self.assertEqual(status_code, e.exception.status_code)
             self.assertEqual(error_message, e.exception.error_message)
 
-        def create_match(winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None):
-            return {
-                "ladder_id": 1,
-                "match_date": None,
-                "winner": {
-                    "user": {
-                        "user_id": winner_id
-                    }
-                },
-                "loser": {
-                    "user": {
-                        "user_id": loser_id
-                    }
-                },
-                "winner_set1_score": winner_set1_score,
-                "loser_set1_score": loser_set1_score,
-                "winner_set2_score": winner_set2_score,
-                "loser_set2_score": loser_set2_score,
-                "winner_set3_score": winner_set3_score,
-                "loser_set3_score": loser_set3_score
-            }
-
         # Overwrite the calculate scores function for easier testing
         old_calculate_scores = Match.calculate_scores
         old_validate = Match.validate
@@ -251,42 +229,42 @@ class Test(unittest.TestCase):
 
         # Test reporting a match when the ladder is not open
         with patch.object(Ladder, "can_report_match", return_value = False):
-            assert_error(1, create_match("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
+            assert_error(1, create_match_dict("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
 
         # Test with a winner/loser not in the specified ladder
-        assert_error(1, create_match("TEST0", "TEST1", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
-        assert_error(1, create_match("TEST1", "TEST0", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
+        assert_error(1, create_match_dict("TEST0", "TEST1", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
+        assert_error(1, create_match_dict("TEST1", "TEST0", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
 
         # Test with a match where players are too far apart (should work if distance penalty is off)
         with patch.object(self.manager.dao, "get_matches", return_value = []):
-            self.manager.report_match(1, create_match("TEST1", "TEST17", 6, 0, 6, 0))
-            assert_error(2, create_match("TEST1", "TEST17", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
+            self.manager.report_match(1, create_match_dict("TEST1", "TEST17", 6, 0, 6, 0))
+            assert_error(2, create_match_dict("TEST1", "TEST17", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
 
         # Test when each player has already played a match that day
         with patch.object(self.manager.dao, "get_matches", return_value = [Match(0, 0, datetime.now(tz = timezone("US/Mountain")), "TEST1", "TEST2", 0, 0, 0, 0)]):
-            assert_error(1, create_match("TEST1", "TEST3", 0, 0, 0, 0), 400, "Reported winner has already played a match today. Only one match can be played each day.")
-            assert_error(1, create_match("TEST2", "TEST3", 0, 0, 0, 0), 400, "Reported winner has already played a match today. Only one match can be played each day.")
-            assert_error(1, create_match("TEST3", "TEST1", 0, 0, 0, 0), 400, "Reported loser has already played a match today. Only one match can be played each day.")
-            assert_error(1, create_match("TEST3", "TEST2", 0, 0, 0, 0), 400, "Reported loser has already played a match today. Only one match can be played each day.")
+            assert_error(1, create_match_dict("TEST1", "TEST3", 0, 0, 0, 0), 400, "Reported winner has already played a match today. Only one match can be played each day.")
+            assert_error(1, create_match_dict("TEST2", "TEST3", 0, 0, 0, 0), 400, "Reported winner has already played a match today. Only one match can be played each day.")
+            assert_error(1, create_match_dict("TEST3", "TEST1", 0, 0, 0, 0), 400, "Reported loser has already played a match today. Only one match can be played each day.")
+            assert_error(1, create_match_dict("TEST3", "TEST2", 0, 0, 0, 0), 400, "Reported loser has already played a match today. Only one match can be played each day.")
 
         # Test if the players have already played too many times
         test_match = Match(0, 0, datetime.now(tz = timezone("US/Mountain")) - timedelta(days = 1), "TEST1", "TEST2", 0, 0, 0, 0)
         with patch.object(self.manager.dao, "get_matches", return_value = [test_match] * 5):
-            assert_error(1, create_match("TEST1", "TEST2", 0, 0, 0, 0), 400, "Players have already played 5 times.")
-            assert_error(1, create_match("TEST2", "TEST1", 0, 0, 0, 0), 400, "Players have already played 5 times.")
+            assert_error(1, create_match_dict("TEST1", "TEST2", 0, 0, 0, 0), 400, "Players have already played 5 times.")
+            assert_error(1, create_match_dict("TEST2", "TEST1", 0, 0, 0, 0), 400, "Players have already played 5 times.")
 
             # You should be able to play somebody else after playing 5 times, just not the same person
-            self.manager.report_match(1, create_match("TEST1", "TEST3", 0, 0, 0, 0))
+            self.manager.report_match(1, create_match_dict("TEST1", "TEST3", 0, 0, 0, 0))
 
         # Test if the players have played one less than the max
         with patch.object(self.manager.dao, "get_matches", return_value = [test_match] * 4):
-            self.manager.report_match(1, create_match("TEST1", "TEST2", 0, 0, 0, 0))
+            self.manager.report_match(1, create_match_dict("TEST1", "TEST2", 0, 0, 0, 0))
 
         # Test valid match (scores should get updated, and match should be saved with a new date value)
         self.manager.dao.updated_earned_points = []
         self.manager.dao.saved_match = None
         with patch.object(self.manager.dao, "get_matches", return_value = []):
-            match = self.manager.report_match(1, create_match("TEST1", "TEST2", 6, 0, 6, 0))
+            match = self.manager.report_match(1, create_match_dict("TEST1", "TEST2", 6, 0, 6, 0))
         self.assertEqual(2, len(self.manager.dao.updated_earned_points))
         self.assertEqual(10, self.manager.dao.updated_earned_points[0][2])
         self.assertEqual(5, self.manager.dao.updated_earned_points[1][2])
@@ -298,7 +276,95 @@ class Test(unittest.TestCase):
         # Set mocked function back to originals
         Match.calculate_scores = old_calculate_scores
         Match.validate = old_validate
-        self.manager.user = None
+
+    def test_update_match(self):
+        def assert_error(match_id, match_dict, status_code, error_message):
+            with self.assertRaises(ServiceException) as e:
+                self.manager.update_match_scores(match_id, match_dict)
+            self.assertEqual(status_code, e.exception.status_code)
+            self.assertEqual(error_message, e.exception.error_message)
+
+        # Test when the manager doesn't have a user
+        assert_error(0, {}, 401, "Unable to authenticate")
+        self.manager.user = Test.test_user
+
+        # Test when the user isn't an admin
+        assert_error(0, {}, 403, "Only admins can update matches")
+        self.manager.user = Test.admin_user
+
+        # Test with a null match_id
+        assert_error(None, None, 400, "Null match_id param")
+
+        # Test with a null match
+        assert_error(0, None, 400, "Null match param")
+
+        # Test valid match update (should update match with new points, as well as update player's earned points)
+        self.manager.dao.matches_database[1] = Match(1, 1, datetime(2020, 1, 2, 3, 4, 5), 'TEST1', 'TEST2', 6, 0, 0, 6, 6, 0, winner_points=33, loser_points=6)
+        self.manager.update_match_scores(1, create_match_dict('BAD1', 'BAD2', 6, 0, 0, 6, 6, 1, ladder_id=2))
+        updated_match: Match = self.manager.dao.updated_match
+        self.assertIsNotNone(updated_match)
+        # Test values that should have updated
+        self.assertEqual(6, updated_match.winner_set1_score)
+        self.assertEqual(0, updated_match.loser_set1_score)
+        self.assertEqual(0, updated_match.winner_set2_score)
+        self.assertEqual(6, updated_match.loser_set2_score)
+        self.assertEqual(6, updated_match.winner_set3_score)
+        self.assertEqual(1, updated_match.loser_set3_score)
+        self.assertEqual(32, updated_match.winner_points)  # Can't go below the min amount
+        self.assertEqual(7, updated_match.loser_points)
+        # Test values that shouldn't update
+        self.assertEqual(1, updated_match.ladder_id)
+        self.assertEqual(datetime(2020, 1, 2, 3, 4, 5), updated_match.match_date)
+        self.assertEqual('TEST1', updated_match.winner_id)
+        self.assertEqual('TEST2', updated_match.loser_id)
+        # Test earned points updated
+        self.assertEqual([1, 'TEST1', -1], self.manager.dao.updated_earned_points[-2])
+        self.assertEqual([1, 'TEST2', 1], self.manager.dao.updated_earned_points[-1])
+
+        # Test when the winner would go below the min amount (should stay at min amount)
+        self.manager.dao.matches_database[1] = Match(1, 1, datetime(2020, 1, 2, 3, 4, 5), 'TEST1', 'TEST2', 6, 0, 6, 0, winner_points=Match.MIN_WINNER_POINTS, loser_points=0)
+        self.manager.update_match_scores(1, create_match_dict('BAD1', 'BAD2', 6, 0, 6, 1))
+        updated_match: Match = self.manager.dao.updated_match
+        self.assertIsNotNone(updated_match)
+        self.assertEqual(Match.MIN_WINNER_POINTS, updated_match.winner_points)  # Can't go below the min amount, even though you're losing points
+        self.assertEqual(1, updated_match.loser_points)
+        self.assertEqual([1, 'TEST1', 0], self.manager.dao.updated_earned_points[-2])
+        self.assertEqual([1, 'TEST2', 1], self.manager.dao.updated_earned_points[-1])
+
+    def test_score_diff(self):
+        self.assertEqual((-1, 1), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 6, 1)))
+        self.assertEqual((-5, 5), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 7, 5)))
+        self.assertEqual((6, -6), self.manager.get_score_diff(create_match(7, 6, 6, 0), create_match(6, 0, 6, 0)))
+        self.assertEqual((-6, 6), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 0, 6, 10, 0)))
+        self.assertEqual((-5, 5), self.manager.get_score_diff(create_match(6, 2, 6, 2), create_match(6, 0, 6, 7, 10, 4)))
+        self.assertEqual((-6, 6), self.manager.get_score_diff(create_match(6, 2, 6, 2), create_match(6, 0, 6, 7, 10, 5)))
+        self.assertEqual((9, -9), self.manager.get_score_diff(create_match(6, 0, 0, 6, 6, 3), create_match(6, 0, 6, 0)))
+
+
+def create_match(winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, match_id=0, ladder_id=0, match_date=datetime.now(), winner_id='winner_id', loser_id='loser_id', winner_points=0, loser_points=0):
+    return Match(match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points)
+
+def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None, ladder_id=1, match_date=None):
+    return {
+        "ladder_id": ladder_id,
+        "match_date": None,
+        "winner": {
+            "user": {
+                "user_id": winner_id
+            }
+        },
+        "loser": {
+            "user": {
+                "user_id": loser_id
+            }
+        },
+        "winner_set1_score": winner_set1_score,
+        "loser_set1_score": loser_set1_score,
+        "winner_set2_score": winner_set2_score,
+        "loser_set2_score": loser_set2_score,
+        "winner_set3_score": winner_set3_score,
+        "loser_set3_score": loser_set3_score
+    }
 
 class MockFirebaseClient:
     valid_user = True
@@ -344,9 +410,11 @@ class MockDao:
         "TEST19": Player("TEST19", "Player 19", "test19@mail.com", "000-000-0019", "test19.jpg", "availability 19", False, 1, 10, 10, 0, 19, 0, 0),
         "TEST20": Player("TEST20", "Player 20", "test20@mail.com", "000-000-0020", "test20.jpg", "availability 20", False, 1, 5, 5, 0, 20, 0, 0)
     }
+    matches_database = {}
     updated_borrowed_points = []
     updated_earned_points = []
     saved_match = None
+    updated_match = None
     created_user = False
 
     def get_user(self, user_id):
@@ -383,16 +451,23 @@ class MockDao:
     def update_borrowed_points(self, user_id, ladder_id, new_borrowed_points):
         self.updated_borrowed_points.append([user_id, ladder_id, new_borrowed_points])
 
-    def update_earned_points(self, user_id, ladder_id, new_points_to_add):
-        self.updated_earned_points.append([user_id, ladder_id, new_points_to_add])
+    def update_earned_points(self, ladder_id, user_id, new_points_to_add):
+        self.updated_earned_points.append([ladder_id, user_id, new_points_to_add])
 
     def get_matches(self, ladder_id, user_id): raise NotImplementedError()
+
+    def get_match(self, match_id):
+        return self.matches_database[match_id]
 
     def create_match(self, match):
         self.saved_match = match
         new_match = copy.deepcopy(match)
         new_match.match_id = 0
         return new_match
+
+    def update_match(self, match):
+        self.updated_match = match
+        return match
 
     def get_ladder_code(self, ladder_id):
         return "good" if ladder_id == 1 else None

@@ -34,7 +34,7 @@ class Test(unittest.TestCase):
                 ('TEST4', -4, 0)
             """)
             cls.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
-                (-1, -3, CURDATE(), 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
+                (-1, -3, '2018-01-02 03:04:05', 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
             """)
             cls.dao.insert("""INSERT INTO ladder_codes (LADDER_ID, CODE) VALUES
                 (-3, 'good')
@@ -216,6 +216,21 @@ class Test(unittest.TestCase):
         matches = self.dao.get_matches(-3, "TEST2")
         self.assertEqual(1, len(matches))
 
+    def test_get_match(self):
+        match = self.dao.get_match(-1)
+        self.assertEqual(-3, match.ladder_id)
+        self.assertEqual(datetime(2018, 1, 2, 3, 4, 5), match.match_date)
+        self.assertEqual('TEST1', match.winner_id)
+        self.assertEqual('TEST2', match.loser_id)
+        self.assertEqual(6, match.winner_set1_score)
+        self.assertEqual(0, match.loser_set1_score)
+        self.assertEqual(0, match.winner_set2_score)
+        self.assertEqual(6, match.loser_set2_score)
+        self.assertEqual(7, match.winner_set3_score)
+        self.assertEqual(5, match.loser_set3_score)
+        self.assertEqual(0, match.winner_points)
+        self.assertEqual(0, match.loser_points)
+
     def test_create_match(self):
         # Test with null values
         match = self.dao.create_match(Match(None, -3, datetime(2018, 1, 1, 1, 0, 0), "TEST1", "TEST2", 6, 1, 6, 2))
@@ -248,6 +263,29 @@ class Test(unittest.TestCase):
             self.assertEqual(5, match.loser_set3_score)
         finally:
             self.dao.execute("DELETE FROM matches where ID = %s", match.match_id)
+
+    def test_update_match_score(self):
+        sql = "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS from matches where ID = -1"
+        old_match = self.dao.get_one(Match, sql)
+        new_match = Match(old_match.match_id, -4, datetime(2020, 2, 3, 4, 5, 6), 'TEST2', 'TEST1', 3, 4, 5, 6, 7, 8, 9, 10)
+
+        try:
+            self.dao.update_match(new_match)
+            saved_match = self.dao.get_one(Match, sql)
+            self.assertEqual(-4, saved_match.ladder_id)
+            self.assertEqual(datetime(2020, 2, 3, 4, 5, 6), saved_match.match_date)
+            self.assertEqual('TEST2', saved_match.winner_id)
+            self.assertEqual('TEST1', saved_match.loser_id)
+            self.assertEqual(3, saved_match.winner_set1_score)
+            self.assertEqual(4, saved_match.loser_set1_score)
+            self.assertEqual(5, saved_match.winner_set2_score)
+            self.assertEqual(6, saved_match.loser_set2_score)
+            self.assertEqual(7, saved_match.winner_set3_score)
+            self.assertEqual(8, saved_match.loser_set3_score)
+            self.assertEqual(9, saved_match.winner_points)
+            self.assertEqual(10, saved_match.loser_points)
+        finally:
+            self.dao.update_match(old_match)
 
     def test_get_ladder_code(self):
         # Test ladder with code

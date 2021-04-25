@@ -115,8 +115,8 @@ class Test(unittest.TestCase):
         # Valid test
         response = self.handler.handle(create_event("/ladders/{ladder_id}/matches", {"ladder_id": "1"}, "POST", "{}"))
         self.assertEqual(200, response["statusCode"])
-        self.assertIsNotNone(MockManager.reported_match)
-        MockManager.reported_match = None
+        self.assertIsNotNone(self.manager.reported_match)
+        self.manager.reported_match = None
         match = json.loads(response["body"])
         self.assertEqual(1, match["match_id"])
         self.assertEqual(1, match["ladder_id"])
@@ -129,6 +129,15 @@ class Test(unittest.TestCase):
         self.assertEqual(7, match["loser_set2_score"])
         self.assertEqual(6, match["winner_set3_score"])
         self.assertEqual(3, match["loser_set3_score"])
+
+    def test_update_match_scores(self):
+        # Valid test
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/matches/{match_id}", {"ladder_id": "1", "match_id": "2"}, "PUT", "{}"))
+        self.assertEqual(200, response["statusCode"])
+        self.assertIsNotNone(self.manager.updated_match)
+        self.manager.updated_match = None
+        matches = json.loads(response["body"])
+        self.assertEqual(1, len(matches))
 
     def test_get_token(self):
         response = self.handler.get_token({
@@ -150,8 +159,9 @@ def create_event(resource, path_params = None, method = "GET", body = None, quer
         event["queryStringParameters"] = query_params
     return event
 
-class MockManager():
+class MockManager:
     reported_match = None
+    updated_match = None
 
     def __init__(self):
         self.user = User("1", "User1", "user1@test.com", "555-555-5555", "hello.jpg", "avail", False)
@@ -207,5 +217,9 @@ class MockManager():
             ]
 
     def report_match(self, ladder_id, match):
-        MockManager.reported_match = match
+        self.reported_match = match
         return Match(1, 1, datetime(2018, 2, 2, 1, 0, 0), 2, 3, 6, 0, 5, 7, 6, 3)
+
+    def update_match_scores(self, match_id, match_dict):
+        self.updated_match = match_dict
+        return [Match(1, 1, datetime(2018, 2, 2, 1, 0, 0), 2, 3, 6, 0, 5, 7, 6, 3)]

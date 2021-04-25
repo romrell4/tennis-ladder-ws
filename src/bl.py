@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Tuple
+
 from pytz import timezone
 
 from domain import User, ServiceException, Match
@@ -177,6 +179,47 @@ class Manager:
 
         # Attach winners and losers to the match
         return self.transform_matches([match], ladder_id)[0]
+
+    def update_match_scores(self, match_id, match_dict):
+        if self.user is None:
+            raise ServiceException("Unable to authenticate", 401)
+        elif not self.user.admin:
+            raise ServiceException("Only admins can update matches", 403)
+        elif match_id is None:
+            raise ServiceException("Null match_id param", 400)
+        elif match_dict is None:
+            raise ServiceException("Null match param", 400)
+
+        updated_match = Match.from_dict(match_dict)
+        original_match = self.dao.get_match(match_id)
+
+        winner_score_diff, loser_score_diff = self.get_score_diff(original_match, updated_match)
+
+        original_match.winner_set1_score = updated_match.winner_set1_score
+        original_match.loser_set1_score = updated_match.loser_set1_score
+        original_match.winner_set2_score = updated_match.winner_set2_score
+        original_match.loser_set2_score = updated_match.loser_set2_score
+        original_match.winner_set3_score = updated_match.winner_set3_score
+        original_match.loser_set3_score = updated_match.loser_set3_score
+
+        # Make sure the winner doesn't drop below the min amount. If so, correct the diff
+        new_winner_points = max(original_match.winner_points + winner_score_diff, Match.MIN_WINNER_POINTS)
+        winner_score_diff = new_winner_points - original_match.winner_points
+        original_match.winner_points += winner_score_diff
+        original_match.loser_points += loser_score_diff
+
+        self.dao.update_match(original_match)
+
+        self.dao.update_earned_points(original_match.ladder_id, original_match.winner_id, winner_score_diff)
+        self.dao.update_earned_points(original_match.ladder_id, original_match.loser_id, loser_score_diff)
+
+        return self.transform_matches([original_match], original_match.ladder_id)[0]
+
+    @staticmethod
+    def get_score_diff(original: Match, new: Match) -> Tuple[int, int]:
+        (new_winner_score, new_loser_score) = new.calculate_scores(None, None, False)
+        (old_winner_score, old_loser_score) = original.calculate_scores(None, None, False)
+        return new_winner_score - old_winner_score, new_loser_score - old_loser_score
 
     def transform_matches(self, matches, ladder_id):
         # Get all players in that ladder
