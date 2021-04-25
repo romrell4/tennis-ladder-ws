@@ -27,6 +27,7 @@ class Handler:
                 raise ServiceException("Invalid request. No 'resource', or 'httpMethod' found in the event", 400)
 
             resource, method = event["resource"], event["httpMethod"]  # These will be used to specify which endpoint was being hit
+            print(f"Received a {method} on {resource}")
             path_params = event.get("pathParameters", {}) if event.get("pathParameters") is not None else {}  # This will be used to get IDs and other parameters from the URL
             query_params = event.get("queryStringParameters", {}) if event.get("queryStringParameters") is not None else {}  # This will be used to get IDs and other parameters from the URL
             try:
