@@ -215,6 +215,22 @@ class Manager:
 
         return self.transform_matches([original_match], original_match.ladder_id)[0]
 
+    def delete_match(self, match_id):
+        if self.user is None:
+            raise ServiceException("Unable to authenticate", 401)
+        elif not self.user.admin:
+            raise ServiceException("Only admins can delete matches", 403)
+        elif match_id is None:
+            raise ServiceException("Null match_id param", 400)
+
+        match = self.dao.get_match(match_id)
+
+        if match is not None:
+            self.dao.update_earned_points(match.ladder_id, match.winner_id, -match.winner_points)
+            self.dao.update_earned_points(match.ladder_id, match.loser_id, -match.loser_points)
+
+            self.dao.delete_match(match_id)
+
     @staticmethod
     def get_score_diff(original: Match, new: Match) -> Tuple[int, int]:
         (new_winner_score, new_loser_score) = new.calculate_scores(None, None, False)

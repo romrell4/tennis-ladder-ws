@@ -340,6 +340,37 @@ class Test(unittest.TestCase):
         self.assertEqual((-6, 6), self.manager.get_score_diff(create_match(6, 2, 6, 2), create_match(6, 0, 6, 7, 10, 5)))
         self.assertEqual((9, -9), self.manager.get_score_diff(create_match(6, 0, 0, 6, 6, 3), create_match(6, 0, 6, 0)))
 
+    def test_delete_match(self):
+        def assert_error(match_id, status_code, error_message):
+            with self.assertRaises(ServiceException) as e:
+                self.manager.delete_match(match_id)
+            self.assertEqual(status_code, e.exception.status_code)
+            self.assertEqual(error_message, e.exception.error_message)
+
+        # Test when the manager doesn't have a user
+        assert_error(0, 401, "Unable to authenticate")
+        self.manager.user = Test.test_user
+
+        # Test when the user isn't an admin
+        assert_error(0, 403, "Only admins can delete matches")
+        self.manager.user = Test.admin_user
+
+        # Test with a null match_id
+        assert_error(None, 400, "Null match_id param")
+
+        # Test with a match that doesn't exist - should do nothing, but succeed
+        self.manager.delete_match(-1)
+        self.assertIsNone(self.manager.dao.deleted_match_id)
+        self.assertEqual(0, len(self.manager.dao.updated_earned_points))
+
+        # Test valid match deletion (should delete match, as well as update player's earned points)
+        self.manager.dao.matches_database[1] = Match(1, 1, datetime(2020, 1, 2, 3, 4, 5), 'TEST1', 'TEST2', 6, 0, 0, 6, 6, 0, winner_points=33, loser_points=6)
+        self.manager.delete_match(1)
+        # Test that match was deleted
+        self.assertEqual(1, self.manager.dao.deleted_match_id)
+        # Test earned points updated
+        self.assertEqual([1, 'TEST1', -33], self.manager.dao.updated_earned_points[-2])
+        self.assertEqual([1, 'TEST2', -6], self.manager.dao.updated_earned_points[-1])
 
 def create_match(winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, match_id=0, ladder_id=0, match_date=datetime.now(), winner_id='winner_id', loser_id='loser_id', winner_points=0, loser_points=0):
     return Match(match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points)
@@ -415,6 +446,7 @@ class MockDao:
     updated_earned_points = []
     saved_match = None
     updated_match = None
+    deleted_match_id = None
     created_user = False
 
     def get_user(self, user_id):
@@ -457,7 +489,10 @@ class MockDao:
     def get_matches(self, ladder_id, user_id): raise NotImplementedError()
 
     def get_match(self, match_id):
-        return self.matches_database[match_id]
+        try:
+            return self.matches_database[match_id]
+        except KeyError:
+            return None
 
     def create_match(self, match):
         self.saved_match = match
@@ -468,6 +503,9 @@ class MockDao:
     def update_match(self, match):
         self.updated_match = match
         return match
+
+    def delete_match(self, match_id):
+        self.deleted_match_id = match_id
 
     def get_ladder_code(self, ladder_id):
         return "good" if ladder_id == 1 else None

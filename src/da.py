@@ -80,6 +80,9 @@ class Dao:
     def update_match(self, match: Match):
         self.execute("update matches set LADDER_ID = %s, MATCH_DATE = %s, WINNER_ID = %s, LOSER_ID = %s, WINNER_SET1_SCORE = %s, LOSER_SET1_SCORE = %s, WINNER_SET2_SCORE = %s, LOSER_SET2_SCORE = %s, WINNER_SET3_SCORE = %s, LOSER_SET3_SCORE = %s, WINNER_POINTS = %s, LOSER_POINTS = %s where ID = %s", match.ladder_id, match.match_date, match.winner_id, match.loser_id, match.winner_set1_score, match.loser_set1_score, match.winner_set2_score, match.loser_set2_score, match.winner_set3_score, match.loser_set3_score, match.winner_points, match.loser_points, match.match_id)
 
+    def delete_match(self, match_id):
+        self.execute("delete from matches where ID = %s", match_id)
+
     def get_ladder_code(self, ladder_id):
         return self.get_one(str, "select CODE from ladder_codes where LADDER_ID = %s", ladder_id)
 

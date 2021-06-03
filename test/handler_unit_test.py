@@ -139,6 +139,13 @@ class Test(unittest.TestCase):
         matches = json.loads(response["body"])
         self.assertEqual(1, len(matches))
 
+    def test_delete_match(self):
+        response = self.handler.handle(create_event("/ladders/{ladder_id}/matches/{match_id}", {"ladder_id": "1", "match_id": "2"}, "DELETE"))
+        self.assertEqual(200, response["statusCode"])
+        self.assertEqual(2, self.manager.deleted_match_id)
+        result = json.loads(response["body"])
+        self.assertIsNotNone(result)
+
     def test_get_token(self):
         response = self.handler.get_token({
             "headers": {"X-Firebase-Token": "TEST"}
@@ -162,6 +169,7 @@ def create_event(resource, path_params = None, method = "GET", body = None, quer
 class MockManager:
     reported_match = None
     updated_match = None
+    deleted_match_id = None
 
     def __init__(self):
         self.user = User("1", "User1", "user1@test.com", "555-555-5555", "hello.jpg", "avail", False)
@@ -223,3 +231,6 @@ class MockManager:
     def update_match_scores(self, match_id, match_dict):
         self.updated_match = match_dict
         return [Match(1, 1, datetime(2018, 2, 2, 1, 0, 0), 2, 3, 6, 0, 5, 7, 6, 3)]
+
+    def delete_match(self, match_id):
+        self.deleted_match_id = match_id
