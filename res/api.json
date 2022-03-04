@@ -522,6 +522,9 @@
 				"end_date": {
 					"type": "string",
 					"format": "date"
+				},
+				"logged_in_user_has_joined": {
+					"type": "boolean"
 				}
 			}
 		},

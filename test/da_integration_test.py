@@ -24,7 +24,8 @@ class Test(unittest.TestCase):
                 ('TEST1', 'Tester One', 'test1@mail.com', '111-111-1111', 'test1.jpg', 'avail 1'),
                 ('TEST2', 'Tester Two', 'test2@mail.com', null, 'test2.jpg', 'avail 2'),
                 ('TEST3', 'Tester Three', 'test3@mail.com', null, 'test3.jpg', 'avail 3'),
-                ('TEST4', 'Tester Four', 'test4@mail.com', null, 'test4.jpg', 'avail 4')
+                ('TEST4', 'Tester Four', 'test4@mail.com', null, 'test4.jpg', 'avail 4'),
+                ('TEST5', 'Tester Five', 'test4@mail.com', null, 'test5.jpg', 'avail 5')
             """)
             self.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES 
                 (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
@@ -49,7 +50,7 @@ class Test(unittest.TestCase):
 
     def tearDown(self) -> None:
         # These will cascade in order to delete the other ones
-        self.dao.execute("DELETE FROM users where ID in ('__TEST', 'TEST1', 'TEST2', 'TEST3', 'TEST4')")
+        self.dao.execute("DELETE FROM users where ID in ('__TEST', 'TEST1', 'TEST2', 'TEST3', 'TEST4', 'TEST5')")
         self.dao.execute("DELETE FROM ladders where ID in (-3, -4)")
 
     def test_get_user(self):
@@ -124,6 +125,16 @@ class Test(unittest.TestCase):
         # Test a normal ladder
         ladder = self.dao.get_ladder(-3)
         self.assertIsNotNone(ladder)
+
+    def test_get_users_ladder_ids(self):
+        # Test a user not in any ladders
+        self.assertEqual([], self.dao.get_users_ladder_ids("TEST5"))
+
+        # Test a user in ladders
+        ladder_ids = self.dao.get_users_ladder_ids("TEST1")
+        self.assertTrue(2, len(ladder_ids))
+        self.assertTrue(-3 in ladder_ids)
+        self.assertTrue(-4 in ladder_ids)
 
     def test_get_players(self):
         # Test running the SQL, and deserializing a result set

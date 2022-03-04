@@ -60,7 +60,21 @@ class Manager:
         return self.dao.get_user(user_id)
 
     def get_ladders(self):
-        return self.dao.get_ladders()
+        ladders = self.dao.get_ladders()
+
+        # If the user is logged in, tack on the information about which ladders they have joined and sort them at the top
+        if self.user is not None:
+            user_ladder_ids = self.dao.get_users_ladder_ids(self.user.user_id)
+            my_ladders = []
+            other_ladders = []
+            for ladder in ladders:
+                if ladder.ladder_id in user_ladder_ids:
+                    ladder.logged_in_user_has_joined = True
+                    my_ladders.append(ladder)
+                else:
+                    other_ladders.append(ladder)
+            ladders = my_ladders + other_ladders
+        return ladders
 
     def get_players(self, ladder_id):
         # The database handles all the sorting and derived fields

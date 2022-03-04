@@ -7,8 +7,8 @@ class User:
         self.user_id, self.name, self.email, self.phone_number, self.photo_url, self.availability_text, self.admin = user_id, name, email, phone_number, photo_url, availability_text, bool(admin)
 
 class Ladder:
-    def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on):
-        self.ladder_id, self.name, self.start_date, self.end_date, self.distance_penalty_on = ladder_id, name, start_date, end_date, distance_penalty_on
+    def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on, logged_in_user_has_joined: bool = False):
+        self.ladder_id, self.name, self.start_date, self.end_date, self.distance_penalty_on, self.logged_in_user_has_joined = ladder_id, name, start_date, end_date, distance_penalty_on, logged_in_user_has_joined
 
     def can_report_match(self):
         return self.start_date <= datetime.now(timezone("US/Mountain")).date() <= self.end_date

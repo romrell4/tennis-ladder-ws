@@ -45,6 +45,9 @@ class Dao:
     def get_ladder(self, ladder_id):
         return self.get_one(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON from ladders where ID = %s", ladder_id)
 
+    def get_users_ladder_ids(self, user_id):
+        return self.get_list(int, "select LADDER_ID from players where user_id = %s", user_id)
+
     def get_players(self, ladder_id):
         return self.get_list(Player, self.PLAYERS_SQL, ladder_id, ladder_id, ladder_id, ladder_id)
 

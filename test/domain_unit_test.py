@@ -24,6 +24,11 @@ class Test(unittest.TestCase):
         ladder.end_date = today + timedelta(days = 1)
         self.assertTrue(ladder.can_report_match())
 
+    def test_ladder_default_values(self):
+        today = datetime.today().date()
+        ladder = Ladder(0, None, today, today, False)
+        self.assertFalse(ladder.logged_in_user_has_joined)
+
     # MATCH
 
     def test_validate_match(self):

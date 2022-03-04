@@ -8,6 +8,7 @@ from bl import Manager
 from domain import ServiceException, Ladder, Player, Match, User
 
 class Test(unittest.TestCase):
+    user_not_in_ladder = User("NEWUSER", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
     test_user = User("USER1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
     admin_user = User("USER1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", True)
 
@@ -114,6 +115,39 @@ class Test(unittest.TestCase):
         self.assertEqual("new phone", saved_user.phone_number)
         self.assertEqual("new url", saved_user.photo_url)
         self.assertEqual("new availability", saved_user.availability_text)
+
+    def test_get_ladders(self):
+        self.manager.user = None
+        ladders = self.manager.get_ladders()
+        self.assertEqual(3, len(ladders))
+        self.assertEqual(3, ladders[0].ladder_id)
+        self.assertFalse(ladders[0].logged_in_user_has_joined)
+        self.assertEqual(1, ladders[1].ladder_id)
+        self.assertFalse(ladders[1].logged_in_user_has_joined)
+        self.assertEqual(2, ladders[2].ladder_id)
+        self.assertFalse(ladders[2].logged_in_user_has_joined)
+
+        # Test a logged in user that is not part of any ladder
+        self.manager.user = Test.test_user
+        ladders = self.manager.get_ladders()
+        self.assertEqual(3, len(ladders))
+        self.assertEqual(3, ladders[0].ladder_id)
+        self.assertFalse(ladders[0].logged_in_user_has_joined)
+        self.assertEqual(1, ladders[1].ladder_id)
+        self.assertFalse(ladders[1].logged_in_user_has_joined)
+        self.assertEqual(2, ladders[2].ladder_id)
+        self.assertFalse(ladders[2].logged_in_user_has_joined)
+
+        # Test a logged in user that is in the second ladder (should resort and have true flag)
+        self.manager.user = User("TEST1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
+        ladders = self.manager.get_ladders()
+        self.assertEqual(3, len(ladders))
+        self.assertEqual(1, ladders[0].ladder_id)
+        self.assertTrue(ladders[0].logged_in_user_has_joined)
+        self.assertEqual(3, ladders[1].ladder_id)
+        self.assertFalse(ladders[1].logged_in_user_has_joined)
+        self.assertEqual(2, ladders[2].ladder_id)
+        self.assertFalse(ladders[2].logged_in_user_has_joined)
 
     def test_add_player_to_ladder(self):
         def assert_error(ladder_id, code, status_code, error_message):
@@ -416,6 +450,7 @@ class MockDao:
         "BAD_USER": User("BAD_USER", None, None, None, None, None, None)
     }
     ladder_database = {
+        3: Ladder(3, "Ladder 3", create_date(-1), create_date(1), False),
         1: Ladder(1, "Ladder 1", create_date(-1), create_date(1), False),
         2: Ladder(2, "Ladder 2", create_date(-1), create_date(1), True)
     }
@@ -466,10 +501,13 @@ class MockDao:
         return user
 
     def get_ladders(self):
-        return self.ladder_database.values()
+        return list(self.ladder_database.values())
 
     def get_ladder(self, ladder_id):
         return self.ladder_database.get(ladder_id)
+
+    def get_users_ladder_ids(self, user_id):
+        return [player.ladder_id for player in self.players_database.values() if player.user.user_id == user_id]
 
     def get_players(self, ladder_id):
         return [player for player in self.players_database.values() if player.ladder_id == ladder_id]
