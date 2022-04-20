@@ -46,6 +46,15 @@ class Test(unittest.TestCase):
         self.assertTrue(self.manager.dao.created_user)
         self.assertEqual("Unknown", self.manager.user.name)
 
+        # Test a new user with an empty picture string
+        del (self.manager.dao.user_database["USER_ID"])
+        self.manager.firebase_client.valid_user = True
+        self.manager.firebase_client.valid_user_has_empty_photo = True
+        self.manager.validate_token("")
+        self.assertIsNotNone(self.manager.user)
+        self.assertTrue(self.manager.dao.created_user)
+        self.assertIsNone(self.manager.user.photo_url)
+
         # Test a saved user
         self.manager.firebase_client.valid_user = True
         self.manager.validate_token("")
@@ -443,13 +452,16 @@ def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, 
 class MockFirebaseClient:
     valid_user = True
     valid_user_has_no_name = False
+    valid_user_has_empty_photo = False
 
     def get_firebase_user(self, token):
         if self.valid_user:
+            jwt = {"user_id": "USER_ID", "name": "NAME", "email": "EMAIL", "picture": "PICTURE"}
             if self.valid_user_has_no_name:
-                return {"user_id": "USER_ID", "email": "EMAIL", "picture": "PICTURE"}
-            else:
-                return {"user_id": "USER_ID", "name": "NAME", "email": "EMAIL", "picture": "PICTURE"}
+                del(jwt["name"])
+            if self.valid_user_has_empty_photo:
+                jwt["picture"] = ""
+            return jwt
         else:
             return {}
 
