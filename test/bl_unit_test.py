@@ -37,6 +37,15 @@ class Test(unittest.TestCase):
         self.assertEqual("PICTURE", self.manager.user.photo_url)
         self.assertEqual(None, self.manager.user.availability_text)
 
+        # Test a new user without a name
+        del(self.manager.dao.user_database["USER_ID"])
+        self.manager.firebase_client.valid_user = True
+        self.manager.firebase_client.valid_user_has_no_name = True
+        self.manager.validate_token("")
+        self.assertIsNotNone(self.manager.user)
+        self.assertTrue(self.manager.dao.created_user)
+        self.assertEqual("Unknown", self.manager.user.name)
+
         # Test a saved user
         self.manager.firebase_client.valid_user = True
         self.manager.validate_token("")
@@ -433,10 +442,14 @@ def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, 
 
 class MockFirebaseClient:
     valid_user = True
+    valid_user_has_no_name = False
 
     def get_firebase_user(self, token):
         if self.valid_user:
-            return {"user_id": "USER_ID", "name": "NAME", "email": "EMAIL", "picture": "PICTURE"}
+            if self.valid_user_has_no_name:
+                return {"user_id": "USER_ID", "email": "EMAIL", "picture": "PICTURE"}
+            else:
+                return {"user_id": "USER_ID", "name": "NAME", "email": "EMAIL", "picture": "PICTURE"}
         else:
             return {}
 
