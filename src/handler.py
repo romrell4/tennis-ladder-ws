@@ -2,8 +2,8 @@ import datetime
 import json
 
 from bl import Manager
-from firebase_client import FirebaseClient
-from da import Dao
+from firebase_client import FirebaseClientImpl
+from da import DaoImpl
 from domain import ServiceException
 
 def handle(event, _):
@@ -15,7 +15,7 @@ class Handler:
     @staticmethod
     def get_instance():
         if Handler.instance is None:
-            Handler.instance = Handler(Manager(FirebaseClient(), Dao()))
+            Handler.instance = Handler(Manager(FirebaseClientImpl(), DaoImpl()))
         return Handler.instance
 
     def __init__(self, manager):

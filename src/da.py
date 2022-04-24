@@ -2,7 +2,46 @@ from domain import *
 import pymysql
 import os
 
+
 class Dao:
+    def get_user(self, user_id): raise NotImplementedError()
+
+    def in_same_ladder(self, user1_id, user2_id): raise NotImplementedError()
+
+    def create_user(self, user): raise NotImplementedError()
+
+    def update_user(self, user): raise NotImplementedError()
+
+    def get_ladders(self): raise NotImplementedError()
+
+    def get_ladder(self, ladder_id): raise NotImplementedError()
+
+    def get_users_ladder_ids(self, user_id): raise NotImplementedError()
+
+    def get_players(self, ladder_id): raise NotImplementedError()
+
+    def get_player(self, ladder_id, user_id): raise NotImplementedError()
+
+    def create_player(self, ladder_id, user_id): raise NotImplementedError()
+
+    def update_borrowed_points(self, ladder_id, user_id, new_borrowed_points): raise NotImplementedError()
+
+    def update_earned_points(self, ladder_id, user_id, new_points_to_add): raise NotImplementedError()
+
+    def get_matches(self, ladder_id, user_id=None): raise NotImplementedError()
+
+    def get_match(self, match_id) -> Match: raise NotImplementedError()
+
+    def create_match(self, match): raise NotImplementedError()
+
+    def update_match(self, match: Match): raise NotImplementedError()
+
+    def delete_match(self, match_id): raise NotImplementedError()
+
+    def get_ladder_code(self, ladder_id): raise NotImplementedError()
+
+
+class DaoImpl(Dao):
     PLAYER_SQL_PREFIX = """
         select u.ID, u.NAME, u.EMAIL, u.PHONE_NUMBER, u.PHOTO_URL, u.AVAILABILITY_TEXT, u.ADMIN, l.ID as LADDER_ID, p.SCORE, p.EARNED_POINTS, p.BORROWED_POINTS,
           (select count(distinct SCORE) + 1 from players_vw where LADDER_ID = %s and SCORE > p.SCORE) as RANKING,
@@ -22,7 +61,7 @@ class Dao:
 
     def __init__(self):
         try:
-            self.conn = pymysql.connect(os.environ["DB_HOST"], user = (os.environ["DB_USERNAME"]), passwd = (os.environ["DB_PASSWORD"]), db = (os.environ["DB_DATABASE_NAME"]), autocommit = True)
+            self.conn = pymysql.connect(os.environ["DB_HOST"], user=os.environ["DB_USERNAME"], passwd=os.environ["DB_PASSWORD"], db=os.environ["DB_DATABASE_NAME"], autocommit=True)
         except Exception as e:
             print("ERROR: Could not connect to MySQL", e)
             raise ServiceException("Failed to connect to database")
@@ -63,7 +102,7 @@ class Dao:
     def update_earned_points(self, ladder_id, user_id, new_points_to_add):
         self.execute("UPDATE players set EARNED_POINTS = EARNED_POINTS + %s where LADDER_ID = %s and USER_ID = %s", new_points_to_add, ladder_id, user_id)
 
-    def get_matches(self, ladder_id, user_id = None):
+    def get_matches(self, ladder_id, user_id=None):
         sql_prefix = "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE from matches where LADDER_ID = %s"
         sql_postfix = " order by MATCH_DATE desc"
 
@@ -74,14 +113,25 @@ class Dao:
             return self.get_list(Match, sql_prefix + sql_postfix, ladder_id)
 
     def get_match(self, match_id) -> Match:
-        return self.get_one(Match, "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS from matches where ID = %s", match_id)
+        return self.get_one(
+            Match,
+            "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS from matches where ID = %s",
+            match_id
+        )
 
     def create_match(self, match):
-        match_id = self.insert("insert into matches (LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", *match.get_insert_properties())
+        match_id = self.insert(
+            "insert into matches (LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            *match.get_insert_properties()
+        )
         return self.get_one(Match, "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE from matches where ID = %s", match_id)
 
     def update_match(self, match: Match):
-        self.execute("update matches set LADDER_ID = %s, MATCH_DATE = %s, WINNER_ID = %s, LOSER_ID = %s, WINNER_SET1_SCORE = %s, LOSER_SET1_SCORE = %s, WINNER_SET2_SCORE = %s, LOSER_SET2_SCORE = %s, WINNER_SET3_SCORE = %s, LOSER_SET3_SCORE = %s, WINNER_POINTS = %s, LOSER_POINTS = %s where ID = %s", match.ladder_id, match.match_date, match.winner_id, match.loser_id, match.winner_set1_score, match.loser_set1_score, match.winner_set2_score, match.loser_set2_score, match.winner_set3_score, match.loser_set3_score, match.winner_points, match.loser_points, match.match_id)
+        self.execute(
+            "update matches set LADDER_ID = %s, MATCH_DATE = %s, WINNER_ID = %s, LOSER_ID = %s, WINNER_SET1_SCORE = %s, LOSER_SET1_SCORE = %s, WINNER_SET2_SCORE = %s, LOSER_SET2_SCORE = %s, WINNER_SET3_SCORE = %s, LOSER_SET3_SCORE = %s, WINNER_POINTS = %s, LOSER_POINTS = %s where ID = %s",
+            match.ladder_id, match.match_date, match.winner_id, match.loser_id, match.winner_set1_score, match.loser_set1_score, match.winner_set2_score, match.loser_set2_score, match.winner_set3_score, match.loser_set3_score,
+            match.winner_points, match.loser_points, match.match_id
+        )
 
     def delete_match(self, match_id):
         self.execute("delete from matches where ID = %s", match_id)
@@ -89,7 +139,7 @@ class Dao:
     def get_ladder_code(self, ladder_id):
         return self.get_one(str, "select CODE from ladder_codes where LADDER_ID = %s", ladder_id)
 
-    ### UTILS ###
+    # region Utils
 
     def get_list(self, klass, sql, *args):
         try:
@@ -132,3 +182,4 @@ class Dao:
         except Exception as e:
             print(e)
             raise ServiceException("Error executing database command")
+    # endregion

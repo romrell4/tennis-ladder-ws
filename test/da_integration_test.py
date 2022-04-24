@@ -3,11 +3,11 @@ import unittest
 from datetime import date
 
 import properties
-from da import Dao
+from da import DaoImpl
 from domain import *
 
 class Test(unittest.TestCase):
-    dao: Dao
+    dao: DaoImpl
 
     @classmethod
     def setUpClass(cls):
@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
         os.environ["DB_PASSWORD"] = properties.db_password
         os.environ["DB_DATABASE_NAME"] = properties.db_database_name
 
-        cls.dao = Dao()
+        cls.dao = DaoImpl()
 
     def setUp(self) -> None:
         try:

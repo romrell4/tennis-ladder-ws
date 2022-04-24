@@ -3,8 +3,8 @@ import unittest
 
 import properties
 from bl import Manager
-from firebase_client import FirebaseClient
-from da import Dao
+from firebase_client import FirebaseClientImpl
+from da import DaoImpl
 from handler import Handler
 
 # This test is not in our test suite, because you will need to have a valid token (obtained from the app) to run it.
@@ -17,7 +17,7 @@ class Test(unittest.TestCase):
         os.environ["DB_USERNAME"] = properties.db_username
         os.environ["DB_PASSWORD"] = properties.db_password
         os.environ["DB_DATABASE_NAME"] = properties.db_database_name
-        cls.handler = Handler(Manager(FirebaseClient(), Dao()))
+        cls.handler = Handler(Manager(FirebaseClientImpl(), DaoImpl()))
 
     def test(self):
         response = self.handler.handle({

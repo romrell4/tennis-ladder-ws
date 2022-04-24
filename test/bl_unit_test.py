@@ -1,132 +1,133 @@
 import unittest
-from unittest.mock import patch
 from datetime import datetime, timedelta, date
-from pytz import timezone
-import copy
+from unittest.mock import patch
 
 from bl import Manager
-from domain import ServiceException, Ladder, Player, Match, User
+from da import Dao
+from domain import ServiceException, Ladder, Match, User
+from firebase_client import FirebaseClient
+from pytz import timezone
+from test import fixtures
+
 
 class Test(unittest.TestCase):
-    user_not_in_ladder = User("NEWUSER", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
-    test_user = User("USER1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
-    admin_user = User("USER1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", True)
-
     def setUp(self):
-        self.manager = Manager(MockFirebaseClient(), MockDao())
+        self.manager = Manager(FirebaseClient(), Dao())
+        self.manager.user = fixtures.user(user_id="USER1", admin=True)
 
-    def test_validate_token(self):
-        # Test without a token (unauthenticated request)
+    # region validate_token
+    def test_validate_token_with_no_token(self):
+        self.manager.user = None
         self.manager.validate_token(None)
         self.assertIsNone(self.manager.user)
 
-        # Test invalid token response
-        self.manager.firebase_client.valid_user = False
-        self.manager.validate_token("")
-        self.assertIsNone(self.manager.user)
+    def test_validate_token_throws_error(self):
+        def raise_error(_): raise ValueError()
 
-        # Test a new user
-        self.manager.firebase_client.valid_user = True
-        self.manager.validate_token("")
-        self.assertIsNotNone(self.manager.user)
-        self.assertTrue(self.manager.dao.created_user)
-        self.assertEqual("USER_ID", self.manager.user.user_id)
-        self.assertEqual("NAME", self.manager.user.name)
-        self.assertEqual("EMAIL", self.manager.user.email)
-        self.assertEqual(None, self.manager.user.phone_number)
-        self.assertEqual("PICTURE", self.manager.user.photo_url)
-        self.assertEqual(None, self.manager.user.availability_text)
+        with patch.object(self.manager.firebase_client, "get_firebase_user", side_effect=raise_error):
+            self.manager.user = None
+            self.manager.validate_token("bad_token")
+            self.assertIsNone(self.manager.user)
 
-        # Test a new user without a name
-        del(self.manager.dao.user_database["USER_ID"])
-        self.manager.firebase_client.valid_user = True
-        self.manager.firebase_client.valid_user_has_no_name = True
-        self.manager.validate_token("")
+    def test_validate_token_when_firebase_user_missing_required_fields(self):
+        with patch.object(self.manager.firebase_client, "get_firebase_user", return_value={}) as mock:
+            self.manager.user = None
+            self.manager.validate_token("token")
+            self.assertIsNone(self.manager.user)
+        mock.assert_called_once_with("token")
+
+    # noinspection PyUnresolvedReferences
+    def test_validate_token_with_new_user(self):
+        with patch.object(self.manager.firebase_client, "get_firebase_user", return_value={"user_id": "NEW_FB_ID", "name": "NAME", "email": "EMAIL", "picture": "PICTURE"}):
+            with patch.object(self.manager.dao, "get_user", return_value=None):
+                with patch.object(self.manager.dao, "create_user") as create_user_mock:
+                    self.manager.user = None
+                    self.manager.validate_token("")
+                    self.assertIsNotNone(self.manager.user)
+                    self.assertEqual("NEW_FB_ID", self.manager.user.user_id)
+                    self.assertEqual("NAME", self.manager.user.name)
+                    self.assertEqual("EMAIL", self.manager.user.email)
+                    self.assertIsNone(self.manager.user.phone_number)
+                    self.assertEqual("PICTURE", self.manager.user.photo_url)
+                    self.assertIsNone(self.manager.user.availability_text)
+                    self.assertFalse(self.manager.user.admin)
+
+                create_user_mock.assert_called_once_with(self.manager.user)
+
+    # noinspection PyUnresolvedReferences
+    def test_validate_token_with_new_user_without_name(self):
+        with patch.object(self.manager.firebase_client, "get_firebase_user", return_value={"user_id": "NEW_FB_ID", "email": "EMAIL", "picture": "PICTURE"}):
+            with patch.object(self.manager.dao, "get_user", return_value=None):
+                with patch.object(self.manager.dao, "create_user"):
+                    self.manager.validate_token("")
         self.assertIsNotNone(self.manager.user)
-        self.assertTrue(self.manager.dao.created_user)
         self.assertEqual("Unknown", self.manager.user.name)
 
-        # Test a new user with an empty picture string
-        del (self.manager.dao.user_database["USER_ID"])
-        self.manager.firebase_client.valid_user = True
-        self.manager.firebase_client.valid_user_has_empty_photo = True
-        self.manager.validate_token("")
+    def test_validate_token_with_new_user_with_empty_picture(self):
+        with patch.object(self.manager.firebase_client, "get_firebase_user", return_value={"user_id": "NEW_FB_ID", "email": "EMAIL", "picture": ""}):
+            with patch.object(self.manager.dao, "get_user", return_value=None):
+                with patch.object(self.manager.dao, "create_user"):
+                    self.manager.validate_token("")
         self.assertIsNotNone(self.manager.user)
-        self.assertTrue(self.manager.dao.created_user)
         self.assertIsNone(self.manager.user.photo_url)
 
-        # Test a saved user
-        self.manager.firebase_client.valid_user = True
-        self.manager.validate_token("")
-        self.assertIsNotNone(self.manager.user)
-        self.assertFalse(self.manager.dao.created_user)
+    def test_validate_token_with_existing_user(self):
+        with patch.object(self.manager.firebase_client, "get_firebase_user", return_value={"user_id": "FB_ID"}):
+            existing_user = fixtures.user()
+            with patch.object(self.manager.dao, "get_user", return_value=existing_user):
+                self.manager.validate_token("")
+        self.assertEqual(existing_user, self.manager.user)
 
-    def test_get_user(self):
-        def assert_error(user_id, status_code, error_message):
-            with self.assertRaises(ServiceException) as e:
-                self.manager.get_user(user_id)
-            self.assertEqual(status_code, e.exception.status_code)
-            self.assertEqual(error_message, e.exception.error_message)
+    # endregion
+    # region get_user
+    def test_get_user_when_not_logged_in(self):
+        self.manager.user = None
+        self.assert_error(lambda: self.manager.get_user(None), 401, "Unable to authenticate")
 
-        # Test when not logged in
-        assert_error(None, 401, "Unable to authenticate")
-        self.manager.user = Test.test_user
+    def test_get_user_with_no_user_id_param(self):
+        self.assert_error(lambda: self.manager.get_user(None), 400, "No user_id passed in")
 
-        # Test with no user id param
-        assert_error(None, 400, "No user_id passed in")
+    def test_get_user_get_another_player_not_in_your_ladder(self):
+        with patch.object(self.manager.dao, "in_same_ladder", return_value=False):
+            self.assert_error(lambda: self.manager.get_user("BAD_USER"), 403, "You are only allowed to access profile information for users who are playing in the same ladder as you")
 
-        # Test getting another user
-        assert_error("BAD_USER", 403, "You are only allowed to access profile information for users who are playing in the same ladder as you")
+    def test_get_user_get_yourself(self):
+        returned_user = fixtures.user()
+        with patch.object(self.manager.dao, "get_user", return_value=returned_user):
+            user = self.manager.get_user(self.manager.user.user_id)
+        self.assertEqual(user, returned_user)
 
-        # Test getting yourself
-        user = self.manager.get_user(Test.test_user.user_id)
-        self.assertEqual(user, Test.test_user)
+    def test_get_user_get_another_player_in_your_ladder(self):
+        returned_user = fixtures.user()
+        with patch.object(self.manager.dao, "in_same_ladder", return_value=True):
+            with patch.object(self.manager.dao, "get_user", return_value=returned_user):
+                user = self.manager.get_user("TEST1")
+        self.assertEqual(user, returned_user)
 
-        # Test getting yourself, when you aren't in a ladder
-        old_user_id = self.manager.user.user_id
-        self.manager.user.user_id = "BAD_USER"
-        user = self.manager.get_user("BAD_USER")
-        self.assertEqual(user.user_id, "BAD_USER")
-        self.manager.user.user_id = old_user_id
+    # endregion
+    # region update_user
+    def test_update_user_when_not_logged_in(self):
+        self.manager.user = None
+        self.assert_error(lambda: self.manager.update_user(None, None), 401, "Unable to authenticate")
 
-        # Test getting another player
-        user = self.manager.get_user("TEST1")
-        self.assertEqual(user.user_id, "TEST1")
+    def test_update_user_with_no_user_id_param(self):
+        self.assert_error(lambda: self.manager.update_user(None, None), 400, "No user_id passed in")
 
-    def test_update_user(self):
-        def assert_error(user_id, user, status_code, error_message):
-            with self.assertRaises(ServiceException) as e:
-                self.manager.update_user(user_id, user)
-            self.assertEqual(status_code, e.exception.status_code)
-            self.assertEqual(error_message, e.exception.error_message)
+    def test_update_user_with_no_user_param(self):
+        self.assert_error(lambda: self.manager.update_user("", None), 400, "No user passed in to update")
 
-        # Test when not logged in
-        assert_error(None, None, 401, "Unable to authenticate")
-        self.manager.user = Test.test_user
+    def test_update_user_updating_another_user(self):
+        self.assert_error(lambda: self.manager.update_user("ANOTHER_USER", {}), 403, "You are only allowed to update your own profile information")
 
-        # Test with no user id param
-        assert_error(None, None, 400, "No user_id passed in")
+    def test_update_user_specifying_all_info_should_only_update_info_that_can_be_updated(self):
+        user = fixtures.user()
+        with patch.object(self.manager.dao, "update_user") as update_user_mock:
+            with patch.object(self.manager.dao, "get_user", return_value=user):
+                returned_user = self.manager.update_user(self.manager.user.user_id, {"user_id": "bad", "name": "new name", "email": "new email", "phone_number": "new phone", "photo_url": "new url", "availability_text": "new availability"})
+        self.assertEqual(user, returned_user)
 
-        # Test with no user param
-        assert_error("-1", None, 400, "No user passed in to update")
-
-        # Test updating another user
-        assert_error("ANOTHER_USER", Test.test_user, 403, "You are only allowed to update your own profile information")
-
-        # Test without specifying phone (should update to null)
-        saved_user = self.manager.update_user(Test.test_user.user_id, {})
-        self.assertIsNone(saved_user.phone_number)
-
-        # Test specifying null phone (should update to null)
-        saved_user = self.manager.update_user(Test.test_user.user_id, {"phone_number": None})
-        self.assertIsNone(saved_user.phone_number)
-
-        # Test specifying non-null phone (should update to non-null)
-        saved_user = self.manager.update_user(Test.test_user.user_id, {"phone_number": "123"})
-        self.assertEqual("123", saved_user.phone_number)
-
-        # Test which info can be updated
-        saved_user = self.manager.update_user(Test.test_user.user_id, {"user_id": "bad", "name": "new name", "email": "new email", "phone_number": "new phone", "photo_url": "new url", "availability_text": "new availability"})
+        update_user_mock.assert_called_once()
+        saved_user = update_user_mock.call_args.args[0]
         self.assertNotEqual("bad", saved_user.user_id)
         self.assertEqual("new name", saved_user.name)
         self.assertEqual("new email", saved_user.email)
@@ -134,227 +135,311 @@ class Test(unittest.TestCase):
         self.assertEqual("new url", saved_user.photo_url)
         self.assertEqual("new availability", saved_user.availability_text)
 
-    def test_get_ladders(self):
+    # endregion
+    # region get_ladders
+    def test_get_ladders_when_not_logged_in_should_return_all_with_all_false_flags(self):
+        with patch.object(self.manager.dao, "get_ladders", return_value=[
+            Ladder(1, "Ladder 1", date.today(), date.today(), False),
+            Ladder(2, "Ladder 2", date.today(), date.today(), False),
+        ]):
+            self.manager.user = None
+            ladders = self.manager.get_ladders()
+            self.assertEqual(2, len(ladders))
+            self.assertEqual(1, ladders[0].ladder_id)
+            self.assertFalse(ladders[0].logged_in_user_has_joined)
+            self.assertEqual(2, ladders[1].ladder_id)
+            self.assertFalse(ladders[1].logged_in_user_has_joined)
+
+    def test_get_ladders_when_not_a_player_in_any_ladder(self):
+        with patch.object(self.manager.dao, "get_ladders", return_value=[
+            Ladder(1, "Ladder 1", date.today(), date.today(), False),
+            Ladder(2, "Ladder 2", date.today(), date.today(), False),
+        ]):
+            with patch.object(self.manager.dao, "get_users_ladder_ids", return_value=[]):
+                ladders = self.manager.get_ladders()
+                self.assertEqual(2, len(ladders))
+                self.assertEqual(1, ladders[0].ladder_id)
+                self.assertFalse(ladders[0].logged_in_user_has_joined)
+                self.assertEqual(2, ladders[1].ladder_id)
+                self.assertFalse(ladders[1].logged_in_user_has_joined)
+
+    def test_get_ladders_when_in_a_ladder_should_put_your_ladder_at_the_top_and_have_true_flag(self):
+        with patch.object(self.manager.dao, "get_ladders", return_value=[
+            Ladder(1, "Ladder 1", date.today(), date.today(), False),
+            Ladder(2, "Ladder 2", date.today(), date.today(), False),
+        ]):
+            with patch.object(self.manager.dao, "get_users_ladder_ids", return_value=[2]):
+                self.manager.user = User("TEST1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
+                ladders = self.manager.get_ladders()
+                self.assertEqual(2, len(ladders))
+                self.assertEqual(2, ladders[0].ladder_id)
+                self.assertTrue(ladders[0].logged_in_user_has_joined)
+                self.assertEqual(1, ladders[1].ladder_id)
+                self.assertFalse(ladders[1].logged_in_user_has_joined)
+
+    # endregion
+    # region add_player_to_ladder
+    def test_add_player_to_ladder_when_not_logged_in(self):
         self.manager.user = None
-        ladders = self.manager.get_ladders()
-        self.assertEqual(3, len(ladders))
-        self.assertEqual(3, ladders[0].ladder_id)
-        self.assertFalse(ladders[0].logged_in_user_has_joined)
-        self.assertEqual(1, ladders[1].ladder_id)
-        self.assertFalse(ladders[1].logged_in_user_has_joined)
-        self.assertEqual(2, ladders[2].ladder_id)
-        self.assertFalse(ladders[2].logged_in_user_has_joined)
+        self.assert_error(lambda: self.manager.add_player_to_ladder(None, None), 401, "Unable to authenticate")
 
-        # Test a logged in user that is not part of any ladder
-        self.manager.user = Test.test_user
-        ladders = self.manager.get_ladders()
-        self.assertEqual(3, len(ladders))
-        self.assertEqual(3, ladders[0].ladder_id)
-        self.assertFalse(ladders[0].logged_in_user_has_joined)
-        self.assertEqual(1, ladders[1].ladder_id)
-        self.assertFalse(ladders[1].logged_in_user_has_joined)
-        self.assertEqual(2, ladders[2].ladder_id)
-        self.assertFalse(ladders[2].logged_in_user_has_joined)
+    def test_add_player_to_ladder_with_null_ladder_id(self):
+        self.assert_error(lambda: self.manager.add_player_to_ladder(None, None), 400, "Null ladder_id param")
 
-        # Test a logged in user that is in the second ladder (should resort and have true flag)
-        self.manager.user = User("TEST1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
-        ladders = self.manager.get_ladders()
-        self.assertEqual(3, len(ladders))
-        self.assertEqual(1, ladders[0].ladder_id)
-        self.assertTrue(ladders[0].logged_in_user_has_joined)
-        self.assertEqual(3, ladders[1].ladder_id)
-        self.assertFalse(ladders[1].logged_in_user_has_joined)
-        self.assertEqual(2, ladders[2].ladder_id)
-        self.assertFalse(ladders[2].logged_in_user_has_joined)
+    def test_add_player_to_ladder_with_non_existent_ladder_id(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=None):
+            self.assert_error(lambda: self.manager.add_player_to_ladder(0, None), 404, "No ladder with id: '0'")
 
-    def test_add_player_to_ladder(self):
-        def assert_error(ladder_id, code, status_code, error_message):
-            with self.assertRaises(ServiceException) as e:
-                self.manager.add_player_to_ladder(ladder_id, code)
-            self.assertEqual(status_code, e.exception.status_code)
-            self.assertEqual(error_message, e.exception.error_message)
+    def test_add_player_to_ladder_with_no_code_when_a_code_is_required(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=fixtures.ladder()):
+            with patch.object(self.manager.dao, "get_ladder_code", return_value="good"):
+                self.assert_error(lambda: self.manager.add_player_to_ladder(1, None), 400, "The code provided does not match the code of the ladder. If you believe this in error, please contact the ladder's sponsor.")
 
-        # Test when not logged in
-        assert_error(None, None, 401, "Unable to authenticate")
-        self.manager.user = Test.test_user
+    def test_add_player_to_ladder_with_a_bad_code(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=fixtures.ladder()):
+            with patch.object(self.manager.dao, "get_ladder_code", return_value="good"):
+                self.assert_error(lambda: self.manager.add_player_to_ladder(1, "bad"), 400, "The code provided does not match the code of the ladder. If you believe this in error, please contact the ladder's sponsor.")
 
-        # Test with null ladder_id
-        assert_error(None, None, 400, "Null ladder_id param")
+    def test_add_player_to_ladder_with_a_valid_code_should_create_player_and_return_all_ladder_players(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=fixtures.ladder()):
+            with patch.object(self.manager.dao, "get_ladder_code", return_value="good"):
+                with patch.object(self.manager.dao, "create_player") as create_player_mock:
+                    with patch.object(self.manager.dao, "get_players", return_value=[fixtures.player()]) as get_players_mock:
+                        players = self.manager.add_player_to_ladder(1, "good")
+        create_player_mock.assert_called_once_with(1, self.manager.user.user_id)
+        get_players_mock.assert_called_once_with(1)
+        self.assertEqual(1, len(players))
 
-        # Test with a non existent ladder
-        assert_error(0, None, 404, "No ladder with id: '0'")
+    def test_add_player_to_ladder_without_a_code_when_no_code_is_required_should_create_player(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=fixtures.ladder()):
+            with patch.object(self.manager.dao, "get_ladder_code", return_value=None):
+                with patch.object(self.manager.dao, "create_player") as create_player_mock:
+                    with patch.object(self.manager.dao, "get_players", return_value=[]):
+                        self.manager.add_player_to_ladder(2, None)
+        create_player_mock.assert_called_once()
 
-        # Test with no code (when there is supposed to be one)
-        assert_error(1, None, 400, "The code provided does not match the code of the ladder. If you believe this in error, please contact the ladder's sponsor.")
+    def test_add_player_to_ladder_with_a_code_when_no_code_is_required_should_create_player(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=fixtures.ladder()):
+            with patch.object(self.manager.dao, "get_ladder_code", return_value=None):
+                with patch.object(self.manager.dao, "create_player") as create_player_mock:
+                    with patch.object(self.manager.dao, "get_players", return_value=[]):
+                        self.manager.add_player_to_ladder(2, "bad")
+        create_player_mock.assert_called_once()
 
-        # Test with a a bad code
-        assert_error(1, "bad", 400, "The code provided does not match the code of the ladder. If you believe this in error, please contact the ladder's sponsor.")
-
-        # Test valid code
-        players = self.manager.add_player_to_ladder(1, "good")
-        self.assertIsNotNone(players)
-
-        # Test a ladder without a code
-        players = self.manager.add_player_to_ladder(2, None)
-        self.assertIsNotNone(players)
-
-        # Test passing in a code, even when there is no code
-        players = self.manager.add_player_to_ladder(2, "bad")
-        self.assertIsNotNone(players)
-
-        # Remove the user
+    # endregion
+    # region update_player
+    def test_update_player_when_not_logged_in(self):
         self.manager.user = None
+        self.assert_error(lambda: self.manager.update_player(None, None, None), 401, "Unable to authenticate")
 
-    def test_update_player(self):
-        def assert_error(ladder_id, user_id, player_dict, status_code, error_message):
-            with self.assertRaises(ServiceException) as e:
-                self.manager.update_player(ladder_id, user_id, player_dict)
-            self.assertEqual(status_code, e.exception.status_code)
-            self.assertEqual(error_message, e.exception.error_message)
+    def test_update_player_when_not_an_admin(self):
+        self.manager.user = fixtures.user(admin=False)
+        self.assert_error(lambda: self.manager.update_player(None, None, None), 403, "Only admins can update players")
 
-        # Test when not logged in
-        assert_error(None, None, None, 401, "Unable to authenticate")
+    def test_update_player_with_no_ladder_id_param(self):
+        self.assert_error(lambda: self.manager.update_player(None, None, None), 400, "No ladder_id passed in")
 
-        # Test when not an admin
-        self.manager.user = Test.test_user
-        assert_error(None, None, None, 403, "Only admins can update players")
-        self.manager.user = Test.admin_user
+    def test_update_player_with_no_user_id_param(self):
+        self.assert_error(lambda: self.manager.update_player("-1", None, None), 400, "No user_id passed in")
 
-        # Test with no ladder id param
-        assert_error(None, None, None, 400, "No ladder_id passed in")
+    def test_update_player_with_no_player_param(self):
+        self.assert_error(lambda: self.manager.update_player("-1", "-1", None), 400, "No player passed in")
 
-        # Test with no user id param
-        assert_error("-1", None, None, 400, "No user_id passed in")
+    def test_update_player_with_a_player_param_without_borrowed_points(self):
+        self.assert_error(lambda: self.manager.update_player("-1", "-1", {}), 400, "New player has no borrowed points")
+        self.assert_error(lambda: self.manager.update_player("-1", "-1", {"borrowed_points": None}), 400, "New player has no borrowed points")
 
-        # Test with no player param
-        assert_error("-1", "-1", None, 400, "No player passed in")
+    def test_update_player_with_a_borrowed_points_value_that_doesnt_exist_on_another_player(self):
+        with patch.object(self.manager.dao, "get_players", return_value=[fixtures.player(borrowed_points=4), fixtures.player(borrowed_points=8)]):
+            self.assert_error(lambda: self.manager.update_player("1", "2", {"borrowed_points": 5}), 400, "You must assign a value that is already assigned to another player in the ladder")
 
-        # Test a player param without borrowed points
-        assert_error("-1", "-1", {}, 400, "New player has no borrowed points")
-        assert_error("-1", "-1", {"borrowed_points": None}, 400, "New player has no borrowed points")
+    def test_update_player_with_new_borrowed_points_should_update_and_return_players(self):
+        with patch.object(self.manager.dao, "get_players", return_value=[fixtures.player(borrowed_points=4), fixtures.player(borrowed_points=8)]):
+            with patch.object(self.manager.dao, "update_borrowed_points") as update_borrowed_points_mock:
+                self.manager.update_player("1", "2", {"borrowed_points": 8})
+        update_borrowed_points_mock.assert_called_once_with("1", "2", 8)
 
-        # Test updating borrowed points
-        self.assertEqual(0, len(self.manager.dao.updated_borrowed_points))
-        self.manager.update_player("1", "2", {"borrowed_points": 5})
-        self.assertEqual(1, len(self.manager.dao.updated_borrowed_points))
-        self.assertEqual("1", self.manager.dao.updated_borrowed_points[0][0])
-        self.assertEqual("2", self.manager.dao.updated_borrowed_points[0][1])
-        self.assertEqual(5, self.manager.dao.updated_borrowed_points[0][2])
-
-    def test_get_matches(self):
-        with patch.object(self.manager.dao, "get_matches", return_value = [Match(1, 1, datetime(2018, 1, 1, 12, 30, 0), "TEST1", "TEST2", 6, 0, 6, 0)]):
-            matches = self.manager.get_matches(1, "TEST1")
+    # endregion
+    # region get_matches
+    def test_get_matches_adds_players_to_all_matches(self):
+        with patch.object(self.manager.dao, "get_matches", return_value=[fixtures.match(match_id=1, winner_id="TEST1", loser_id="TEST2")]):
+            with patch.object(self.manager.dao, "get_players", return_value=[
+                fixtures.player(user_=fixtures.user(user_id="TEST1", name="Player 1")),
+                fixtures.player(user_=fixtures.user(user_id="TEST2", name="Player 2")),
+            ]):
+                matches = self.manager.get_matches(1, "TEST1")
         self.assertIsNotNone(matches)
         self.assertEqual(1, len(matches))
         self.assertEqual(1, matches[0].match_id)
-        self.assertEqual(datetime(2018, 1, 1, 12, 30, 0), matches[0].match_date)
         self.assertEqual("TEST1", matches[0].winner.user.user_id)
         self.assertEqual("Player 1", matches[0].winner.user.name)
         self.assertEqual("TEST2", matches[0].loser.user.user_id)
         self.assertEqual("Player 2", matches[0].loser.user.name)
 
-    def test_report_match(self):
-        def assert_error(ladder_id, match_dict, status_code, error_message):
-            with self.assertRaises(ServiceException) as e:
-                self.manager.report_match(ladder_id, match_dict)
-            self.assertEqual(status_code, e.exception.status_code)
-            self.assertEqual(error_message, e.exception.error_message)
+    # endregion
+    # region report_match
+    def test_report_match_when_not_logged_in(self):
+        self.manager.user = None
+        self.assert_error(lambda: self.manager.report_match(0, {}), 401, "Unable to authenticate")
 
-        # Overwrite the calculate scores function for easier testing
-        old_calculate_scores = Match.calculate_scores
-        old_validate = Match.validate
-        Match.calculate_scores = lambda _, x, y, z: (10, 5)
-        Match.validate = lambda match: match
+    def test_report_match_with_a_null_ladder_id_param(self):
+        self.assert_error(lambda: self.manager.report_match(None, None), 400, "Null ladder_id param")
 
-        # Test when the manager doesn't have a user
-        assert_error(0, {}, 401, "Unable to authenticate")
-        self.manager.user = Test.test_user
+    def test_report_match_with_a_null_match_param(self):
+        self.assert_error(lambda: self.manager.report_match(0, None), 400, "Null match param")
 
-        # Test with a null ladder_id
-        assert_error(None, None, 400, "Null ladder_id param")
+    def test_report_match_with_a_non_existent_ladder_id(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=None):
+            self.assert_error(lambda: self.manager.report_match(0, {}), 404, "No ladder with id: '0'")
 
-        # Test with a null match
-        assert_error(0, None, 400, "Null match param")
+    def test_report_match_when_the_ladder_is_not_open(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=fixtures.ladder(start_date=(date.today() + timedelta(days=1)))):
+            self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST0", "TEST0", 0, 0, 0, 0)), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
 
-        # Test with a non-existent ladder
-        assert_error(0, {}, 404, "No ladder with id: '0'")
+    def test_report_match_with_a_winner_and_loser_not_in_the_specified_ladder(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            with patch.object(self.manager.dao, "get_player", return_value=None):
+                self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST0", "TEST1", 6, 0, 6, 0)), 400, "No user with id: 'TEST0'")
+            with patch.object(self.manager.dao, "get_player", side_effect=[fixtures.player(), None]):
+                self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST1", "TEST0", 6, 0, 6, 0)), 400, "No user with id: 'TEST0'")
 
-        # Test reporting a match when the ladder is not open
-        with patch.object(Ladder, "can_report_match", return_value = False):
-            assert_error(1, create_match_dict("TEST0", "TEST0", 0, 0, 0, 0), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
+    def test_report_match_where_players_are_too_far_apart_when_distance_penalty_on(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder(distance_penalty_on=True)):
+            with patch.object(self.manager.dao, "get_player", side_effect=[
+                fixtures.player(ranking=1),
+                fixtures.player(ranking=17),
+            ]):
+                self.assert_error(lambda: self.manager.report_match(2, create_match_dict("TEST1", "TEST17", 6, 0, 6, 0)), 400, "Players are too far apart in the rankings to challenge one another")
 
-        # Test with a winner/loser not in the specified ladder
-        assert_error(1, create_match_dict("TEST0", "TEST1", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
-        assert_error(1, create_match_dict("TEST1", "TEST0", 6, 0, 6, 0), 400, "No user with id: 'TEST0'")
+    def test_report_match_when_each_player_has_already_played_a_match_that_day(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            with patch.object(self.manager.dao, "get_player", return_value=fixtures.player()):
+                with patch.object(self.manager.dao, "get_matches", return_value=[fixtures.match(match_date=datetime.now(tz=timezone("US/Mountain")), winner_id="TEST1", loser_id="TEST2")]):
+                    self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST1", "TEST3", 6, 0, 6, 0)), 400, "Reported winner has already played a match today. Only one match can be played each day.")
+                    self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST2", "TEST3", 6, 0, 6, 0)), 400, "Reported winner has already played a match today. Only one match can be played each day.")
+                    self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST3", "TEST1", 6, 0, 6, 0)), 400, "Reported loser has already played a match today. Only one match can be played each day.")
+                    self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST3", "TEST2", 6, 0, 6, 0)), 400, "Reported loser has already played a match today. Only one match can be played each day.")
 
-        # Test with a match where players are too far apart (should work if distance penalty is off)
-        with patch.object(self.manager.dao, "get_matches", return_value = []):
-            self.manager.report_match(1, create_match_dict("TEST1", "TEST17", 6, 0, 6, 0))
-            assert_error(2, create_match_dict("TEST1", "TEST17", 6, 0, 6, 0), 400, "Players are too far apart in the rankings to challenge one another")
+    def test_report_match_when_the_two_have_already_played_the_max_number_of_times(self):
+        test_match = fixtures.match(match_date=datetime.today() - timedelta(days=1), winner_id="TEST1", loser_id="TEST2")
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            with patch.object(self.manager.dao, "get_player", return_value=fixtures.player()):
+                with patch.object(self.manager.dao, "get_matches", return_value=[test_match] * 5):
+                    self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST1", "TEST2", 6, 0, 6, 0)), 400, "Players have already played 5 times.")
+                    self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST2", "TEST1", 6, 0, 6, 0)), 400, "Players have already played 5 times.")
 
-        # Test when each player has already played a match that day
-        with patch.object(self.manager.dao, "get_matches", return_value = [Match(0, 0, datetime.now(tz = timezone("US/Mountain")), "TEST1", "TEST2", 0, 0, 0, 0)]):
-            assert_error(1, create_match_dict("TEST1", "TEST3", 0, 0, 0, 0), 400, "Reported winner has already played a match today. Only one match can be played each day.")
-            assert_error(1, create_match_dict("TEST2", "TEST3", 0, 0, 0, 0), 400, "Reported winner has already played a match today. Only one match can be played each day.")
-            assert_error(1, create_match_dict("TEST3", "TEST1", 0, 0, 0, 0), 400, "Reported loser has already played a match today. Only one match can be played each day.")
-            assert_error(1, create_match_dict("TEST3", "TEST2", 0, 0, 0, 0), 400, "Reported loser has already played a match today. Only one match can be played each day.")
-
-        # Test if the players have already played too many times
-        test_match = Match(0, 0, datetime.now(tz = timezone("US/Mountain")) - timedelta(days = 1), "TEST1", "TEST2", 0, 0, 0, 0)
-        with patch.object(self.manager.dao, "get_matches", return_value = [test_match] * 5):
-            assert_error(1, create_match_dict("TEST1", "TEST2", 0, 0, 0, 0), 400, "Players have already played 5 times.")
-            assert_error(1, create_match_dict("TEST2", "TEST1", 0, 0, 0, 0), 400, "Players have already played 5 times.")
-
-            # You should be able to play somebody else after playing 5 times, just not the same person
-            self.manager.report_match(1, create_match_dict("TEST1", "TEST3", 0, 0, 0, 0))
-
-        # Test if the players have played one less than the max
-        with patch.object(self.manager.dao, "get_matches", return_value = [test_match] * 4):
-            self.manager.report_match(1, create_match_dict("TEST1", "TEST2", 0, 0, 0, 0))
-
-        # Test valid match (scores should get updated, and match should be saved with a new date value)
-        self.manager.dao.updated_earned_points = []
-        self.manager.dao.saved_match = None
-        with patch.object(self.manager.dao, "get_matches", return_value = []):
-            match = self.manager.report_match(1, create_match_dict("TEST1", "TEST2", 6, 0, 6, 0))
-        self.assertEqual(2, len(self.manager.dao.updated_earned_points))
-        self.assertEqual(10, self.manager.dao.updated_earned_points[0][2])
-        self.assertEqual(5, self.manager.dao.updated_earned_points[1][2])
-        self.assertIsNotNone(match.match_id)
-        self.assertIsNotNone(self.manager.dao.saved_match)
-        self.assertIsNotNone(self.manager.dao.saved_match.match_date)
+    @patch.object(Match, "calculate_scores", return_value=(10, 5))
+    def test_report_match_valid_match_should_update_player_scores_and_create_match_with_new_date(self, _):
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            with patch.object(self.manager.dao, "get_match", return_value=fixtures.match()):
+                with patch.object(self.manager.dao, "get_player", return_value=fixtures.player()):
+                    with patch.object(self.manager.dao, "get_matches", return_value=[]):
+                        with patch.object(self.manager.dao, "update_earned_points") as update_earned_points_mock:
+                            with patch.object(self.manager.dao, "create_match", return_value=fixtures.match(winner_id="TEST1", loser_id="TEST2")) as create_match_mock:
+                                with patch.object(self.manager.dao, "get_players", return_value=[
+                                    fixtures.player(user_=fixtures.user(user_id="TEST1")),
+                                    fixtures.player(user_=fixtures.user(user_id="TEST2"))
+                                ]):
+                                    match = self.manager.report_match(1, create_match_dict("TEST1", "TEST2", 6, 0, 6, 0))
         self.assertIsNotNone(match)
+        self.assertEqual(2, update_earned_points_mock.call_count)
+        update_earned_points_mock.assert_any_call(1, "TEST1", 10)
+        update_earned_points_mock.assert_any_call(1, "TEST2", 5)
+        create_match_mock.assert_called_once()
+        saved_match = create_match_mock.call_args.args[0]
+        self.assertIsNotNone(saved_match)
+        self.assertIsNotNone(saved_match.match_date)
 
-        # Set mocked function back to originals
-        Match.calculate_scores = old_calculate_scores
-        Match.validate = old_validate
+    def test_report_match_where_players_are_too_far_apart_when_distance_penalty_off_should_create_match(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder(distance_penalty_on=False)):
+            with patch.object(self.manager.dao, "get_player", side_effect=[
+                fixtures.player(ranking=1),
+                fixtures.player(ranking=17),
+            ]):
+                with patch.object(self.manager.dao, "get_matches", return_value=[]):
+                    with patch.object(self.manager.dao, "update_earned_points"):
+                        with patch.object(self.manager.dao, "create_match", return_value=fixtures.match(winner_id="TEST1", loser_id="TEST2")) as create_match_mock:
+                            with patch.object(self.manager.dao, "get_players", return_value=[
+                                fixtures.player(user_=fixtures.user(user_id="TEST1", name="Player 1")),
+                                fixtures.player(user_=fixtures.user(user_id="TEST2", name="Player 2")),
+                            ]):
+                                self.manager.report_match(1, create_match_dict("TEST1", "TEST17", 6, 0, 6, 0))
+        create_match_mock.assert_called_once()
 
-    def test_update_match(self):
-        def assert_error(match_id, match_dict, status_code, error_message):
-            with self.assertRaises(ServiceException) as e:
-                self.manager.update_match_scores(match_id, match_dict)
-            self.assertEqual(status_code, e.exception.status_code)
-            self.assertEqual(error_message, e.exception.error_message)
+    def test_report_match_when_you_have_played_the_max_but_not_with_this_opponent_should_create_match(self):
+        test_match = fixtures.match(match_date=datetime.now() - timedelta(days=1), winner_id="TEST1", loser_id="TEST2")
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            with patch.object(self.manager.dao, "get_player", return_value=fixtures.player()):
+                with patch.object(self.manager.dao, "get_matches", return_value=[test_match] * 5):
+                    with patch.object(self.manager.dao, "update_earned_points"):
+                        with patch.object(self.manager.dao, "create_match", return_value=fixtures.match(winner_id="TEST1", loser_id="TEST2")) as create_match_mock:
+                            with patch.object(self.manager.dao, "get_players", return_value=[
+                                fixtures.player(user_=fixtures.user(user_id="TEST1", name="Player 1")),
+                                fixtures.player(user_=fixtures.user(user_id="TEST2", name="Player 2")),
+                            ]):
+                                self.manager.report_match(1, create_match_dict("TEST1", "TEST3", 6, 0, 6, 0))
+        create_match_mock.assert_called_once()
 
-        # Test when the manager doesn't have a user
-        assert_error(0, {}, 401, "Unable to authenticate")
-        self.manager.user = Test.test_user
+    def test_report_match_when_you_have_played_your_opponent_one_less_than_the_max_number_of_times_should_create_match(self):
+        test_match = fixtures.match(match_date=datetime.now() - timedelta(days=1), winner_id="TEST1", loser_id="TEST2")
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            with patch.object(self.manager.dao, "get_player", return_value=fixtures.player()):
+                with patch.object(self.manager.dao, "get_matches", return_value=[test_match] * 4):
+                    with patch.object(self.manager.dao, "update_earned_points"):
+                        with patch.object(self.manager.dao, "create_match", return_value=fixtures.match(winner_id="TEST1", loser_id="TEST2")) as create_match_mock:
+                            with patch.object(self.manager.dao, "get_players", return_value=[
+                                fixtures.player(user_=fixtures.user(user_id="TEST1", name="Player 1")),
+                                fixtures.player(user_=fixtures.user(user_id="TEST2", name="Player 2")),
+                            ]):
+                                self.manager.report_match(1, create_match_dict("TEST1", "TEST2", 6, 0, 6, 0))
+        create_match_mock.assert_called_once()
 
-        # Test when the user isn't an admin
-        assert_error(0, {}, 403, "Only admins can update matches")
-        self.manager.user = Test.admin_user
+    # endregion
+    # region update_match
+    def test_update_match_when_not_logged_in(self):
+        self.manager.user = None
+        self.assert_error(lambda: self.manager.update_match_scores(0, {}), 401, "Unable to authenticate")
 
-        # Test with a null match_id
-        assert_error(None, None, 400, "Null match_id param")
+    def test_update_match_when_the_user_isnt_an_admin(self):
+        self.manager.user = fixtures.user(admin=False)
+        self.assert_error(lambda: self.manager.update_match_scores(0, {}), 403, "Only admins can update matches")
 
-        # Test with a null match
-        assert_error(0, None, 400, "Null match param")
+    def test_update_match_with_a_null_match_id(self):
+        self.assert_error(lambda: self.manager.update_match_scores(None, None), 400, "Null match_id param")
 
-        # Test valid match update (should update match with new points, as well as update player's earned points)
-        self.manager.dao.matches_database[1] = Match(1, 1, datetime(2020, 1, 2, 3, 4, 5), 'TEST1', 'TEST2', 6, 0, 0, 6, 6, 0, winner_points=33, loser_points=6)
-        self.manager.update_match_scores(1, create_match_dict('BAD1', 'BAD2', 6, 0, 0, 6, 6, 1, ladder_id=2))
-        updated_match: Match = self.manager.dao.updated_match
-        self.assertIsNotNone(updated_match)
+    def test_update_match_with_a_null_match(self):
+        self.assert_error(lambda: self.manager.update_match_scores(0, None), 400, "Null match param")
+
+    def test_update_match_with_valid_match_should_update_match_with_new_points_as_well_as_players_points_and_return_updated_match(self):
+        existing_match = fixtures.match(
+            ladder_id=1,
+            match_date=datetime(2020, 1, 2, 3, 4, 5),
+            winner_id='TEST1',
+            loser_id='TEST2',
+            winner_set1_score=6,
+            loser_set1_score=0,
+            winner_set2_score=0,
+            loser_set2_score=6,
+            winner_set3_score=6,
+            loser_set3_score=0,
+            winner_points=33,
+            loser_points=6
+        )
+        with patch.object(self.manager.dao, "get_match", return_value=existing_match):
+            with patch.object(self.manager.dao, "update_match") as update_match_mock:
+                with patch.object(self.manager.dao, "update_earned_points") as update_earned_points_mock:
+                    with patch.object(self.manager.dao, "get_players", return_value=[
+                        fixtures.player(user_=fixtures.user(user_id="TEST1", name="Player 1")),
+                        fixtures.player(user_=fixtures.user(user_id="TEST2", name="Player 2")),
+                    ]):
+                        returned_match = self.manager.update_match_scores(1, create_match_dict('BAD1', 'BAD2', 6, 0, 0, 6, 6, 1, ladder_id=2))
+        # Test that returned value has winner/loser info
+        self.assertEqual("Player 1", returned_match.winner.user.name)
+        self.assertEqual("Player 2", returned_match.loser.user.name)
+
+        # Test that the update was made
+        update_match_mock.assert_called_once()
+        updated_match = update_match_mock.call_args.args[0]
         # Test values that should have updated
         self.assertEqual(6, updated_match.winner_set1_score)
         self.assertEqual(0, updated_match.loser_set1_score)
@@ -362,27 +447,40 @@ class Test(unittest.TestCase):
         self.assertEqual(6, updated_match.loser_set2_score)
         self.assertEqual(6, updated_match.winner_set3_score)
         self.assertEqual(1, updated_match.loser_set3_score)
-        self.assertEqual(32, updated_match.winner_points)  # Can't go below the min amount
+        self.assertEqual(32, updated_match.winner_points)
         self.assertEqual(7, updated_match.loser_points)
         # Test values that shouldn't update
         self.assertEqual(1, updated_match.ladder_id)
         self.assertEqual(datetime(2020, 1, 2, 3, 4, 5), updated_match.match_date)
-        self.assertEqual('TEST1', updated_match.winner_id)
-        self.assertEqual('TEST2', updated_match.loser_id)
-        # Test earned points updated
-        self.assertEqual([1, 'TEST1', -1], self.manager.dao.updated_earned_points[-2])
-        self.assertEqual([1, 'TEST2', 1], self.manager.dao.updated_earned_points[-1])
+        self.assertEqual("TEST1", updated_match.winner_id)
+        self.assertEqual("TEST2", updated_match.loser_id)
 
-        # Test when the winner would go below the min amount (should stay at min amount)
-        self.manager.dao.matches_database[1] = Match(1, 1, datetime(2020, 1, 2, 3, 4, 5), 'TEST1', 'TEST2', 6, 0, 6, 0, winner_points=Match.MIN_WINNER_POINTS, loser_points=0)
-        self.manager.update_match_scores(1, create_match_dict('BAD1', 'BAD2', 6, 0, 6, 1))
-        updated_match: Match = self.manager.dao.updated_match
+        # Test earned points updated
+        self.assertEqual(2, update_earned_points_mock.call_count)
+        update_earned_points_mock.assert_any_call(1, "TEST1", -1)
+        update_earned_points_mock.assert_any_call(1, "TEST2", 1)
+
+    def test_update_match_when_the_winner_would_go_below_the_min_amount_should_stay_at_min_amount(self):
+        existing_match = fixtures.match(ladder_id=1, winner_id='TEST1', loser_id='TEST2', winner_set1_score=6, loser_set1_score=0, winner_set2_score=6, loser_set2_score=0, winner_points=Match.MIN_WINNER_POINTS, loser_points=0)
+        with patch.object(self.manager.dao, "get_match", return_value=existing_match):
+            with patch.object(self.manager.dao, "update_match") as update_match_mock:
+                with patch.object(self.manager.dao, "update_earned_points") as update_earned_points_mock:
+                    with patch.object(self.manager.dao, "get_players", return_value=[
+                        fixtures.player(user_=fixtures.user(user_id="TEST1", name="Player 1")),
+                        fixtures.player(user_=fixtures.user(user_id="TEST2", name="Player 2")),
+                    ]):
+                        self.manager.update_match_scores(1, create_match_dict('BAD1', 'BAD2', 6, 0, 6, 1))
+        update_match_mock.assert_called_once()
+        updated_match = update_match_mock.call_args.args[0]
         self.assertIsNotNone(updated_match)
         self.assertEqual(Match.MIN_WINNER_POINTS, updated_match.winner_points)  # Can't go below the min amount, even though you're losing points
         self.assertEqual(1, updated_match.loser_points)
-        self.assertEqual([1, 'TEST1', 0], self.manager.dao.updated_earned_points[-2])
-        self.assertEqual([1, 'TEST2', 1], self.manager.dao.updated_earned_points[-1])
+        self.assertEqual(2, update_earned_points_mock.call_count)
+        update_earned_points_mock.assert_any_call(1, "TEST1", 0)
+        update_earned_points_mock.assert_any_call(1, "TEST2", 1)
 
+    # endregion
+    # region get_score_diff
     def test_score_diff(self):
         self.assertEqual((-1, 1), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 6, 1)))
         self.assertEqual((-5, 5), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 7, 5)))
@@ -392,45 +490,58 @@ class Test(unittest.TestCase):
         self.assertEqual((-6, 6), self.manager.get_score_diff(create_match(6, 2, 6, 2), create_match(6, 0, 6, 7, 10, 5)))
         self.assertEqual((9, -9), self.manager.get_score_diff(create_match(6, 0, 0, 6, 6, 3), create_match(6, 0, 6, 0)))
 
-    def test_delete_match(self):
-        def assert_error(match_id, status_code, error_message):
-            with self.assertRaises(ServiceException) as e:
-                self.manager.delete_match(match_id)
-            self.assertEqual(status_code, e.exception.status_code)
-            self.assertEqual(error_message, e.exception.error_message)
+    # endregion
+    # region delete_match
+    def test_delete_match_when_not_logged_in(self):
+        self.manager.user = None
+        self.assert_error(lambda: self.manager.delete_match(0), 401, "Unable to authenticate")
 
-        # Test when the manager doesn't have a user
-        assert_error(0, 401, "Unable to authenticate")
-        self.manager.user = Test.test_user
+    def test_delete_match_when_not_an_admin(self):
+        self.manager.user = fixtures.user(admin=False)
+        self.assert_error(lambda: self.manager.delete_match(0), 403, "Only admins can delete matches")
 
-        # Test when the user isn't an admin
-        assert_error(0, 403, "Only admins can delete matches")
-        self.manager.user = Test.admin_user
+    def test_delete_match_with_a_null_match_id(self):
+        self.assert_error(lambda: self.manager.delete_match(None), 400, "Null match_id param")
 
-        # Test with a null match_id
-        assert_error(None, 400, "Null match_id param")
+    def test_delete_match_that_doesnt_exist_should_do_nothing_but_succeed(self):
+        with patch.object(self.manager.dao, "get_match", return_value=None):
+            with patch.object(self.manager.dao, "update_earned_points") as update_earned_points_mock:
+                with patch.object(self.manager.dao, "delete_match") as delete_match_mock:
+                    self.manager.delete_match(-1)
+        update_earned_points_mock.assert_not_called()
+        delete_match_mock.assert_not_called()
 
-        # Test with a match that doesn't exist - should do nothing, but succeed
-        self.manager.delete_match(-1)
-        self.assertIsNone(self.manager.dao.deleted_match_id)
-        self.assertEqual(0, len(self.manager.dao.updated_earned_points))
-
-        # Test valid match deletion (should delete match, as well as update player's earned points)
-        self.manager.dao.matches_database[1] = Match(1, 1, datetime(2020, 1, 2, 3, 4, 5), 'TEST1', 'TEST2', 6, 0, 0, 6, 6, 0, winner_points=33, loser_points=6)
-        self.manager.delete_match(1)
+    def test_delete_match_valid_should_delete_match_and_reverse_players_earned_points(self):
+        with patch.object(self.manager.dao, "get_match", return_value=fixtures.match(match_id=123, ladder_id=1, winner_id="TEST1", loser_id="TEST2", winner_points=33, loser_points=6)):
+            with patch.object(self.manager.dao, "update_earned_points") as update_earned_points_mock:
+                with patch.object(self.manager.dao, "delete_match") as delete_match_mock:
+                    self.manager.delete_match(1)
         # Test that match was deleted
-        self.assertEqual(1, self.manager.dao.deleted_match_id)
+        delete_match_mock.assert_called_once_with(1)
         # Test earned points updated
-        self.assertEqual([1, 'TEST1', -33], self.manager.dao.updated_earned_points[-2])
-        self.assertEqual([1, 'TEST2', -6], self.manager.dao.updated_earned_points[-1])
+        self.assertEqual(2, update_earned_points_mock.call_count)
+        update_earned_points_mock.assert_any_call(1, "TEST1", -33)
+        update_earned_points_mock.assert_any_call(1, "TEST2", -6)
 
-def create_match(winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, match_id=0, ladder_id=0, match_date=datetime.now(), winner_id='winner_id', loser_id='loser_id', winner_points=0, loser_points=0):
-    return Match(match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points)
+    # endregion
+    # region utils
+    def assert_error(self, block, status_code, error_message):
+        with self.assertRaises(ServiceException) as e:
+            block()
+        self.assertEqual(status_code, e.exception.status_code)
+        self.assertEqual(error_message, e.exception.error_message)
+    # endregion
 
-def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None, ladder_id=1, match_date=None):
+
+def create_match(winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None):
+    return fixtures.match(winner_set1_score=winner_set1_score, loser_set1_score=loser_set1_score, winner_set2_score=winner_set2_score, loser_set2_score=loser_set2_score, winner_set3_score=winner_set3_score,
+                          loser_set3_score=loser_set3_score)
+
+
+def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, ladder_id=1, match_date=None):
     return {
         "ladder_id": ladder_id,
-        "match_date": None,
+        "match_date": match_date,
         "winner": {
             "user": {
                 "user_id": winner_id
@@ -449,126 +560,10 @@ def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, 
         "loser_set3_score": loser_set3_score
     }
 
-class MockFirebaseClient:
-    valid_user = True
-    valid_user_has_no_name = False
-    valid_user_has_empty_photo = False
-
-    def get_firebase_user(self, token):
-        if self.valid_user:
-            jwt = {"user_id": "USER_ID", "name": "NAME", "email": "EMAIL", "picture": "PICTURE"}
-            if self.valid_user_has_no_name:
-                del(jwt["name"])
-            if self.valid_user_has_empty_photo:
-                jwt["picture"] = ""
-            return jwt
-        else:
-            return {}
 
 def create_date(day_offset):
-    return date.today() + timedelta(days = day_offset)
+    return date.today() + timedelta(days=day_offset)
 
-class MockDao:
-    user_database = {
-        Test.test_user.user_id: Test.test_user,
-        "TEST1": User("TEST1", None, None, None, None, None, None),
-        "BAD_USER": User("BAD_USER", None, None, None, None, None, None)
-    }
-    ladder_database = {
-        3: Ladder(3, "Ladder 3", create_date(-1), create_date(1), False),
-        1: Ladder(1, "Ladder 1", create_date(-1), create_date(1), False),
-        2: Ladder(2, "Ladder 2", create_date(-1), create_date(1), True)
-    }
-    players_database = {
-        "TEST1": Player("TEST1", "Player 1", "test1@mail.com", "000-000-0001", "test1.jpg", "availability 1", False, 1, 100, 100, 0, 1, 0, 0),
-        "TEST2": Player("TEST2", "Player 2", "test2@mail.com", "000-000-0002", "test2.jpg", "availability 2", False, 1, 95, 95, 0, 2, 0, 0),
-        "TEST3": Player("TEST3", "Player 3", "test3@mail.com", "000-000-0003", "test3.jpg", "availability 3", False, 1, 90, 90, 0, 3, 0, 0),
-        "TEST4": Player("TEST4", "Player 4", "test4@mail.com", "000-000-0004", "test4.jpg", "availability 4", False, 1, 85, 85, 0, 4, 0, 0),
-        "TEST5": Player("TEST5", "Player 5", "test5@mail.com", "000-000-0005", "test5.jpg", "availability 5", False, 1, 80, 80, 0, 5, 0, 0),
-        "TEST6": Player("TEST6", "Player 6", "test6@mail.com", "000-000-0006", "test6.jpg", "availability 6", False, 1, 75, 75, 0, 6, 0, 0),
-        "TEST7": Player("TEST7", "Player 7", "test7@mail.com", "000-000-0007", "test7.jpg", "availability 7", False, 1, 70, 70, 0, 7, 0, 0),
-        "TEST8": Player("TEST8", "Player 8", "test8@mail.com", "000-000-0008", "test8.jpg", "availability 8", False, 1, 65, 65, 0, 8, 0, 0),
-        "TEST9": Player("TEST9", "Player 9", "test9@mail.com", "000-000-0009", "test9.jpg", "availability 9", False, 1, 60, 60, 0, 9, 0, 0),
-        "TEST10": Player("TEST10", "Player 10", "test10@mail.com", "000-000-0010", "test10.jpg", "availability 10", False, 1, 55, 55, 0, 10, 0, 0),
-        "TEST11": Player("TEST11", "Player 11", "test11@mail.com", "000-000-0011", "test11.jpg", "availability 11", False, 1, 50, 50, 0, 11, 0, 0),
-        "TEST12": Player("TEST12", "Player 12", "test12@mail.com", "000-000-0012", "test12.jpg", "availability 12", False, 1, 45, 45, 0, 12, 0, 0),
-        "TEST13": Player("TEST13", "Player 13", "test13@mail.com", "000-000-0013", "test13.jpg", "availability 13", False, 1, 40, 40, 0, 13, 0, 0),
-        "TEST14": Player("TEST14", "Player 14", "test14@mail.com", "000-000-0014", "test14.jpg", "availability 14", False, 1, 35, 35, 0, 14, 0, 0),
-        "TEST15": Player("TEST15", "Player 15", "test15@mail.com", "000-000-0015", "test15.jpg", "availability 15", False, 1, 30, 30, 0, 15, 0, 0),
-        "TEST16": Player("TEST16", "Player 16", "test16@mail.com", "000-000-0016", "test16.jpg", "availability 16", False, 1, 25, 25, 0, 16, 0, 0),
-        "TEST17": Player("TEST17", "Player 17", "test17@mail.com", "000-000-0017", "test17.jpg", "availability 17", False, 1, 20, 20, 0, 17, 0, 0),
-        "TEST18": Player("TEST18", "Player 18", "test18@mail.com", "000-000-0018", "test18.jpg", "availability 18", False, 1, 15, 15, 0, 18, 0, 0),
-        "TEST19": Player("TEST19", "Player 19", "test19@mail.com", "000-000-0019", "test19.jpg", "availability 19", False, 1, 10, 10, 0, 19, 0, 0),
-        "TEST20": Player("TEST20", "Player 20", "test20@mail.com", "000-000-0020", "test20.jpg", "availability 20", False, 1, 5, 5, 0, 20, 0, 0)
-    }
-    matches_database = {}
-    updated_borrowed_points = []
-    updated_earned_points = []
-    saved_match = None
-    updated_match = None
-    deleted_match_id = None
-    created_user = False
 
-    def get_user(self, user_id):
-        self.created_user = False
-        return self.user_database.get(user_id)
-
-    def in_same_ladder(self, user1_id, user2_id):
-        return user2_id != "BAD_USER"
-
-    def create_user(self, user):
-        self.user_database[user.user_id] = user
-        self.created_user = True
-        return user
-
-    def update_user(self, user):
-        self.user_database[user.user_id] = user
-        return user
-
-    def get_ladders(self):
-        return list(self.ladder_database.values())
-
-    def get_ladder(self, ladder_id):
-        return self.ladder_database.get(ladder_id)
-
-    def get_users_ladder_ids(self, user_id):
-        return [player.ladder_id for player in self.players_database.values() if player.user.user_id == user_id]
-
-    def get_players(self, ladder_id):
-        return [player for player in self.players_database.values() if player.ladder_id == ladder_id]
-
-    def get_player(self, ladder_id, user_id):
-        return self.players_database.get(user_id)
-
-    def create_player(self, ladder_id, user_id):
-        pass
-
-    def update_borrowed_points(self, user_id, ladder_id, new_borrowed_points):
-        self.updated_borrowed_points.append([user_id, ladder_id, new_borrowed_points])
-
-    def update_earned_points(self, ladder_id, user_id, new_points_to_add):
-        self.updated_earned_points.append([ladder_id, user_id, new_points_to_add])
-
-    def get_matches(self, ladder_id, user_id): raise NotImplementedError()
-
-    def get_match(self, match_id):
-        try:
-            return self.matches_database[match_id]
-        except KeyError:
-            return None
-
-    def create_match(self, match):
-        self.saved_match = match
-        new_match = copy.deepcopy(match)
-        new_match.match_id = 0
-        return new_match
-
-    def update_match(self, match):
-        self.updated_match = match
-        return match
-
-    def delete_match(self, match_id):
-        self.deleted_match_id = match_id
-
-    def get_ladder_code(self, ladder_id):
-        return "good" if ladder_id == 1 else None
+def open_ladder(distance_penalty_on=False):
+    return fixtures.ladder(start_date=date.today() - timedelta(days=1), end_date=date.today() + timedelta(days=1), distance_penalty_on=distance_penalty_on)

@@ -129,6 +129,10 @@ class Manager:
         if new_borrowed_points is None:
             raise ServiceException("New player has no borrowed points", 400)
 
+        other_players_borrowed_points = [player.borrowed_points for player in self.dao.get_players(ladder_id)]
+        if new_borrowed_points not in other_players_borrowed_points:
+            raise ServiceException("You must assign a value that is already assigned to another player in the ladder", 400)
+
         self.dao.update_borrowed_points(ladder_id, user_id, new_borrowed_points)
         return self.get_players(ladder_id)
 
@@ -157,7 +161,7 @@ class Manager:
             raise ServiceException("This ladder is not currently open. You can only report matches between the ladder's start and end dates", 400)
 
         # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
-        match = Match.from_dict(match_dict)
+        match = match_from_dict(match_dict)
 
         # Set match date to right now (to avoid issues with device times being changed)
         match.match_date = datetime.now(timezone("US/Mountain"))
@@ -214,7 +218,7 @@ class Manager:
         elif match_dict is None:
             raise ServiceException("Null match param", 400)
 
-        updated_match = Match.from_dict(match_dict)
+        updated_match = match_from_dict(match_dict)
         original_match = self.dao.get_match(match_id)
 
         winner_score_diff, loser_score_diff = self.get_score_diff(original_match, updated_match)
@@ -255,6 +259,8 @@ class Manager:
 
             self.dao.delete_match(match_id)
 
+    # Utils
+
     @staticmethod
     def get_score_diff(original: Match, new: Match) -> Tuple[int, int]:
         (new_winner_score, new_loser_score) = new.calculate_scores(None, None, False)
@@ -276,3 +282,18 @@ class Manager:
             match.loser = player_map[match.loser_id]
 
         return matches
+
+def match_from_dict(match_dict):
+    return Match(
+        match_dict.get("match_id"),
+        match_dict.get("ladder_id"),
+        match_dict.get("match_date"),
+        match_dict.get("winner", {}).get("user", {}).get("user_id"),
+        match_dict.get("loser", {}).get("user", {}).get("user_id"),
+        match_dict.get("winner_set1_score"),
+        match_dict.get("loser_set1_score"),
+        match_dict.get("winner_set2_score"),
+        match_dict.get("loser_set2_score"),
+        match_dict.get("winner_set3_score"),
+        match_dict.get("loser_set3_score")
+    ).validate()

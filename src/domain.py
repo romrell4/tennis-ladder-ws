@@ -24,22 +24,6 @@ class Match:
     def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None, winner_points = 0, loser_points = 0):
         self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points
 
-    @staticmethod
-    def from_dict(match_dict):
-        return Match(
-            match_dict.get("match_id"),
-            match_dict.get("ladder_id"),
-            match_dict.get("match_date"),
-            match_dict.get("winner", {}).get("user", {}).get("user_id"),
-            match_dict.get("loser", {}).get("user", {}).get("user_id"),
-            match_dict.get("winner_set1_score"),
-            match_dict.get("loser_set1_score"),
-            match_dict.get("winner_set2_score"),
-            match_dict.get("loser_set2_score"),
-            match_dict.get("winner_set3_score"),
-            match_dict.get("loser_set3_score")
-        ).validate()
-
     def validate(self):
         if self.ladder_id is None: raise DomainException("Missing ladder_id")
         if self.winner_id is None: raise DomainException("Missing winner's user_id")
