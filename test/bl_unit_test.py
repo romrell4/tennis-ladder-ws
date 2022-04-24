@@ -482,6 +482,15 @@ class Test(unittest.TestCase):
     # endregion
     # region get_score_diff
     def test_score_diff(self):
+        def create_match(winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None):
+            return fixtures.match(
+                winner_set1_score=winner_set1_score,
+                loser_set1_score=loser_set1_score,
+                winner_set2_score=winner_set2_score,
+                loser_set2_score=loser_set2_score,
+                winner_set3_score=winner_set3_score,
+                loser_set3_score=loser_set3_score
+            )
         self.assertEqual((-1, 1), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 6, 1)))
         self.assertEqual((-5, 5), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 7, 5)))
         self.assertEqual((6, -6), self.manager.get_score_diff(create_match(7, 6, 6, 0), create_match(6, 0, 6, 0)))
@@ -533,11 +542,6 @@ class Test(unittest.TestCase):
     # endregion
 
 
-def create_match(winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None):
-    return fixtures.match(winner_set1_score=winner_set1_score, loser_set1_score=loser_set1_score, winner_set2_score=winner_set2_score, loser_set2_score=loser_set2_score, winner_set3_score=winner_set3_score,
-                          loser_set3_score=loser_set3_score)
-
-
 def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, ladder_id=1, match_date=None):
     return {
         "ladder_id": ladder_id,
@@ -559,10 +563,6 @@ def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, 
         "winner_set3_score": winner_set3_score,
         "loser_set3_score": loser_set3_score
     }
-
-
-def create_date(day_offset):
-    return date.today() + timedelta(days=day_offset)
 
 
 def open_ladder(distance_penalty_on=False):
