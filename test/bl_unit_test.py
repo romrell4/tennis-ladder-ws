@@ -7,7 +7,7 @@ from da import Dao
 from domain import ServiceException, Ladder, Match, User
 from firebase_client import FirebaseClient
 from pytz import timezone
-from test import fixtures
+import fixtures
 
 
 class Test(unittest.TestCase):
