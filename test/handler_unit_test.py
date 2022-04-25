@@ -1,162 +1,176 @@
 import unittest
-import json
+from typing import Dict
+from unittest.mock import patch
+
+import fixtures
+from bl import Manager
 from src import handler
 from src.domain import *
 from datetime import datetime, date
 
+
 class Test(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.manager = MockManager()
-        cls.handler = handler.Handler(cls.manager)
+    def setUp(self):
+        self.handler = handler.Handler(Manager())
+
+    def test_token_can_handle_any_casing(self):
+        with patch.object(self.handler.manager, "validate_token") as validate_token_mock:
+            self.handler.handle(create_event("/bad", headers={"x-firebase-token": "token"}))
+        validate_token_mock.assert_called_once_with("token")
+
+        with patch.object(self.handler.manager, "validate_token") as validate_token_mock:
+            self.handler.handle(create_event("/bad", headers={"X-Firebase-Token": "token"}))
+        validate_token_mock.assert_called_once_with("token")
+
+    def test_success_response_with_complex_body_is_serialized_correctly(self):
+        class NestedObject:
+            def __init__(self):
+                self.key = "value"
+
+        class TestObject:
+            def __init__(self):
+                self.datetime = datetime(2020, 1, 1, 1, 0, 0)
+                self.date = date(2021, 12, 25)
+                self.nested_object = NestedObject()
+
+        with patch.object(self.handler.manager, "get_ladders", return_value=[TestObject()]):
+            response = self.handler.handle(create_event("/ladders"))
+        self.assertEqual(200, response["statusCode"])
+        self.assertEqual("""[{"datetime": "2020-01-01T01:00:00Z", "date": "2021-12-25", "nested_object": {"key": "value"}}]""", response["body"])
+
+    def test_user_serialization_contract(self):
+        with patch.object(self.handler.manager, "get_ladders", return_value=[User("user_id", "name", "email", "phone_number", "photo_url", "availability_text", True)]):
+            response = self.handler.handle(create_event("/ladders"))
+        self.assertEqual("""[{"user_id": "user_id", "name": "name", "email": "email", "phone_number": "phone_number", "photo_url": "photo_url", "availability_text": "availability_text", "admin": true}]""", response["body"])
+
+    def test_ladder_serialization_contract(self):
+        with patch.object(self.handler.manager, "get_ladders", return_value=[Ladder(1, "name", date(2020, 1, 1), date(2021, 2, 3), False, 5, True)]):
+            response = self.handler.handle(create_event("/ladders"))
+        self.assertEqual("""[{"ladder_id": 1, "name": "name", "start_date": "2020-01-01", "end_date": "2021-02-03", "distance_penalty_on": false, "weeks_for_borrowed_points": 5, "logged_in_user_has_joined": true}]""", response["body"])
+
+    def test_player_serialization_contract(self):
+        with patch.object(self.handler.manager, "get_ladders", return_value=[Player("user_id", "name", "email", "phone_number", "photo_url", "availability_text", True, 1, 23, 12, 11, 3, 6, 2)]):
+            response = self.handler.handle(create_event("/ladders"))
+        self.assertEqual(
+            """[{"user": {"user_id": "user_id", "name": "name", "email": "email", "phone_number": "phone_number", "photo_url": "photo_url", "availability_text": "availability_text", "admin": true}, "ladder_id": 1, "score": 23, "earned_points": 12, "borrowed_points": 11, "ranking": 3, "wins": 6, "losses": 2}]""",
+            response["body"]
+        )
+
+    def test_match_serialization_contract(self):
+        with patch.object(self.handler.manager, "get_ladders", return_value=[
+            Match(1, 2, datetime(2020, 1, 2, 3, 4, 5), "winner_id", "loser_id", 6, 0, 5, 7, 10, 8, 24, 12, fixtures.player(user_=fixtures.user(user_id="winner_id"), ladder_id=2),
+                  fixtures.player(user_=fixtures.user(user_id="loser_id"), ladder_id=2))]):
+            response = self.handler.handle(create_event("/ladders"))
+        self.assertEqual(
+            """[{"match_id": 1, "ladder_id": 2, "match_date": "2020-01-02T03:04:05Z", "winner_id": "winner_id", "loser_id": "loser_id", "winner_set1_score": 6, "loser_set1_score": 0, "winner_set2_score": 5, "loser_set2_score": 7, "winner_set3_score": 10, "loser_set3_score": 8, "winner_points": 24, "loser_points": 12, "winner": {"user": {"user_id": "winner_id", "name": "", "email": "", "phone_number": null, "photo_url": null, "availability_text": null, "admin": false}, "ladder_id": 2, "score": 0, "earned_points": 0, "borrowed_points": 0, "ranking": 0, "wins": 0, "losses": 0}, "loser": {"user": {"user_id": "loser_id", "name": "", "email": "", "phone_number": null, "photo_url": null, "availability_text": null, "admin": false}, "ladder_id": 2, "score": 0, "earned_points": 0, "borrowed_points": 0, "ranking": 0, "wins": 0, "losses": 0}}]""",
+            response["body"]
+        )
+
+    def test_success_response_with_no_body_has_no_body(self):
+        with patch.object(self.handler.manager, "get_ladders", return_value=None):
+            response = self.handler.handle(create_event("/ladders"))
+        self.assertEqual(200, response["statusCode"])
+        self.assertIsNone(response["body"])
+
+    def test_error_response_serialized_correctly(self):
+        response = self.handler.handle(create_event("/bad"))
+        self.assertEqual(500, response["statusCode"])
+        self.assertEqual("""{"error": "Invalid path: '/bad GET'"}""", response["body"])
 
     def test_get_user(self):
-        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}))
-        self.assertEqual(200, response["statusCode"])
-        user = json.loads(response["body"])
-        self.assertEqual("1", user["user_id"])
-        self.assertEqual("User1", user["name"])
-        self.assertEqual("user1@test.com", user["email"])
-        self.assertEqual("555-555-5555", user["phone_number"])
-        self.assertEqual("hello.jpg", user["photo_url"])
-        self.assertEqual("avail", user["availability_text"])
+        with patch.object(self.handler.manager, "get_user", return_value={}) as get_user_mock:
+            self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}))
+        get_user_mock.assert_called_once_with("abc")
 
     def test_update_user(self):
-        response = self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}, "PUT", "{}"))
-        self.assertEqual(200, response["statusCode"])
-        user = json.loads(response["body"])
-        self.assertEqual("1", user["user_id"])
-        self.assertEqual("User1", user["name"])
-        self.assertEqual("user1@test.com", user["email"])
-        self.assertEqual("555-555-5555", user["phone_number"])
-        self.assertEqual("hello.jpg", user["photo_url"])
-        self.assertEqual("avail", user["availability_text"])
+        with patch.object(self.handler.manager, "update_user", return_value={}) as update_user_mock:
+            self.handler.handle(create_event("/users/{user_id}", {"user_id": "abc"}, "PUT", "{}"))
+        update_user_mock.assert_called_once_with("abc", {})
 
     def test_get_ladders(self):
-        response = self.handler.handle(create_event("/ladders"))
-        self.assertEqual(200, response["statusCode"])
-        ladders = json.loads(response["body"])
-        self.assertEqual(2, len(ladders))
-        self.assertEqual(1, ladders[0]["ladder_id"])
-        self.assertEqual("Ladder1", ladders[0]["name"])
-        self.assertEqual("2018-01-01", ladders[0]["start_date"])
-        self.assertEqual("2018-02-01", ladders[0]["end_date"])
-        self.assertFalse(ladders[0]["distance_penalty_on"])
+        with patch.object(self.handler.manager, "get_ladders", return_value={}) as get_ladders_mock:
+            self.handler.handle(create_event("/ladders"))
+        get_ladders_mock.assert_called_once_with()
 
     def test_get_players(self):
-        # Test a ladder with a single player
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}))
-        self.assertEqual(200, response["statusCode"])
-        players = json.loads(response["body"])
-        self.assertEqual(1, len(players))
-        self.assertEqual(1, players[0]["user"]["user_id"])
-        self.assertEqual("User1", players[0]["user"]["name"])
-        self.assertEqual("user1@test.com", players[0]["user"]["email"])
-        self.assertEqual("test1.jpg", players[0]["user"]["photo_url"])
-        self.assertEqual("avail 1", players[0]["user"]["availability_text"])
-        self.assertEqual(1, players[0]["ladder_id"])
-        self.assertEqual(10, players[0]["score"])
-        self.assertEqual(10, players[0]["earned_points"])
-        self.assertEqual(0, players[0]["borrowed_points"])
-        self.assertEqual(3, players[0]["ranking"])
-        self.assertEqual(1, players[0]["wins"])
-        self.assertEqual(0, players[0]["losses"])
+        with patch.object(self.handler.manager, "get_players", return_value={}) as get_players_mock:
+            self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}))
+        get_players_mock.assert_called_once_with(1)
 
-        # Test a ladder with multiple players
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "2"}))
-        self.assertEqual(200, response["statusCode"])
-        players = json.loads(response["body"])
-        self.assertEqual(2, len(players))
+    def test_create_player_without_code_should_default_to_none(self):
+        with patch.object(self.handler.manager, "add_player_to_ladder", return_value={}) as add_player_to_ladder_mock:
+            self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}, "POST"))
+        add_player_to_ladder_mock.assert_called_once_with(1, None)
 
-    def test_create_player(self):
-        # Test without required code (make sure it defaults instead of throwing an error)
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}, "POST"))
-        self.assertEqual(200, response["statusCode"])
-        players = json.loads(response["body"])
-        self.assertEqual(0, len(players))
+    def test_create_player_with_code_should_pass_it_through(self):
+        with patch.object(self.handler.manager, "add_player_to_ladder", return_value={}) as add_player_to_ladder_mock:
+            self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}, "POST", query_params={"code": "good"}))
+        add_player_to_ladder_mock.assert_called_once_with(1, "good")
 
-        # Test with code
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players", {"ladder_id": "1"}, "POST", query_params = {"code": "good"}))
-        self.assertEqual(200, response["statusCode"])
-        players = json.loads(response["body"])
-        self.assertEqual(1, len(players))
+    def test_update_player_order_without_generate_borrowed_points_query_param_should_default_to_false(self):
+        with patch.object(self.handler.manager, "update_player_order", return_value=[]) as update_player_order_mock:
+            self.handler.handle(create_event(
+                resource="/ladders/{ladder_id}/players",
+                path_params={"ladder_id": "1"},
+                method="PUT",
+                body="{}"
+            ))
+        update_player_order_mock.assert_called_once_with(1, False, {})
+
+    def test_update_player_order_with_false_generate_borrowed_points_query_param_should_not_generate_borrowed_points(self):
+        with patch.object(self.handler.manager, "update_player_order", return_value=[]) as update_player_order_mock:
+            self.handler.handle(create_event(
+                resource="/ladders/{ladder_id}/players",
+                path_params={"ladder_id": "1"},
+                method="PUT",
+                query_params={"generate_borrowed_points": "false"},
+                body="{}"
+            ))
+        update_player_order_mock.assert_called_once_with(1, False, {})
+
+    def test_update_player_order_with_true_generate_borrowed_points_query_param_should_generate_borrowed_points(self):
+        with patch.object(self.handler.manager, "update_player_order", return_value=[]) as update_player_order_mock:
+            self.handler.handle(create_event(
+                resource="/ladders/{ladder_id}/players",
+                path_params={"ladder_id": "1"},
+                method="PUT",
+                query_params={"generate_borrowed_points": "true"},
+                body="{}"
+            ))
+        update_player_order_mock.assert_called_once_with(1, True, {})
 
     def test_update_player(self):
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}", {"ladder_id": "1", "user_id": "abc"}, "PUT", {"borrowed_points": "50"}))
-        self.assertEqual(200, response["statusCode"])
-        players = json.loads(response["body"])
-        self.assertEqual(1, len(players))
+        with patch.object(self.handler.manager, "update_player", return_value={}) as update_player_mock:
+            self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}", {"ladder_id": "1", "user_id": "abc"}, "PUT", "{}"))
+        update_player_mock.assert_called_once_with(1, "abc", {})
 
     def test_get_matches(self):
-        # Test a user who's played in a single match in a ladder
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}/matches", {"ladder_id": "1", "user_id": "TEST1"}))
-        self.assertEqual(200, response["statusCode"])
-        matches = json.loads(response["body"])
-        self.assertEqual(1, len(matches))
-        self.assertEqual(1, matches[0]["match_id"])
-        self.assertEqual(1, matches[0]["ladder_id"])
-        self.assertEqual("2018-01-01T01:00:00Z", matches[0]["match_date"])
-        self.assertEqual(1, matches[0]["winner_id"])
-        self.assertEqual(2, matches[0]["loser_id"])
-        self.assertEqual(6, matches[0]["winner_set1_score"])
-        self.assertEqual(0, matches[0]["loser_set1_score"])
-        self.assertEqual(0, matches[0]["winner_set2_score"])
-        self.assertEqual(6, matches[0]["loser_set2_score"])
-        self.assertEqual(7, matches[0]["winner_set3_score"])
-        self.assertEqual(5, matches[0]["loser_set3_score"])
-
-        # Test a user who's played in multiple matches in a ladder
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}/matches", {"ladder_id": "2", "user_id": "1"}))
-        self.assertEqual(200, response["statusCode"])
-        matches = json.loads(response["body"])
-        self.assertEqual(2, len(matches))
+        with patch.object(self.handler.manager, "get_matches", return_value={}) as get_matches_mock:
+            self.handler.handle(create_event("/ladders/{ladder_id}/players/{user_id}/matches", {"ladder_id": "1", "user_id": "TEST1"}))
+        get_matches_mock.assert_called_once_with(1, "TEST1")
 
     def test_report_match(self):
-        # Valid test
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/matches", {"ladder_id": "1"}, "POST", "{}"))
-        self.assertEqual(200, response["statusCode"])
-        self.assertIsNotNone(self.manager.reported_match)
-        self.manager.reported_match = None
-        match = json.loads(response["body"])
-        self.assertEqual(1, match["match_id"])
-        self.assertEqual(1, match["ladder_id"])
-        self.assertEqual("2018-02-02T01:00:00Z", match["match_date"])
-        self.assertEqual(2, match["winner_id"])
-        self.assertEqual(3, match["loser_id"])
-        self.assertEqual(6, match["winner_set1_score"])
-        self.assertEqual(0, match["loser_set1_score"])
-        self.assertEqual(5, match["winner_set2_score"])
-        self.assertEqual(7, match["loser_set2_score"])
-        self.assertEqual(6, match["winner_set3_score"])
-        self.assertEqual(3, match["loser_set3_score"])
+        with patch.object(self.handler.manager, "report_match", return_value={}) as report_match_mock:
+            self.handler.handle(create_event("/ladders/{ladder_id}/matches", {"ladder_id": "1"}, "POST", "{}"))
+        report_match_mock.assert_called_once_with(1, {})
 
     def test_update_match_scores(self):
-        # Valid test
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/matches/{match_id}", {"ladder_id": "1", "match_id": "2"}, "PUT", "{}"))
-        self.assertEqual(200, response["statusCode"])
-        self.assertIsNotNone(self.manager.updated_match)
-        self.manager.updated_match = None
-        matches = json.loads(response["body"])
-        self.assertEqual(1, len(matches))
+        with patch.object(self.handler.manager, "update_match_scores", return_value={}) as update_match_scores_mock:
+            self.handler.handle(create_event("/ladders/{ladder_id}/matches/{match_id}", {"ladder_id": "1", "match_id": "2"}, "PUT", "{}"))
+        update_match_scores_mock.assert_called_once_with(2, {})
 
     def test_delete_match(self):
-        response = self.handler.handle(create_event("/ladders/{ladder_id}/matches/{match_id}", {"ladder_id": "1", "match_id": "2"}, "DELETE"))
-        self.assertEqual(200, response["statusCode"])
-        self.assertEqual(2, self.manager.deleted_match_id)
-        result = json.loads(response["body"])
-        self.assertIsNotNone(result)
+        with patch.object(self.handler.manager, "delete_match", return_value={}) as delete_match_mock:
+            self.handler.handle(create_event("/ladders/{ladder_id}/matches/{match_id}", {"ladder_id": "1", "match_id": "2"}, "DELETE"))
+        delete_match_mock.assert_called_once_with(2)
 
-    def test_get_token(self):
-        response = self.handler.get_token({
-            "headers": {"X-Firebase-Token": "TEST"}
-        })
-        self.assertEqual("TEST", response)
 
-def create_event(resource, path_params = None, method = "GET", body = None, query_params = None):
+# noinspection PyDefaultArgument
+def create_event(resource, path_params=None, method="GET", body=None, query_params=None, headers: Dict[str, str] = {"X-Firebase-Token": ""}):
     event = {
         "resource": resource,
         "httpMethod": method,
-        "headers": {"X-Firebase-Token": ""}
+        "headers": headers
     }
     if path_params is not None:
         event["pathParameters"] = path_params
@@ -165,72 +179,3 @@ def create_event(resource, path_params = None, method = "GET", body = None, quer
     if query_params is not None:
         event["queryStringParameters"] = query_params
     return event
-
-class MockManager:
-    reported_match = None
-    updated_match = None
-    deleted_match_id = None
-
-    def __init__(self):
-        self.user = User("1", "User1", "user1@test.com", "555-555-5555", "hello.jpg", "avail", False)
-
-    def validate_token(self, token):
-        pass
-
-    def get_user(self, user_id):
-        return self.user
-
-    def update_user(self, user_id, user):
-        return self.user
-
-    def get_ladders(self):
-        return [
-            Ladder(1, "Ladder1", date(2018, 1, 1), date(2018, 2, 1), False),
-            Ladder(2, "Ladder2", date(2018, 2, 1), date(2018, 3, 1), False)
-        ]
-
-    def get_players(self, ladder_id):
-        if ladder_id == 1:
-            return [
-                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", "avail 1", False, 1, 10, 10, 0, 3, 1, 0)
-            ]
-        elif ladder_id == 2:
-            return [
-                Player(2, "User2", "user2@test.com", "000-000-0000", "test2.jpg", "avail 2", False, 2, 0, 0, 0, 1, 0, 0),
-                Player(3, "User3", "user3@test.com", "000-000-0000", "test3.jpg", "avail 3", False, 2, 0, 0, 0, 1, 0, 0)
-            ]
-
-    def add_player_to_ladder(self, ladder_id, code):
-        if code is None:
-            return []
-        else:
-            return [
-                Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", "avail 1", False, 1, 10, 10, 0, 3, 1, 0)
-            ]
-
-    def update_player(self, ladder_id, user_id, player_dict):
-        return [
-            Player(1, "User1", "user1@test.com", "000-000-0000", "test1.jpg", "avail 1", False, 1, 10, 10, 0, 3, 1, 0)
-        ]
-
-    def get_matches(self, ladder_id, user_id):
-        if ladder_id == 1:
-            return [
-                Match(1, 1, datetime(2018, 1, 1, 1, 0, 0), 1, 2, 6, 0, 0, 6, 7, 5)
-            ]
-        elif ladder_id == 2:
-            return [
-                Match(1, 1, datetime(2018, 1, 1, 1, 0, 0), 1, 2, 6, 0, 6, 0),
-                Match(1, 1, datetime(2018, 1, 1, 1, 0, 0), 1, 2, 6, 0, 0, 6, 7, 5)
-            ]
-
-    def report_match(self, ladder_id, match):
-        self.reported_match = match
-        return Match(1, 1, datetime(2018, 2, 2, 1, 0, 0), 2, 3, 6, 0, 5, 7, 6, 3)
-
-    def update_match_scores(self, match_id, match_dict):
-        self.updated_match = match_dict
-        return [Match(1, 1, datetime(2018, 2, 2, 1, 0, 0), 2, 3, 6, 0, 5, 7, 6, 3)]
-
-    def delete_match(self, match_id):
-        self.deleted_match_id = match_id

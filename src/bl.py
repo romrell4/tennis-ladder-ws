@@ -5,7 +5,34 @@ from pytz import timezone
 
 from domain import User, ServiceException, Match
 
+
 class Manager:
+    def validate_token(self, token): pass
+
+    def get_user(self, user_id): raise NotImplementedError()
+
+    def update_user(self, user_id, user): raise NotImplementedError()
+
+    def get_ladders(self): raise NotImplementedError()
+
+    def get_players(self, ladder_id): raise NotImplementedError()
+
+    def add_player_to_ladder(self, ladder_id, code): raise NotImplementedError()
+
+    def update_player_order(self, ladder_id, generate_borrowed_points, player_dicts): raise NotImplementedError()
+
+    def update_player(self, ladder_id, user_id, player_dict): raise NotImplementedError()
+
+    def get_matches(self, ladder_id, user_id): raise NotImplementedError()
+
+    def report_match(self, ladder_id, match_dict): raise NotImplementedError()
+
+    def update_match_scores(self, match_id, match_dict): raise NotImplementedError()
+
+    def delete_match(self, match_id): raise NotImplementedError()
+
+
+class ManagerImpl:
     INVALID_RANKING_DISTANCE = 15
     MAX_MATCHES_BETWEEN_PLAYERS = 5
     MAX_MATCHES_PER_DAY = 1
@@ -16,7 +43,8 @@ class Manager:
         self.user = None
 
     def validate_token(self, token):
-        if token is None: return
+        if token is None:
+            return
 
         try:
             firebase_user = self.firebase_client.get_firebase_user(token)
@@ -113,6 +141,31 @@ class Manager:
         # Return the new list of players in that ladder (which should include the new player)
         return self.dao.get_players(ladder_id)
 
+    def update_player_order(self, ladder_id, generate_borrowed_points, player_dicts):
+        if self.user is None:
+            raise ServiceException("Unable to authenticate", 401)
+        elif not self.user.admin:
+            raise ServiceException("Only admins can update player orders", 403)
+        elif ladder_id is None:
+            raise ServiceException("No ladder_id passed in", 400)
+        elif player_dicts is None:
+            raise ServiceException("No players passed in", 400)
+
+        ladder = self.dao.get_ladder(ladder_id)
+        if ladder is None:
+            raise ServiceException(f"No ladder with ID: {ladder_id}", 404)
+        elif datetime.combine(ladder.start_date, datetime.min.time()) < datetime.now():
+            raise ServiceException("You can only update player order before the ladder has started", 403)
+
+        user_ids_with_order = [[player_dict["user"]["user_id"], i + 1] for i, player_dict in enumerate(reversed(player_dicts))]
+        self.dao.update_player_order(ladder_id, user_ids_with_order)
+
+        if generate_borrowed_points:
+            user_ids_with_borrowed_points = [[user_id, order * ladder.weeks_for_borrowed_points] for user_id, order in user_ids_with_order]
+            self.dao.update_all_borrowed_points(ladder_id, user_ids_with_borrowed_points)
+
+        return self.dao.get_players(ladder_id)
+
     def update_player(self, ladder_id, user_id, player_dict):
         if self.user is None:
             raise ServiceException("Unable to authenticate", 401)
@@ -124,6 +177,12 @@ class Manager:
             raise ServiceException("No user_id passed in", 400)
         elif player_dict is None:
             raise ServiceException("No player passed in", 400)
+
+        ladder = self.dao.get_ladder(ladder_id)
+        if ladder is None:
+            raise ServiceException(f"No ladder with ID: {ladder_id}", 404)
+        elif datetime.combine(ladder.start_date, datetime.min.time()) > datetime.now():
+            raise ServiceException("You can only update borrowed points after the ladder has started", 403)
 
         new_borrowed_points = player_dict.get("borrowed_points")
         if new_borrowed_points is None:
@@ -175,7 +234,7 @@ class Manager:
         if loser is None:
             raise ServiceException("No user with id: '{}'".format(match.loser_id), 400)
 
-        if ladder.distance_penalty_on and abs(winner.ranking - loser.ranking) > Manager.INVALID_RANKING_DISTANCE:
+        if ladder.distance_penalty_on and abs(winner.ranking - loser.ranking) > ManagerImpl.INVALID_RANKING_DISTANCE:
             raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)
 
         # Get all matches for this ladder (to enforce some of the rules below)
@@ -189,8 +248,8 @@ class Manager:
 
         # Find out if the players have already played the maximum amount of times
         matches_between_players = [m for m in ladder_matches if m.has_players(match.winner_id, match.loser_id)]
-        if len(matches_between_players) >= Manager.MAX_MATCHES_BETWEEN_PLAYERS:
-            raise ServiceException("Players have already played {} times.".format(Manager.MAX_MATCHES_BETWEEN_PLAYERS), 400)
+        if len(matches_between_players) >= ManagerImpl.MAX_MATCHES_BETWEEN_PLAYERS:
+            raise ServiceException("Players have already played {} times.".format(ManagerImpl.MAX_MATCHES_BETWEEN_PLAYERS), 400)
 
         # Update the scores of the players
         match.winner_points, match.loser_points = match.calculate_scores(winner.ranking, loser.ranking, ladder.distance_penalty_on)
@@ -218,8 +277,10 @@ class Manager:
         elif match_dict is None:
             raise ServiceException("Null match param", 400)
 
-        updated_match = match_from_dict(match_dict)
         original_match = self.dao.get_match(match_id)
+        if original_match is None:
+            raise ServiceException(f"No match with ID: {match_id}", 404)
+        updated_match = match_from_dict(match_dict)
 
         winner_score_diff, loser_score_diff = self.get_score_diff(original_match, updated_match)
 
@@ -282,6 +343,7 @@ class Manager:
             match.loser = player_map[match.loser_id]
 
         return matches
+
 
 def match_from_dict(match_dict):
     return Match(

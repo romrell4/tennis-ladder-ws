@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Ensure there are no changes to be pushed
+if [[ `git status --porcelain` ]]; then
+	echo ""
+	echo "There are uncommited changes. Please commit them or something."
+	exit 1
+fi
+
 # Run the test suite
 cd test
 python3 test_runner.py
@@ -12,7 +19,7 @@ if [ $RESULT -ne 0 ]; then
 fi
 
 # Update the API Gateway
-aws apigateway put-rest-api --rest-api-id lxlwvoenil --mode overwrite --body file://res/api.json
+aws apigateway put-rest-api --rest-api-id lxlwvoenil --mode overwrite --fail-on-warnings --body file://res/api.json
 aws apigateway create-deployment --rest-api-id lxlwvoenil --stage-name prod
 
 # Zip and update the code for the Lambda

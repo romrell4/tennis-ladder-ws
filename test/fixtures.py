@@ -3,8 +3,8 @@ from datetime import datetime, date
 from domain import User, Match, Player, Ladder
 
 
-def ladder(ladder_id=0, name="", start_date=date.today(), end_date=datetime.today(), distance_penalty_on=False, logged_in_user_has_joined=False) -> Ladder:
-    return Ladder(ladder_id, name, start_date, end_date, distance_penalty_on, logged_in_user_has_joined)
+def ladder(ladder_id=0, name="", start_date=date.today(), end_date=datetime.today(), distance_penalty_on=False, weeks_for_borrowed_points=0, logged_in_user_has_joined=False) -> Ladder:
+    return Ladder(ladder_id, name, start_date, end_date, distance_penalty_on, weeks_for_borrowed_points, logged_in_user_has_joined)
 
 
 def match(match_id=0, ladder_id=0, match_date: datetime = datetime.now(), winner_id="", loser_id="",

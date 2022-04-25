@@ -1,13 +1,15 @@
 import datetime
 import json
 
-from bl import Manager
+from bl import ManagerImpl
 from firebase_client import FirebaseClientImpl
 from da import DaoImpl
 from domain import ServiceException
 
+
 def handle(event, _):
     return Handler.get_instance().handle(event)
+
 
 class Handler:
     instance = None
@@ -15,7 +17,7 @@ class Handler:
     @staticmethod
     def get_instance():
         if Handler.instance is None:
-            Handler.instance = Handler(Manager(FirebaseClientImpl(), DaoImpl()))
+            Handler.instance = Handler(ManagerImpl(FirebaseClientImpl(), DaoImpl()))
         return Handler.instance
 
     def __init__(self, manager):
@@ -47,6 +49,8 @@ class Handler:
                 response_body = self.manager.get_players(int(path_params.get("ladder_id")))
             elif resource == "/ladders/{ladder_id}/players" and method == "POST":
                 response_body = self.manager.add_player_to_ladder(int(path_params.get("ladder_id")), query_params.get("code"))
+            elif resource == "/ladders/{ladder_id}/players" and method == "PUT":
+                response_body = self.manager.update_player_order(int(path_params.get("ladder_id")), query_params.get("generate_borrowed_points") == "true", body)
             elif resource == "/ladders/{ladder_id}/players/{user_id}" and method == "PUT":
                 response_body = self.manager.update_player(int(path_params.get("ladder_id")), path_params.get("user_id"), body)
             elif resource == "/ladders/{ladder_id}/players/{user_id}/matches" and method == "GET":
@@ -70,11 +74,13 @@ class Handler:
         # Lower case all the keys, then look for token
         return {k.lower(): v for k, v in event["headers"].items()}.get("x-firebase-token")
 
-def format_response(body = None, status_code = 200):
+
+def format_response(body=None, status_code=200):
     return {
         "statusCode": status_code,
-        "body": json.dumps(body, default = default_serialize) if body is not None else None
+        "body": json.dumps(body, default=default_serialize) if body is not None else None
     }
+
 
 def default_serialize(x):
     if isinstance(x, datetime.datetime):

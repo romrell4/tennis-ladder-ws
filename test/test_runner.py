@@ -17,5 +17,5 @@ suite.addTests(loader.loadTestsFromTestCase(bl_integration_test.Test))
 suite.addTests(loader.loadTestsFromTestCase(da_integration_test.Test))
 suite.addTests(loader.loadTestsFromTestCase(domain_unit_test.Test))
 
-result = unittest.TextTestRunner(verbosity = 3).run(suite)
+result = unittest.TextTestRunner(verbosity=3).run(suite)
 exit(0 if result.wasSuccessful() else 1)

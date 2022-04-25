@@ -2,16 +2,19 @@ import math
 from datetime import datetime
 from pytz import timezone
 
+
 class User:
     def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, admin: bool):
         self.user_id, self.name, self.email, self.phone_number, self.photo_url, self.availability_text, self.admin = user_id, name, email, phone_number, photo_url, availability_text, bool(admin)
 
+
 class Ladder:
-    def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on, logged_in_user_has_joined: bool = False):
-        self.ladder_id, self.name, self.start_date, self.end_date, self.distance_penalty_on, self.logged_in_user_has_joined = ladder_id, name, start_date, end_date, distance_penalty_on, logged_in_user_has_joined
+    def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on, weeks_for_borrowed_points=0, logged_in_user_has_joined: bool = False):
+        self.ladder_id, self.name, self.start_date, self.end_date, self.distance_penalty_on, self.weeks_for_borrowed_points, self.logged_in_user_has_joined = ladder_id, name, start_date, end_date, distance_penalty_on, weeks_for_borrowed_points, logged_in_user_has_joined
 
     def can_report_match(self):
         return self.start_date <= datetime.now(timezone("US/Mountain")).date() <= self.end_date
+
 
 class Match:
     BASE_WINNER_POINTS = 39
@@ -21,8 +24,8 @@ class Match:
     DISTANCE_PENALTY_MULTIPLIER = -2
     DISTANCE_PREMIUM_MULTIPLIER = 3
 
-    def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score = None, loser_set3_score = None, winner_points = 0, loser_points = 0):
-        self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points
+    def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, winner_points=0, loser_points=0, winner=None, loser=None):
+        self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points, self.winner, self.loser = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points, winner, loser
 
     def validate(self):
         if self.ladder_id is None: raise DomainException("Missing ladder_id")
@@ -57,7 +60,7 @@ class Match:
     def played_today(self):
         return datetime.now(timezone("US/Mountain")).date() == self.match_date.date()
 
-    def has_players(self, player1_id, player2_id = None):
+    def has_players(self, player1_id, player2_id=None):
         if player2_id is None:
             return player1_id == self.winner_id or player1_id == self.loser_id
         else:
@@ -99,18 +102,23 @@ class Match:
         return abs(loser_rank - winner_rank) * (Match.DISTANCE_PENALTY_MULTIPLIER if loser_rank > winner_rank else Match.DISTANCE_PREMIUM_MULTIPLIER)
 
     def get_insert_properties(self):
-        return [self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points]
+        return [self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points,
+                self.loser_points]
+
 
 #### Non-DB Objects ####
 
 class Player:
     def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, admin: bool, ladder_id, score, earned_points, borrowed_points, ranking, wins, losses):
-        self.user, self.ladder_id, self.score, self.earned_points, self.borrowed_points, self.ranking, self.wins, self.losses = User(user_id, name, email, phone_number, photo_url, availability_text, admin), ladder_id, score, earned_points, borrowed_points, ranking, wins, losses
+        self.user, self.ladder_id, self.score, self.earned_points, self.borrowed_points, self.ranking, self.wins, self.losses = User(user_id, name, email, phone_number, photo_url, availability_text,
+                                                                                                                                     admin), ladder_id, score, earned_points, borrowed_points, ranking, wins, losses
+
 
 class ServiceException(Exception):
-    def __init__(self, message, status_code = 500):
+    def __init__(self, message, status_code=500):
         self.error_message = message
         self.status_code = status_code
+
 
 class DomainException(ServiceException):
     def __init__(self, message):

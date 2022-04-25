@@ -24,6 +24,10 @@ class Dao:
 
     def create_player(self, ladder_id, user_id): raise NotImplementedError()
 
+    def update_player_order(self, ladder_id, user_ids_with_order): raise NotImplementedError()
+
+    def update_all_borrowed_points(self, ladder_id, user_ids_with_borrowed_points): raise NotImplementedError()
+
     def update_borrowed_points(self, ladder_id, user_id, new_borrowed_points): raise NotImplementedError()
 
     def update_earned_points(self, ladder_id, user_id, new_points_to_add): raise NotImplementedError()
@@ -54,7 +58,7 @@ class DaoImpl(Dao):
             on p.LADDER_ID = l.ID
         where l.ID = %s
     """
-    PLAYERS_SQL_POSTFIX = " order by p.SCORE desc "
+    PLAYERS_SQL_POSTFIX = " order by p.SCORE desc, p.ORDER desc "
     PLAYER_SQL_POSTFIX = " and p.USER_ID = %s"
     PLAYERS_SQL = PLAYER_SQL_PREFIX + PLAYERS_SQL_POSTFIX
     PLAYER_SQL = PLAYER_SQL_PREFIX + PLAYER_SQL_POSTFIX
@@ -96,8 +100,26 @@ class DaoImpl(Dao):
     def create_player(self, ladder_id, user_id):
         self.execute("insert into players (USER_ID, LADDER_ID) values (%s, %s)", user_id, ladder_id)
 
+    def update_player_order(self, ladder_id, user_ids_with_order):
+        if len(user_ids_with_order) == 0:
+            return
+        sql = "update players set `ORDER` = CASE USER_ID "
+        for _ in user_ids_with_order:
+            sql += "WHEN %s THEN %s "
+        sql += "END where LADDER_ID = %s"
+        self.execute(sql, *[item for entry in user_ids_with_order for item in entry], ladder_id)
+
     def update_borrowed_points(self, ladder_id, user_id, new_borrowed_points):
         self.execute("UPDATE players set BORROWED_POINTS = %s where LADDER_ID = %s and USER_ID = %s", new_borrowed_points, ladder_id, user_id)
+
+    def update_all_borrowed_points(self, ladder_id, user_ids_with_borrowed_points):
+        if len(user_ids_with_borrowed_points) == 0:
+            return
+        sql = "UPDATE players set BORROWED_POINTS = CASE USER_ID "
+        for _ in user_ids_with_borrowed_points:
+            sql += "WHEN %s THEN %s "
+        sql += "END where LADDER_ID = %s"
+        self.execute(sql, *[item for entry in user_ids_with_borrowed_points for item in entry], ladder_id)
 
     def update_earned_points(self, ladder_id, user_id, new_points_to_add):
         self.execute("UPDATE players set EARNED_POINTS = EARNED_POINTS + %s where LADDER_ID = %s and USER_ID = %s", new_points_to_add, ladder_id, user_id)

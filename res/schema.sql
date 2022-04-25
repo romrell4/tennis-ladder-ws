@@ -9,23 +9,28 @@ create table users (
 );
 
 # drop table ladders;
-create table ladders (
-  ID integer key auto_increment not null,
-  NAME varchar(32) not null,
-  START_DATE date not null,
-  END_DATE date not null,
-  DISTANCE_PENALTY_ON boolean not null default false
-);
+CREATE TABLE `ladders` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `NAME` varchar(32) NOT NULL,
+  `START_DATE` date NOT NULL,
+  `END_DATE` date NOT NULL,
+  `DISTANCE_PENALTY_ON` tinyint(1) NOT NULL DEFAULT '0',
+  `WEEKS_FOR_BORROWED_POINTS` smallint(6) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
 
 # drop table players;
-create table players (
-  USER_ID varchar(64) not null,
-  LADDER_ID integer not null,
-  SCORE integer not null default 0,
-  primary key (USER_ID, LADDER_ID),
-  foreign key (USER_ID) references users(ID) on delete cascade,
-  foreign key (LADDER_ID) references ladders(ID) on delete cascade
-);
+CREATE TABLE `players` (
+  `USER_ID` varchar(64) NOT NULL,
+  `LADDER_ID` int(11) NOT NULL,
+  `EARNED_POINTS` smallint(6) NOT NULL DEFAULT '0',
+  `BORROWED_POINTS` smallint(6) NOT NULL DEFAULT '0',
+  `ORDER` smallint(6) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`USER_ID`,`LADDER_ID`),
+  KEY `LADDER_ID` (`LADDER_ID`),
+  CONSTRAINT `players_ibfk_1` FOREIGN KEY (`USER_ID`) REFERENCES `users` (`ID`) ON DELETE CASCADE,
+  CONSTRAINT `players_ibfk_2` FOREIGN KEY (`LADDER_ID`) REFERENCES `ladders` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 # drop table matches;
 create table matches(

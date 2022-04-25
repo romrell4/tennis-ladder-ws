@@ -1,627 +1,841 @@
 {
-	"swagger": "2.0",
-	"info": {
-		"version": "v1",
-		"title": "Tennis Ladder API"
-	},
-	"host": "lxlwvoenil.execute-api.us-west-2.amazonaws.com",
-	"basePath": "/prod",
-	"schemes": [
-		"https"
-	],
-	"paths": {
-		"/users/{user_id}": {
-			"get": {
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"type": "string"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/user"
-						}
-					},
-					"400": {
-						"description": "Bad request",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"401": {
-						"description": "Unauthorized",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"403": {
-						"description": "Forbidden",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			},
-			"put": {
-				"produces": [
-					"application/json"
-				],
-				"consumes": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"type": "string"
-					},
-					{
-						"name": "user",
-						"in": "body",
-						"required": true,
-						"schema": {
-							"$ref": "#/definitions/user"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/user"
-						}
-					},
-					"400": {
-						"description": "Bad request",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"401": {
-						"description": "Unauthorized",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"403": {
-						"description": "Forbidden",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			}
-		},
-		"/ladders": {
-			"get": {
-				"produces": [
-					"application/json"
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/ladders"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			}
-		},
-		"/ladders/{ladder_id}/players": {
-			"get": {
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "ladder_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/players"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			},
-			"post": {
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "ladder_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					},
-					{
-						"name": "code",
-						"in": "query",
-						"required": true,
-						"type": "string"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/players"
-						}
-					},
-					"400": {
-						"description": "Bad request",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"401": {
-						"description": "Unauthorized",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"404": {
-						"description": "Ladder not found",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			}
-		},
-		"/ladders/{ladder_id}/players/{user_id}": {
-			"put": {
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "ladder_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					},
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"type": "string"
-					},
-					{
-						"name": "player",
-						"in": "body",
-						"required": true,
-						"schema": {
-							"$ref": "#/definitions/player"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/players"
-						}
-					},
-					"400": {
-						"description": "Bad request",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"401": {
-						"description": "Unauthorized",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"403": {
-						"description": "Forbidden",
-						"schema": {
-							"$ref": "#/definitions/errors"
-						}
-					},
-					"404": {
-						"description": "Ladder not found",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			}
-		},
-		"/ladders/{ladder_id}/players/{user_id}/matches": {
-			"get": {
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "ladder_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					},
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/matches"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			}
-		},
-		"/ladders/{ladder_id}/matches": {
-			"post": {
-				"consumes": [
-					"application/json"
-				],
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "ladder_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					},
-					{
-						"name": "match",
-						"in": "body",
-						"required": true,
-						"schema": {
-							"$ref": "#/definitions/match"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/match"
-						}
-					},
-					"400": {
-						"description": "Bad request",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"401": {
-						"description": "Unauthorized",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					},
-					"404": {
-						"description": "Ladder not found",
-						"schema": {
-							"$ref": "#/definitions/error"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			}
-		},
-		"/ladders/{ladder_id}/matches/{match_id}": {
-			"put": {
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "ladder_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					},
-					{
-						"name": "match_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200 response",
-						"schema": {
-							"$ref": "#/definitions/match"
-						}
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			},
-			"delete": {
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-					{
-						"name": "ladder_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					},
-					{
-						"name": "match_id",
-						"in": "path",
-						"required": true,
-						"type": "integer"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Deleted match",
-					}
-				},
-				"x-amazon-apigateway-integration": {
-					"uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
-					"responses": {
-						"default": {
-							"statusCode": "200"
-						}
-					},
-					"passthroughBehavior": "when_no_match",
-					"httpMethod": "POST",
-					"contentHandling": "CONVERT_TO_TEXT",
-					"type": "aws_proxy"
-				}
-			}
-		}
-	},
-	"definitions": {
-		"ladders": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/ladder"
-			}
-		},
-		"ladder": {
-			"properties": {
-				"ladder_id": {
-					"type": "integer"
-				},
-				"name": {
-					"type": "string"
-				},
-				"start_date": {
-					"type": "string",
-					"format": "date"
-				},
-				"end_date": {
-					"type": "string",
-					"format": "date"
-				},
-				"logged_in_user_has_joined": {
-					"type": "boolean"
-				}
-			}
-		},
-		"players": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/player"
-			}
-		},
-		"player": {
-			"properties": {
-				"user": {
-					"schema": {
-						"$ref": "#/definitions/user"
-					}
-				},
-				"ladder_id": {
-					"type": "integer"
-				},
-				"score": {
-					"type": "integer"
-				},
-				"ranking": {
-					"type": "integer"
-				},
-				"wins": {
-					"type": "integer"
-				},
-				"losses": {
-					"type": "integer"
-				}
-			}
-		},
-		"user": {
-			"user_id": {
-				"type": "integer"
-			},
-			"name": {
-				"type": "string"
-			},
-			"email": {
-				"type": "string"
-			},
-			"phone_number": {
-				"type": "string"
-			},
-			"photo_url": {
-				"type": "string"
-			}
-		},
-		"matches": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/match"
-			}
-		},
-		"match": {
-			"properties": {
-				"match_id": {
-					"type": "integer"
-				},
-				"winner": {
-					"schema": {
-						"$ref": "#/definitions/player"
-					}
-				},
-				"loser": {
-					"schema": {
-						"$ref": "#/definitions/player"
-					}
-				},
-				"winner_set1_score": {
-					"type": "integer"
-				},
-				"loser_set1_score": {
-					"type": "integer"
-				},
-				"winner_set2_score": {
-					"type": "integer"
-				},
-				"loser_set2_score": {
-					"type": "integer"
-				},
-				"winner_set3_score": {
-					"type": "integer"
-				},
-				"loser_set3_score": {
-					"type": "integer"
-				}
-			}
-		},
-		"error": {
-			"properties": {
-				"error": {
-					"type": "string"
-				}
-			}
-		}
-	}
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Tennis Ladder API",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://lxlwvoenil.execute-api.us-west-2.amazonaws.com/{basePath}",
+      "variables": {
+        "basePath": {
+          "default": "/prod"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/ladders/{ladder_id}/matches/{match_id}": {
+      "put": {
+        "parameters": [
+          {
+            "name": "ladder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "match_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/matches"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "name": "ladder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "match_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {}
+          },
+          "400": {
+            "description": "400 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      }
+    },
+    "/ladders/{ladder_id}/players": {
+      "get": {
+        "parameters": [
+          {
+            "name": "ladder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/players"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      },
+      "put": {
+        "parameters": [
+          {
+            "name": "ladder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "generate_borrowed_points",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/players"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "ladder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/players"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      }
+    },
+    "/ladders/{ladder_id}/players/{user_id}": {
+      "put": {
+        "parameters": [
+          {
+            "name": "ladder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/players"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      },
+      "put": {
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/user"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      }
+    },
+    "/ladders/{ladder_id}/players/{user_id}/matches": {
+      "get": {
+        "parameters": [
+          {
+            "name": "ladder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/matches"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      }
+    },
+    "/ladders": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ladders"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      }
+    },
+    "/ladders/{ladder_id}/matches": {
+      "post": {
+        "parameters": [
+          {
+            "name": "ladder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/match"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/match"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:593996188786:function:TennisLadder/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws_proxy"
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ladder": {
+        "type": "object",
+        "properties": {
+          "ladder_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "distance_penalty_on": {
+            "type": "boolean"
+          },
+          "weeks_for_borrowed_points": {
+            "type": "int",
+            "format": "int32"
+          },
+          "logged_in_user_has_joined": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ladders": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ladder"
+        }
+      },
+      "players": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/player"
+        }
+      },
+      "match": {
+        "type": "object",
+        "properties": {
+          "match_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "winner_set1_score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loser_set1_score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "winner_set2_score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loser_set2_score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "winner_set3_score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loser_set3_score": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "matches": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/match"
+        }
+      },
+      "user": {
+        "type": "object"
+      },
+      "player": {
+        "type": "object",
+        "properties": {
+          "ladder_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ranking": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wins": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "losses": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  }
 }

@@ -2,9 +2,9 @@ import unittest
 from datetime import datetime, timedelta, date
 from unittest.mock import patch
 
-from bl import Manager
+from bl import ManagerImpl
 from da import Dao
-from domain import ServiceException, Ladder, Match, User
+from domain import ServiceException, Match, User
 from firebase_client import FirebaseClient
 from pytz import timezone
 import fixtures
@@ -12,7 +12,7 @@ import fixtures
 
 class Test(unittest.TestCase):
     def setUp(self):
-        self.manager = Manager(FirebaseClient(), Dao())
+        self.manager = ManagerImpl(FirebaseClient(), Dao())
         self.manager.user = fixtures.user(user_id="USER1", admin=True)
 
     # region validate_token
@@ -139,8 +139,8 @@ class Test(unittest.TestCase):
     # region get_ladders
     def test_get_ladders_when_not_logged_in_should_return_all_with_all_false_flags(self):
         with patch.object(self.manager.dao, "get_ladders", return_value=[
-            Ladder(1, "Ladder 1", date.today(), date.today(), False),
-            Ladder(2, "Ladder 2", date.today(), date.today(), False),
+            fixtures.ladder(1, "Ladder 1", date.today(), date.today(), False),
+            fixtures.ladder(2, "Ladder 2", date.today(), date.today(), False),
         ]):
             self.manager.user = None
             ladders = self.manager.get_ladders()
@@ -152,8 +152,8 @@ class Test(unittest.TestCase):
 
     def test_get_ladders_when_not_a_player_in_any_ladder(self):
         with patch.object(self.manager.dao, "get_ladders", return_value=[
-            Ladder(1, "Ladder 1", date.today(), date.today(), False),
-            Ladder(2, "Ladder 2", date.today(), date.today(), False),
+            fixtures.ladder(1, "Ladder 1", date.today(), date.today(), False),
+            fixtures.ladder(2, "Ladder 2", date.today(), date.today(), False),
         ]):
             with patch.object(self.manager.dao, "get_users_ladder_ids", return_value=[]):
                 ladders = self.manager.get_ladders()
@@ -165,8 +165,8 @@ class Test(unittest.TestCase):
 
     def test_get_ladders_when_in_a_ladder_should_put_your_ladder_at_the_top_and_have_true_flag(self):
         with patch.object(self.manager.dao, "get_ladders", return_value=[
-            Ladder(1, "Ladder 1", date.today(), date.today(), False),
-            Ladder(2, "Ladder 2", date.today(), date.today(), False),
+            fixtures.ladder(1, "Ladder 1", date.today(), date.today(), False),
+            fixtures.ladder(2, "Ladder 2", date.today(), date.today(), False),
         ]):
             with patch.object(self.manager.dao, "get_users_ladder_ids", return_value=[2]):
                 self.manager.user = User("TEST1", "User", "user@test.com", "555-555-5555", "user.jpg", "availability", False)
@@ -227,6 +227,48 @@ class Test(unittest.TestCase):
         create_player_mock.assert_called_once()
 
     # endregion
+    # region update_player_order
+    def test_update_player_order_when_not_logged_in(self):
+        self.manager.user = None
+        self.assert_error(lambda: self.manager.update_player_order(None, False, None), 401, "Unable to authenticate")
+
+    def test_update_player_order_when_not_an_admin(self):
+        self.manager.user = fixtures.user(admin=False)
+        self.assert_error(lambda: self.manager.update_player_order(None, False, None), 403, "Only admins can update player orders")
+
+    def test_update_player_order_with_no_ladder_id_param(self):
+        self.assert_error(lambda: self.manager.update_player_order(None, False, None), 400, "No ladder_id passed in")
+
+    def test_update_player_order_with_no_players_param(self):
+        self.assert_error(lambda: self.manager.update_player_order(1, False, None), 400, "No players passed in")
+
+    def test_update_player_order_when_ladder_doesnt_exist(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=None):
+            self.assert_error(lambda: self.manager.update_player_order(1, False, []), 404, "No ladder with ID: 1")
+
+    def test_update_player_order_when_ladder_already_started(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            self.assert_error(lambda: self.manager.update_player_order(1, False, []), 403, "You can only update player order before the ladder has started")
+
+    def test_update_player_order_without_generating_borrowed_points_should_update_order_and_return_players(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=pre_open_ladder()):
+            with patch.object(self.manager.dao, "update_player_order") as update_player_order_mock:
+                with patch.object(self.manager.dao, "get_players", return_value=[]):
+                    response = self.manager.update_player_order(1, False, [{"user": {"user_id": "1"}}, {"user": {"user_id": "2"}}])
+        update_player_order_mock.assert_called_once_with(1, [["2", 1], ["1", 2]])
+        self.assertEqual([], response)
+
+    def test_update_player_order_with_generating_borrowed_points_should_update_order_and_borrowed_points_and_return_players(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=pre_open_ladder(weeks_for_borrowed_points=5)):
+            with patch.object(self.manager.dao, "update_player_order") as update_player_order_mock:
+                with patch.object(self.manager.dao, "update_all_borrowed_points") as update_all_borrowed_points_mock:
+                    with patch.object(self.manager.dao, "get_players", return_value=[]):
+                        response = self.manager.update_player_order(1, True, [{"user": {"user_id": "1"}}, {"user": {"user_id": "2"}}])
+        update_player_order_mock.assert_called_once_with(1, [["2", 1], ["1", 2]])
+        update_all_borrowed_points_mock.assert_called_once_with(1, [["2", 5], ["1", 10]])
+        self.assertEqual([], response)
+
+    # endregion
     # region update_player
     def test_update_player_when_not_logged_in(self):
         self.manager.user = None
@@ -245,18 +287,29 @@ class Test(unittest.TestCase):
     def test_update_player_with_no_player_param(self):
         self.assert_error(lambda: self.manager.update_player("-1", "-1", None), 400, "No player passed in")
 
+    def test_update_player_when_ladder_doesnt_exist(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=None):
+            self.assert_error(lambda: self.manager.update_player("-1", "-1", {}), 404, "No ladder with ID: -1")
+
+    def test_update_player_before_ladder_starts(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=pre_open_ladder()):
+            self.assert_error(lambda: self.manager.update_player("-1", "-1", {}), 403, "You can only update borrowed points after the ladder has started")
+
     def test_update_player_with_a_player_param_without_borrowed_points(self):
-        self.assert_error(lambda: self.manager.update_player("-1", "-1", {}), 400, "New player has no borrowed points")
-        self.assert_error(lambda: self.manager.update_player("-1", "-1", {"borrowed_points": None}), 400, "New player has no borrowed points")
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            self.assert_error(lambda: self.manager.update_player("-1", "-1", {}), 400, "New player has no borrowed points")
+            self.assert_error(lambda: self.manager.update_player("-1", "-1", {"borrowed_points": None}), 400, "New player has no borrowed points")
 
     def test_update_player_with_a_borrowed_points_value_that_doesnt_exist_on_another_player(self):
-        with patch.object(self.manager.dao, "get_players", return_value=[fixtures.player(borrowed_points=4), fixtures.player(borrowed_points=8)]):
-            self.assert_error(lambda: self.manager.update_player("1", "2", {"borrowed_points": 5}), 400, "You must assign a value that is already assigned to another player in the ladder")
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            with patch.object(self.manager.dao, "get_players", return_value=[fixtures.player(borrowed_points=4), fixtures.player(borrowed_points=8)]):
+                self.assert_error(lambda: self.manager.update_player("1", "2", {"borrowed_points": 5}), 400, "You must assign a value that is already assigned to another player in the ladder")
 
     def test_update_player_with_new_borrowed_points_should_update_and_return_players(self):
-        with patch.object(self.manager.dao, "get_players", return_value=[fixtures.player(borrowed_points=4), fixtures.player(borrowed_points=8)]):
-            with patch.object(self.manager.dao, "update_borrowed_points") as update_borrowed_points_mock:
-                self.manager.update_player("1", "2", {"borrowed_points": 8})
+        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
+            with patch.object(self.manager.dao, "get_players", return_value=[fixtures.player(borrowed_points=4), fixtures.player(borrowed_points=8)]):
+                with patch.object(self.manager.dao, "update_borrowed_points") as update_borrowed_points_mock:
+                    self.manager.update_player("1", "2", {"borrowed_points": 8})
         update_borrowed_points_mock.assert_called_once_with("1", "2", 8)
 
     # endregion
@@ -292,8 +345,12 @@ class Test(unittest.TestCase):
         with patch.object(self.manager.dao, "get_ladder", return_value=None):
             self.assert_error(lambda: self.manager.report_match(0, {}), 404, "No ladder with id: '0'")
 
-    def test_report_match_when_the_ladder_is_not_open(self):
-        with patch.object(self.manager.dao, "get_ladder", return_value=fixtures.ladder(start_date=(date.today() + timedelta(days=1)))):
+    def test_report_match_before_the_ladder_is_open(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=pre_open_ladder()):
+            self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST0", "TEST0", 0, 0, 0, 0)), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
+
+    def test_report_match_after_the_ladder_is_closed(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=fixtures.ladder(start_date=date.today() - timedelta(days=2), end_date=date.today() - timedelta(days=1))):
             self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST0", "TEST0", 0, 0, 0, 0)), 400, "This ladder is not currently open. You can only report matches between the ladder's start and end dates")
 
     def test_report_match_with_a_winner_and_loser_not_in_the_specified_ladder(self):
@@ -410,6 +467,10 @@ class Test(unittest.TestCase):
     def test_update_match_with_a_null_match(self):
         self.assert_error(lambda: self.manager.update_match_scores(0, None), 400, "Null match param")
 
+    def test_update_match_with_a_match_id_that_doesnt_exist(self):
+        with patch.object(self.manager.dao, "get_match", return_value=None):
+            self.assert_error(lambda: self.manager.update_match_scores(0, {}), 404, "No match with ID: 0")
+
     def test_update_match_with_valid_match_should_update_match_with_new_points_as_well_as_players_points_and_return_updated_match(self):
         existing_match = fixtures.match(
             ladder_id=1,
@@ -491,6 +552,7 @@ class Test(unittest.TestCase):
                 winner_set3_score=winner_set3_score,
                 loser_set3_score=loser_set3_score
             )
+
         self.assertEqual((-1, 1), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 6, 1)))
         self.assertEqual((-5, 5), self.manager.get_score_diff(create_match(6, 0, 6, 0), create_match(6, 0, 7, 5)))
         self.assertEqual((6, -6), self.manager.get_score_diff(create_match(7, 6, 6, 0), create_match(6, 0, 6, 0)))
@@ -567,3 +629,6 @@ def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, 
 
 def open_ladder(distance_penalty_on=False):
     return fixtures.ladder(start_date=date.today() - timedelta(days=1), end_date=date.today() + timedelta(days=1), distance_penalty_on=distance_penalty_on)
+
+def pre_open_ladder(weeks_for_borrowed_points=0):
+    return fixtures.ladder(start_date=date.today() + timedelta(days=1), end_date=date.today() + timedelta(days=2), weeks_for_borrowed_points=weeks_for_borrowed_points)

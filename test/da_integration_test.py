@@ -31,12 +31,12 @@ class Test(unittest.TestCase):
                 (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
                 (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02')
             """)
-            self.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, EARNED_POINTS) VALUES
-                ('TEST1', -3, 5),
-                ('TEST2', -3, 10),
-                ('TEST3', -3, 10),
-                ('TEST1', -4, 0),
-                ('TEST4', -4, 0)
+            self.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, EARNED_POINTS, BORROWED_POINTS, `ORDER`) VALUES
+                ('TEST1', -3, 5, 0, 0),
+                ('TEST2', -3, 10, 0, 0),
+                ('TEST3', -3, 10, 0, 0),
+                ('TEST1', -4, 0, 0, 1),
+                ('TEST4', -4, 0, 0, 2)
             """)
             self.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
                 (-1, -3, '2018-01-02 03:04:05', 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
@@ -44,7 +44,7 @@ class Test(unittest.TestCase):
             self.dao.insert("""INSERT INTO ladder_codes (LADDER_ID, CODE) VALUES
                 (-3, 'good')
             """)
-        except:
+        except Exception:
             self.tearDown()
             exit()
 
@@ -159,6 +159,13 @@ class Test(unittest.TestCase):
         self.assertEqual(1, players[1].ranking)
         self.assertEqual(2, players[2].ranking)
 
+    def test_get_players_before_borrowed_points_should_sort_by_order(self):
+        players = self.dao.get_players(-4)
+        self.assertIsNotNone(players)
+        self.assertEqual(2, len(players))
+        self.assertEqual("TEST4", players[0].user.user_id)
+        self.assertEqual("TEST1", players[1].user.user_id)
+
     def test_get_player(self):
         # Test a non-existent player
         player = self.dao.get_player(-3, "TEST0")
@@ -172,6 +179,66 @@ class Test(unittest.TestCase):
         self.dao.create_player(-4, "TEST2")
         score = self.dao.get_one(int, "select SCORE from players_vw where LADDER_ID = -4 and USER_ID = 'TEST2'")
         self.assertEqual(0, score)
+
+    def test_update_player_order_empty_should_do_nothing(self):
+        original_players = self.dao.get_players(-4)
+        self.assertEqual("TEST4", original_players[0].user.user_id)
+        self.assertEqual("TEST1", original_players[1].user.user_id)
+        self.dao.update_player_order(-4, [])
+        new_players = self.dao.get_players(-4)
+        self.assertEqual("TEST4", new_players[0].user.user_id)
+        self.assertEqual("TEST1", new_players[1].user.user_id)
+
+    def test_update_player_order_with_all_players_should_affect_sorting(self):
+        original_players = self.dao.get_players(-4)
+        self.assertEqual("TEST4", original_players[0].user.user_id)
+        self.assertEqual("TEST1", original_players[1].user.user_id)
+        self.dao.update_player_order(-4, [["TEST1", 2], ["TEST4", 1]])
+        new_players = self.dao.get_players(-4)
+        self.assertEqual("TEST1", new_players[0].user.user_id)
+        self.assertEqual("TEST4", new_players[1].user.user_id)
+
+    def test_update_player_order_with_partial_players_should_put_excluded_players_at_the_bottom(self):
+        original_players = self.dao.get_players(-4)
+        self.assertEqual("TEST4", original_players[0].user.user_id)
+        self.assertEqual("TEST1", original_players[1].user.user_id)
+        self.dao.update_player_order(-4, [["TEST1", 1]])
+        new_players = self.dao.get_players(-4)
+        self.assertEqual("TEST1", new_players[0].user.user_id)
+        self.assertEqual("TEST4", new_players[1].user.user_id)
+
+    def test_update_all_borrowed_points_empty_should_do_nothing(self):
+        original_players = self.dao.get_players(-4)
+        self.assertEqual("TEST4", original_players[0].user.user_id)
+        self.assertEqual("TEST1", original_players[1].user.user_id)
+        self.dao.update_all_borrowed_points(-4, [])
+        new_players = self.dao.get_players(-4)
+        self.assertEqual("TEST4", new_players[0].user.user_id)
+        self.assertEqual(0, new_players[0].borrowed_points)
+        self.assertEqual("TEST1", new_players[1].user.user_id)
+        self.assertEqual(0, new_players[1].borrowed_points)
+
+    def test_update_all_borrowed_points_with_all_players_should_affect_sorting(self):
+        original_players = self.dao.get_players(-4)
+        self.assertEqual("TEST4", original_players[0].user.user_id)
+        self.assertEqual("TEST1", original_players[1].user.user_id)
+        self.dao.update_all_borrowed_points(-4, [["TEST4", 24], ["TEST1", 48]])
+        new_players = self.dao.get_players(-4)
+        self.assertEqual("TEST1", new_players[0].user.user_id)
+        self.assertEqual(48, new_players[0].borrowed_points)
+        self.assertEqual("TEST4", new_players[1].user.user_id)
+        self.assertEqual(24, new_players[1].borrowed_points)
+
+    def test_update_all_borrowed_points_with_partial_players_should_put_excluded_players_at_the_bottom(self):
+        original_players = self.dao.get_players(-4)
+        self.assertEqual("TEST4", original_players[0].user.user_id)
+        self.assertEqual("TEST1", original_players[1].user.user_id)
+        self.dao.update_all_borrowed_points(-4, [["TEST1", 1]])
+        new_players = self.dao.get_players(-4)
+        self.assertEqual("TEST1", new_players[0].user.user_id)
+        self.assertEqual(1, new_players[0].borrowed_points)
+        self.assertEqual("TEST4", new_players[1].user.user_id)
+        self.assertEqual(0, new_players[1].borrowed_points)
 
     def test_update_borrowed_points(self):
         get_score_sql = "select SCORE from players_vw where USER_ID = 'TEST1' and LADDER_ID = -4"

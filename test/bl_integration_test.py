@@ -3,7 +3,7 @@ import unittest
 
 import properties
 from firebase_client import FirebaseClientImpl
-from bl import Manager
+from bl import ManagerImpl
 from da import DaoImpl
 
 class Test(unittest.TestCase):
@@ -14,7 +14,7 @@ class Test(unittest.TestCase):
         os.environ["DB_USERNAME"] = properties.db_username
         os.environ["DB_PASSWORD"] = properties.db_password
         os.environ["DB_DATABASE_NAME"] = properties.db_database_name
-        cls.manager = Manager(FirebaseClientImpl(), DaoImpl())
+        cls.manager = ManagerImpl(FirebaseClientImpl(), DaoImpl())
 
     def test_validate_token(self):
         # Test null token

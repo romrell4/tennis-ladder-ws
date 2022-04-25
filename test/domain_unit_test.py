@@ -1,33 +1,30 @@
 import unittest
 from datetime import datetime, timedelta
+
+import fixtures
 from pytz import timezone
 from freezegun import freeze_time
 from mock import patch
 
-from domain import Ladder, Match, DomainException
+from domain import Match, DomainException
+
 
 class Test(unittest.TestCase):
     # LADDER
-
     def test_ladder_can_report_match(self):
         # Test before a ladder is open
         today = datetime.today().date()
-        ladder = Ladder(0, None, today + timedelta(days = 1), today + timedelta(days = 2), False)
+        ladder = fixtures.ladder(start_date=today + timedelta(days=1), end_date=today + timedelta(days=2))
         self.assertFalse(ladder.can_report_match())
 
         # Test after a ladder is closed
-        ladder.start_date = today - timedelta(days = 2)
-        ladder.end_date = today - timedelta(days = 1)
+        ladder.start_date = today - timedelta(days=2)
+        ladder.end_date = today - timedelta(days=1)
         self.assertFalse(ladder.can_report_match())
 
         # Test a valid ladder
-        ladder.end_date = today + timedelta(days = 1)
+        ladder.end_date = today + timedelta(days=1)
         self.assertTrue(ladder.can_report_match())
-
-    def test_ladder_default_values(self):
-        today = datetime.today().date()
-        ladder = Ladder(0, None, today, today, False)
-        self.assertFalse(ladder.logged_in_user_has_joined)
 
     # MATCH
 
@@ -38,13 +35,13 @@ class Test(unittest.TestCase):
             self.assertEqual(400, e.exception.status_code)
             self.assertEqual(expected_error_message, e.exception.error_message)
 
-        def create_match(ladder_id, winner_id, loser_id, scores = None):
+        def create_match(ladder_id, winner_id, loser_id, scores=None):
             w1, l1, w2, l2, w3, l3 = 0, 0, 0, 0, None, None
             if scores is not None:
                 w1, l1, w2, l2, w3, l3 = scores
             return Match(None, ladder_id, None, winner_id, loser_id, w1, l1, w2, l2, w3, l3)
 
-        with patch.multiple(Match, is_valid_set = lambda x, y: x != -1 and y != -1, is_valid_tiebreak = lambda x, y: x != -2 and y != -2):
+        with patch.multiple(Match, is_valid_set=lambda x, y: x != -1 and y != -1, is_valid_tiebreak=lambda x, y: x != -2 and y != -2):
             # Test match with no ladder id
             assert_error("Missing ladder_id", create_match(None, None, None))
 
@@ -83,7 +80,7 @@ class Test(unittest.TestCase):
             create_match(0, 1, 2, [1, 0, 0, 1, 1, -1]).validate()
 
     def test_played_today(self):
-        test_date = datetime(2019, 1, 1, tzinfo = timezone("US/Mountain"))
+        test_date = datetime(2019, 1, 1, tzinfo=timezone("US/Mountain"))
         test_match = Match(None, None, test_date, None, None, None, None, None, None)
 
         # Test exact same time (beginning of today)
@@ -91,15 +88,15 @@ class Test(unittest.TestCase):
             self.assertTrue(test_match.played_today())
 
         # Test last second of today (end of today)
-        with freeze_time(test_date + timedelta(days = 1) - timedelta(seconds = 1)):
+        with freeze_time(test_date + timedelta(days=1) - timedelta(seconds=1)):
             self.assertTrue(test_match.played_today())
 
         # Test one second before (end of previous day)
-        with freeze_time(test_date - timedelta(seconds = 1)):
+        with freeze_time(test_date - timedelta(seconds=1)):
             self.assertFalse(test_match.played_today())
 
         # Test one day after (beginning of next day)
-        with freeze_time(test_date + timedelta(days = 1)):
+        with freeze_time(test_date + timedelta(days=1)):
             self.assertFalse(test_match.played_today())
 
     def test_has_players(self):
@@ -155,10 +152,10 @@ class Test(unittest.TestCase):
             self.assertEqual(new_winner_score, winner_score)
             self.assertEqual(new_loser_score, loser_score)
 
-        def create_match(w1, l1, w2, l2, w3 = None, l3 = None):
+        def create_match(w1, l1, w2, l2, w3=None, l3=None):
             return Match(None, None, None, None, None, w1, l1, w2, l2, w3, l3)
 
-        with patch.object(Match, "calculate_distance_points", return_value = 0):
+        with patch.object(Match, "calculate_distance_points", return_value=0):
             # Test valid matches
             assert_success(create_match(6, 0, 6, 0), 39, 0)
             assert_success(create_match(6, 0, 6, 0), 39, 0)
@@ -172,7 +169,7 @@ class Test(unittest.TestCase):
             assert_success(create_match(7, 6, 6, 7, 7, 6), 20, 19)
 
             # Tiebreaks
-            with patch.object(Match, "played_tiebreak", return_value = True):
+            with patch.object(Match, "played_tiebreak", return_value=True):
                 assert_success(create_match(6, 0, 0, 6, 10, 8), 29, 10)
                 assert_success(create_match(6, 0, 0, 6, 10, 7), 29, 10)
                 assert_success(create_match(6, 0, 0, 6, 15, 13), 27, 12)
@@ -180,17 +177,17 @@ class Test(unittest.TestCase):
                 assert_success(create_match(7, 6, 6, 7, 200, 198), 20, 19)
 
         # Pretend that there is distance penalty of 5
-        with patch.object(Match, "calculate_distance_points", return_value = -5):
+        with patch.object(Match, "calculate_distance_points", return_value=-5):
             assert_success(create_match(6, 0, 6, 0), 34, 0)
             assert_success(create_match(7, 6, 6, 7, 7, 6), 15, 19)
 
         # Pretend that there is a distance premium of 10
-        with patch.object(Match, "calculate_distance_points", return_value = 10):
+        with patch.object(Match, "calculate_distance_points", return_value=10):
             assert_success(create_match(6, 0, 6, 0), 49, 0)
             assert_success(create_match(7, 6, 6, 7, 7, 6), 30, 19)
 
         # Test that with a large penalty, the winner's score cannot go below 12
-        with patch.object(Match, "calculate_distance_points", return_value = -100):
+        with patch.object(Match, "calculate_distance_points", return_value=-100):
             assert_success(create_match(7, 6, 6, 7, 7, 6), 12, 19)
 
     def test_played_tiebreak(self):
