@@ -599,8 +599,8 @@ class Test(unittest.TestCase):
     def assert_error(self, block, status_code, error_message):
         with self.assertRaises(ServiceException) as e:
             block()
-        self.assertEqual(status_code, e.exception.status_code)
         self.assertEqual(error_message, e.exception.error_message)
+        self.assertEqual(status_code, e.exception.status_code)
     # endregion
 
 

@@ -11,20 +11,20 @@ from domain import Match, DomainException
 
 class Test(unittest.TestCase):
     # LADDER
-    def test_ladder_can_report_match(self):
+    def test_ladder_is_open(self):
         # Test before a ladder is open
         today = datetime.today().date()
         ladder = fixtures.ladder(start_date=today + timedelta(days=1), end_date=today + timedelta(days=2))
-        self.assertFalse(ladder.can_report_match())
+        self.assertFalse(ladder.is_open())
 
         # Test after a ladder is closed
         ladder.start_date = today - timedelta(days=2)
         ladder.end_date = today - timedelta(days=1)
-        self.assertFalse(ladder.can_report_match())
+        self.assertFalse(ladder.is_open())
 
         # Test a valid ladder
         ladder.end_date = today + timedelta(days=1)
-        self.assertTrue(ladder.can_report_match())
+        self.assertTrue(ladder.is_open())
 
     # MATCH
 

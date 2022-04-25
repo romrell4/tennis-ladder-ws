@@ -12,7 +12,7 @@ class Ladder:
     def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on, weeks_for_borrowed_points=0, logged_in_user_has_joined: bool = False):
         self.ladder_id, self.name, self.start_date, self.end_date, self.distance_penalty_on, self.weeks_for_borrowed_points, self.logged_in_user_has_joined = ladder_id, name, start_date, end_date, distance_penalty_on, weeks_for_borrowed_points, logged_in_user_has_joined
 
-    def can_report_match(self):
+    def is_open(self):
         return self.start_date <= datetime.now(timezone("US/Mountain")).date() <= self.end_date
 
 

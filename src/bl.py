@@ -154,7 +154,7 @@ class ManagerImpl:
         ladder = self.dao.get_ladder(ladder_id)
         if ladder is None:
             raise ServiceException(f"No ladder with ID: {ladder_id}", 404)
-        elif datetime.combine(ladder.start_date, datetime.min.time()) < datetime.now(timezone("US/Mountain")):
+        elif ladder.is_open():
             raise ServiceException("You can only update player order before the ladder has started", 403)
 
         user_ids_with_order = [[player_dict["user"]["user_id"], i + 1] for i, player_dict in enumerate(reversed(player_dicts))]
@@ -181,7 +181,7 @@ class ManagerImpl:
         ladder = self.dao.get_ladder(ladder_id)
         if ladder is None:
             raise ServiceException(f"No ladder with ID: {ladder_id}", 404)
-        elif datetime.combine(ladder.start_date, datetime.min.time()) > datetime.now(timezone("US/Mountain")):
+        elif not ladder.is_open():
             raise ServiceException("You can only update borrowed points after the ladder has started", 403)
 
         new_borrowed_points = player_dict.get("borrowed_points")
@@ -216,7 +216,7 @@ class ManagerImpl:
             raise ServiceException("No ladder with id: '{}'".format(ladder_id), 404)
 
         # Check that the ladder is currently active
-        if not ladder.can_report_match():
+        if not ladder.is_open():
             raise ServiceException("This ladder is not currently open. You can only report matches between the ladder's start and end dates", 400)
 
         # Deserialize and validate that the rest of the match is set up properly (valid set scores and players)
