@@ -83,10 +83,10 @@ class DaoImpl(Dao):
         self.execute("update users set NAME = %s, EMAIL = %s, PHONE_NUMBER = %s, PHOTO_URL = %s, AVAILABILITY_TEXT = %s where ID = %s", user.name, user.email, user.phone_number, user.photo_url, user.availability_text, user.user_id)
 
     def get_ladders(self):
-        return self.get_list(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON from ladders order by START_DATE DESC")
+        return self.get_list(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON, WEEKS_FOR_BORROWED_POINTS from ladders order by START_DATE DESC")
 
     def get_ladder(self, ladder_id):
-        return self.get_one(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON from ladders where ID = %s", ladder_id)
+        return self.get_one(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON, WEEKS_FOR_BORROWED_POINTS from ladders where ID = %s", ladder_id)
 
     def get_users_ladder_ids(self, user_id):
         return self.get_list(int, "select LADDER_ID from players where user_id = %s", user_id)

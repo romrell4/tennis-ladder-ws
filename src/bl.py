@@ -141,7 +141,7 @@ class ManagerImpl:
         # Return the new list of players in that ladder (which should include the new player)
         return self.dao.get_players(ladder_id)
 
-    def update_player_order(self, ladder_id, generate_borrowed_points, player_dicts):
+    def update_player_order(self, ladder_id, generate_borrowed_points: bool, player_dicts):
         if self.user is None:
             raise ServiceException("Unable to authenticate", 401)
         elif not self.user.admin:
