@@ -2,10 +2,8 @@
 
 # Ensure there are no changes to be pushed
 if [[ `git status --porcelain` ]]; then
-	read -n 1 -p "There are uncommited changes. Are you sure you'd like to continue? " yn
-	if [[ "$yn" != "y" ]]; then
-		exit 1;
-	fi
+	echo "There are uncommited changes. Commit them before deploying"
+	exit 1
 fi
 
 # Run the test suite
