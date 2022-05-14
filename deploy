@@ -10,7 +10,7 @@ fi
 
 # Run the test suite
 cd test
-python3 test_runner.py
+../venv/bin/python test_runner.py
 RESULT=$?
 cd ..
 if [ $RESULT -ne 0 ]; then
@@ -25,7 +25,10 @@ aws apigateway create-deployment --rest-api-id lxlwvoenil --stage-name prod
 
 # Zip and update the code for the Lambda
 cd src
+../venv/bin/pip install -r ../requirements.txt -t .
 rm lambda.zip
 zip -r lambda.zip *
 aws lambda update-function-code --function-name TennisLadder --zip-file fileb://lambda.zip
+# Remove all the inline-installed dependencies
+git status | grep '\t' | xargs -I {} rm -r {}
 cd ..

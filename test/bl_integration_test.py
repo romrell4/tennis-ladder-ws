@@ -6,6 +6,7 @@ from firebase_client import FirebaseClientImpl
 from bl import ManagerImpl
 from da import DaoImpl
 
+
 class Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -27,10 +28,6 @@ class Test(unittest.TestCase):
 
         # Test partially correct format
         self.manager.validate_token("a.bad.token")
-        self.assertIsNone(self.manager.user)
-
-        # Test valid
-        self.manager.validate_token(properties.old_firebase_token)
         self.assertIsNone(self.manager.user)
 
         # In order to run this test, you'll have to generate a new valid token and place it in the properties file

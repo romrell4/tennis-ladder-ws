@@ -65,7 +65,7 @@ class DaoImpl(Dao):
 
     def __init__(self):
         try:
-            self.conn = pymysql.connect(os.environ["DB_HOST"], user=os.environ["DB_USERNAME"], passwd=os.environ["DB_PASSWORD"], db=os.environ["DB_DATABASE_NAME"], autocommit=True)
+            self.conn = pymysql.connect(host=os.environ["DB_HOST"], user=os.environ["DB_USERNAME"], passwd=os.environ["DB_PASSWORD"], db=os.environ["DB_DATABASE_NAME"], autocommit=True)
         except Exception as e:
             print("ERROR: Could not connect to MySQL", e)
             raise ServiceException("Failed to connect to database")

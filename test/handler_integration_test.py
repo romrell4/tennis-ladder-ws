@@ -7,6 +7,7 @@ from firebase_client import FirebaseClientImpl
 from da import DaoImpl
 from handler import Handler
 
+
 # This test is not in our test suite, because you will need to have a valid token (obtained from the app) to run it.
 # This should work as a system to test step through code as if we were really executing
 class Test(unittest.TestCase):
