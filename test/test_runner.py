@@ -1,12 +1,17 @@
-# These lines allows us to import the src module
-import sys, os
+# These lines allow us to import the src module
+import sys
+import os
 
 sys.path.append(os.path.abspath(__file__ + "/../../"))
 sys.path.append(os.path.abspath(__file__ + "/../../src/"))
 
 import unittest
 
-import handler_unit_test, bl_unit_test, bl_integration_test, da_integration_test, domain_unit_test
+import handler_unit_test
+import bl_unit_test
+import bl_integration_test
+import da_integration_test
+import domain_unit_test
 
 loader = unittest.TestLoader()
 suite = unittest.TestSuite()

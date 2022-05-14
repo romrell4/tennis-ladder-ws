@@ -630,5 +630,6 @@ def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, 
 def open_ladder(distance_penalty_on=False):
     return fixtures.ladder(start_date=date.today() - timedelta(days=1), end_date=date.today() + timedelta(days=1), distance_penalty_on=distance_penalty_on)
 
+
 def pre_open_ladder(weeks_for_borrowed_points=0):
     return fixtures.ladder(start_date=date.today() + timedelta(days=1), end_date=date.today() + timedelta(days=2), weeks_for_borrowed_points=weeks_for_borrowed_points)

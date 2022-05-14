@@ -6,6 +6,7 @@ import properties
 from da import DaoImpl
 from domain import *
 
+
 class Test(unittest.TestCase):
     dao: DaoImpl
 
@@ -19,6 +20,7 @@ class Test(unittest.TestCase):
         cls.dao = DaoImpl()
 
     def setUp(self) -> None:
+        # noinspection PyBroadException
         try:
             self.dao.insert("""INSERT INTO users (ID, NAME, EMAIL, PHONE_NUMBER, PHOTO_URL, AVAILABILITY_TEXT) VALUES 
                 ('TEST1', 'Tester One', 'test1@mail.com', '111-111-1111', 'test1.jpg', 'avail 1'),

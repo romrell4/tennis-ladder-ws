@@ -24,14 +24,19 @@ class Match:
     DISTANCE_PENALTY_MULTIPLIER = -2
     DISTANCE_PREMIUM_MULTIPLIER = 3
 
-    def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, winner_points=0, loser_points=0, winner=None, loser=None):
+    def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, winner_points=0, loser_points=0,
+                 winner=None, loser=None):
         self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points, self.winner, self.loser = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points, winner, loser
 
     def validate(self):
-        if self.ladder_id is None: raise DomainException("Missing ladder_id")
-        if self.winner_id is None: raise DomainException("Missing winner's user_id")
-        if self.loser_id is None: raise DomainException("Missing loser's user_id")
-        if self.winner_id == self.loser_id: raise DomainException("A match cannot be played against oneself")
+        if self.ladder_id is None:
+            raise DomainException("Missing ladder_id")
+        if self.winner_id is None:
+            raise DomainException("Missing winner's user_id")
+        if self.loser_id is None:
+            raise DomainException("Missing loser's user_id")
+        if self.winner_id == self.loser_id:
+            raise DomainException("A match cannot be played against oneself")
 
         if not Match.is_valid_set(self.winner_set1_score, self.loser_set1_score):
             raise DomainException("Invalid scores for set 1")
@@ -68,13 +73,15 @@ class Match:
 
     @staticmethod
     def is_valid_set(winner_score, loser_score):
-        if winner_score is None or loser_score is None: return False
+        if winner_score is None or loser_score is None:
+            return False
         set_loser_score, set_winner_score = sorted([winner_score, loser_score])
         return (set_winner_score == 7 and 5 <= set_loser_score <= 6) or (set_winner_score == 6 and 0 <= set_loser_score <= 4)
 
     @staticmethod
     def is_valid_tiebreak(winner_score, loser_score):
-        if winner_score is None or loser_score is None: return False
+        if winner_score is None or loser_score is None:
+            return False
         return (winner_score == 10 and 0 <= loser_score <= 8) or (winner_score > 10 and loser_score == winner_score - 2)
 
     def calculate_scores(self, winner_rank, loser_rank, distance_penalty_on):
@@ -106,7 +113,7 @@ class Match:
                 self.loser_points]
 
 
-#### Non-DB Objects ####
+# Non-DB Objects
 
 class Player:
     def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, admin: bool, ladder_id, score, earned_points, borrowed_points, ranking, wins, losses):
