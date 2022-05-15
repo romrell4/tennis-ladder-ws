@@ -13,6 +13,11 @@ class Test(unittest.TestCase):
     def setUp(self):
         self.handler = handler.Handler(Manager())
 
+    def test_decrement_borrowed_points(self):
+        with patch.object(self.handler.manager, "decrement_borrowed_points") as decrement_borrowed_points_mock:
+            self.handler.handle({"decrement-borrowed-points": True})
+        decrement_borrowed_points_mock.assert_called_once()
+
     def test_token_can_handle_any_casing(self):
         with patch.object(self.handler.manager, "validate_token") as validate_token_mock:
             self.handler.handle(create_event("/bad", headers={"x-firebase-token": "token"}))

@@ -16,6 +16,8 @@ class Dao:
 
     def get_ladder(self, ladder_id): raise NotImplementedError()
 
+    def update_ladder(self, ladder: Ladder): raise NotImplementedError
+
     def get_users_ladder_ids(self, user_id): raise NotImplementedError()
 
     def get_players(self, ladder_id): raise NotImplementedError()
@@ -27,6 +29,8 @@ class Dao:
     def update_player_order(self, ladder_id, user_ids_with_order): raise NotImplementedError()
 
     def update_all_borrowed_points(self, ladder_id, user_ids_with_borrowed_points): raise NotImplementedError()
+
+    def decrement_borrowed_points(self, ladder_id: int, previous_weeks_left: int, weeks_left: int): raise NotImplementedError()
 
     def update_borrowed_points(self, ladder_id, user_id, new_borrowed_points): raise NotImplementedError()
 
@@ -83,10 +87,13 @@ class DaoImpl(Dao):
         self.execute("update users set NAME = %s, EMAIL = %s, PHONE_NUMBER = %s, PHOTO_URL = %s, AVAILABILITY_TEXT = %s where ID = %s", user.name, user.email, user.phone_number, user.photo_url, user.availability_text, user.user_id)
 
     def get_ladders(self):
-        return self.get_list(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON, WEEKS_FOR_BORROWED_POINTS from ladders order by START_DATE DESC")
+        return self.get_list(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON, WEEKS_FOR_BORROWED_POINTS, WEEKS_FOR_BORROWED_POINTS_LEFT from ladders order by START_DATE DESC")
 
-    def get_ladder(self, ladder_id):
-        return self.get_one(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON, WEEKS_FOR_BORROWED_POINTS from ladders where ID = %s", ladder_id)
+    def get_ladder(self, ladder_id) -> Ladder:
+        return self.get_one(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON, WEEKS_FOR_BORROWED_POINTS, WEEKS_FOR_BORROWED_POINTS_LEFT from ladders where ID = %s", ladder_id)
+
+    def update_ladder(self, ladder: Ladder):
+        self.execute("update ladders set WEEKS_FOR_BORROWED_POINTS_LEFT = %s where ID = %s", ladder.weeks_for_borrowed_points_left, ladder.ladder_id)
 
     def get_users_ladder_ids(self, user_id):
         return self.get_list(int, "select LADDER_ID from players where user_id = %s", user_id)
@@ -120,6 +127,9 @@ class DaoImpl(Dao):
             sql += "WHEN %s THEN %s "
         sql += "END where LADDER_ID = %s"
         self.execute(sql, *[item for entry in user_ids_with_borrowed_points for item in entry], ladder_id)
+
+    def decrement_borrowed_points(self, ladder_id: int, previous_weeks_left: int, weeks_left: int):
+        self.execute("update players set BORROWED_POINTS = BORROWED_POINTS * %s / %s where LADDER_ID = %s", weeks_left, previous_weeks_left, ladder_id)
 
     def update_earned_points(self, ladder_id, user_id, new_points_to_add):
         self.execute("UPDATE players set EARNED_POINTS = EARNED_POINTS + %s where LADDER_ID = %s and USER_ID = %s", new_points_to_add, ladder_id, user_id)

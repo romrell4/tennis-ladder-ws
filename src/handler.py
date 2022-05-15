@@ -25,7 +25,11 @@ class Handler:
 
     def handle(self, event):
         try:
-            if event is None or "resource" not in event or "httpMethod" not in event:
+            if event.get("decrement-borrowed-points"):
+                print("Decrementing borrowed points...")
+                self.manager.decrement_borrowed_points()
+                return {}
+            elif event is None or "resource" not in event or "httpMethod" not in event:
                 raise ServiceException("Invalid request. No 'resource', or 'httpMethod' found in the event", 400)
 
             resource, method = event["resource"], event["httpMethod"]  # These will be used to specify which endpoint was being hit

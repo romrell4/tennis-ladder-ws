@@ -594,6 +594,63 @@ class Test(unittest.TestCase):
         update_earned_points_mock.assert_any_call(1, "TEST1", -33)
         update_earned_points_mock.assert_any_call(1, "TEST2", -6)
 
+    def test_decrement_borrowed_points_with_all_invalid_ladders_should_make_no_updates(self):
+        with patch.object(self.manager.dao, "get_ladders", return_value=[
+            # Hasn't started yet
+            fixtures.ladder(start_date=date.today() + timedelta(days=1), end_date=date.today() + timedelta(days=2)),
+            # Already ended
+            fixtures.ladder(start_date=date.today() - timedelta(days=1), end_date=date.today() - timedelta(minutes=1)),
+            # Open, but doesn't use borrowed points
+            fixtures.ladder(weeks_for_borrowed_points=0),
+            # Open, uses borrowed points, but has already been updated this week
+            fixtures.ladder(
+                # Ladder started a week ago
+                start_date=date.today() - timedelta(weeks=1),
+                end_date=date.today() + timedelta(weeks=12),
+                weeks_for_borrowed_points=5,
+                # We've already decremented for week 4
+                weeks_for_borrowed_points_left=4
+            )
+        ]):
+            with patch.object(self.manager.dao, "decrement_borrowed_points") as decrement_borrowed_points_mock:
+                with patch.object(self.manager.dao, "update_ladder") as update_ladder_mock:
+                    self.manager.decrement_borrowed_points()
+        decrement_borrowed_points_mock.assert_not_called()
+        update_ladder_mock.assert_not_called()
+
+    def test_decrement_borrowed_points_with_multiple_eligible_ladders_should_update_points_and_ladder_correctly(self):
+        with patch.object(self.manager.dao, "get_ladders", return_value=[
+            # Normal case (hasn't been updated for this week yet)
+            fixtures.ladder(
+                ladder_id=1,
+                # Ladder started a week ago
+                start_date=date.today() - timedelta(weeks=1),
+                end_date=date.today() + timedelta(weeks=12),
+                weeks_for_borrowed_points=5,
+                # Haven't updated for week 4 yet
+                weeks_for_borrowed_points_left=5
+            ),
+            # Case where we missed a week due to error or something
+            fixtures.ladder(
+                ladder_id=2,
+                # Ladder started a week ago
+                start_date=date.today() - timedelta(weeks=2),
+                end_date=date.today() + timedelta(weeks=12),
+                weeks_for_borrowed_points=5,
+                # Haven't updated for week 4 yet
+                weeks_for_borrowed_points_left=5
+            ),
+        ]):
+            with patch.object(self.manager.dao, "decrement_borrowed_points") as decrement_borrowed_points_mock:
+                with patch.object(self.manager.dao, "update_ladder") as update_ladder_mock:
+                    self.manager.decrement_borrowed_points()
+        self.assertEqual(2, decrement_borrowed_points_mock.call_count)
+        self.assertEqual((1, 5, 4), decrement_borrowed_points_mock.mock_calls[0].args)
+        self.assertEqual((2, 5, 3), decrement_borrowed_points_mock.mock_calls[1].args)
+        self.assertEqual(2, update_ladder_mock.call_count)
+        self.assertEqual(4, update_ladder_mock.mock_calls[0].args[0].weeks_for_borrowed_points_left)
+        self.assertEqual(3, update_ladder_mock.mock_calls[1].args[0].weeks_for_borrowed_points_left)
+
     # endregion
     # region utils
     def assert_error(self, block, status_code, error_message):

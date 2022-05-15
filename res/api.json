@@ -744,6 +744,10 @@
             "type": "int",
             "format": "int32"
           },
+          "weeks_for_borrowed_points_left": {
+            "type": "int",
+            "format": "int32"
+          },
           "logged_in_user_has_joined": {
             "type": "boolean"
           }

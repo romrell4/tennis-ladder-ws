@@ -31,14 +31,16 @@ class Test(unittest.TestCase):
             """)
             self.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES 
                 (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
-                (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02')
+                (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02'),
+                (-5, 'Test 3', DATE '2018-03-01', DATE '2018-03-02')
             """)
             self.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, EARNED_POINTS, BORROWED_POINTS, `ORDER`) VALUES
                 ('TEST1', -3, 5, 0, 0),
                 ('TEST2', -3, 10, 0, 0),
                 ('TEST3', -3, 10, 0, 0),
                 ('TEST1', -4, 0, 0, 1),
-                ('TEST4', -4, 0, 0, 2)
+                ('TEST4', -4, 0, 0, 2),
+                ('TEST2', -5, 0, 30, 1)
             """)
             self.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
                 (-1, -3, '2018-01-02 03:04:05', 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
@@ -53,7 +55,7 @@ class Test(unittest.TestCase):
     def tearDown(self) -> None:
         # These will cascade in order to delete the other ones
         self.dao.execute("DELETE FROM users where ID in ('__TEST', 'TEST1', 'TEST2', 'TEST3', 'TEST4', 'TEST5')")
-        self.dao.execute("DELETE FROM ladders where ID in (-3, -4)")
+        self.dao.execute("DELETE FROM ladders where ID in (-3, -4, -5)")
 
     def test_get_user(self):
         # Test non-existent user
@@ -127,6 +129,34 @@ class Test(unittest.TestCase):
         # Test a normal ladder
         ladder = self.dao.get_ladder(-3)
         self.assertIsNotNone(ladder)
+
+    def test_update_ladder_only_updates_weeks_for_borrowed_points_left(self):
+        ladder_id = -3
+        old_ladder = self.dao.get_ladder(ladder_id)
+
+        # Change everything about the ladder
+        proposed_ladder = Ladder(
+            ladder_id=old_ladder.ladder_id,
+            name="New",
+            start_date=datetime.today(),
+            end_date=datetime.today(),
+            distance_penalty_on=True,
+            weeks_for_borrowed_points=5,
+            weeks_for_borrowed_points_left=5,
+        )
+        self.dao.update_ladder(proposed_ladder)
+        new_ladder = self.dao.get_ladder(ladder_id)
+
+        # These fields shouldn't change
+        self.assertEqual(old_ladder.ladder_id, new_ladder.ladder_id)
+        self.assertEqual(old_ladder.name, new_ladder.name)
+        self.assertEqual(old_ladder.start_date, new_ladder.start_date)
+        self.assertEqual(old_ladder.end_date, new_ladder.end_date)
+        self.assertEqual(old_ladder.distance_penalty_on, new_ladder.distance_penalty_on)
+        self.assertEqual(old_ladder.weeks_for_borrowed_points, new_ladder.weeks_for_borrowed_points)
+
+        # These fields should change
+        self.assertEqual(proposed_ladder.weeks_for_borrowed_points_left, new_ladder.weeks_for_borrowed_points_left)
 
     def test_get_users_ladder_ids(self):
         # Test a user not in any ladders
@@ -241,6 +271,18 @@ class Test(unittest.TestCase):
         self.assertEqual(1, new_players[0].borrowed_points)
         self.assertEqual("TEST4", new_players[1].user.user_id)
         self.assertEqual(0, new_players[1].borrowed_points)
+
+    def test_decrement_borrowed_points(self):
+        players = self.dao.get_players(-5)
+        self.assertEqual(30, players[0].borrowed_points)
+
+        self.dao.decrement_borrowed_points(-5, 6, 5)
+        players = self.dao.get_players(-5)
+        self.assertEqual(25, players[0].borrowed_points)
+
+        self.dao.decrement_borrowed_points(-5, 5, 3)
+        players = self.dao.get_players(-5)
+        self.assertEqual(15, players[0].borrowed_points)
 
     def test_update_borrowed_points(self):
         get_score_sql = "select SCORE from players_vw where USER_ID = 'TEST1' and LADDER_ID = -4"

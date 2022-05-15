@@ -31,6 +31,8 @@ class Manager:
 
     def delete_match(self, match_id): raise NotImplementedError()
 
+    def decrement_borrowed_points(self): raise NotImplementedError()
+
 
 class ManagerImpl:
     INVALID_RANKING_DISTANCE = 15
@@ -319,6 +321,23 @@ class ManagerImpl:
             self.dao.update_earned_points(match.ladder_id, match.loser_id, -match.loser_points)
 
             self.dao.delete_match(match_id)
+
+    def decrement_borrowed_points(self):
+        for ladder in self.dao.get_ladders():
+            # Make sure the ladder is open, and it's using borrowed points
+            if ladder.is_open() and ladder.weeks_for_borrowed_points > 0:
+                # // will divide and round down
+                num_weeks_since_start = (datetime.now(timezone("US/Mountain")).date() - ladder.start_date).days // 7
+                weeks_left_now = ladder.weeks_for_borrowed_points - num_weeks_since_start
+
+                # Make sure it hasn't already been decremented this week
+                if weeks_left_now != ladder.weeks_for_borrowed_points_left:
+                    # Update all the points
+                    self.dao.decrement_borrowed_points(ladder.ladder_id, ladder.weeks_for_borrowed_points_left, weeks_left_now)
+
+                    # Update the value on the ladder
+                    ladder.weeks_for_borrowed_points_left = weeks_left_now
+                    self.dao.update_ladder(ladder)
 
     # Utils
 
