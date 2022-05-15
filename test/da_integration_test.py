@@ -32,7 +32,7 @@ class Test(unittest.TestCase):
             self.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES 
                 (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
                 (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02'),
-                (-5, 'Test 3', DATE '2018-03-01', DATE '2018-03-02')
+                (-5, 'Test 3', DATE '2018-01-02', DATE '2018-01-03')
             """)
             self.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, EARNED_POINTS, BORROWED_POINTS, `ORDER`) VALUES
                 ('TEST1', -3, 5, 0, 0),

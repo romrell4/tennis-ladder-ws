@@ -49,9 +49,9 @@ class Test(unittest.TestCase):
         self.assertEqual("""[{"user_id": "user_id", "name": "name", "email": "email", "phone_number": "phone_number", "photo_url": "photo_url", "availability_text": "availability_text", "admin": true}]""", response["body"])
 
     def test_ladder_serialization_contract(self):
-        with patch.object(self.handler.manager, "get_ladders", return_value=[Ladder(1, "name", date(2020, 1, 1), date(2021, 2, 3), False, 5, True)]):
+        with patch.object(self.handler.manager, "get_ladders", return_value=[Ladder(1, "name", date(2020, 1, 1), date(2021, 2, 3), False, 5, 3, True)]):
             response = self.handler.handle(create_event("/ladders"))
-        self.assertEqual("""[{"ladder_id": 1, "name": "name", "start_date": "2020-01-01", "end_date": "2021-02-03", "distance_penalty_on": false, "weeks_for_borrowed_points": 5, "logged_in_user_has_joined": true}]""", response["body"])
+        self.assertEqual("""[{"ladder_id": 1, "name": "name", "start_date": "2020-01-01", "end_date": "2021-02-03", "distance_penalty_on": false, "weeks_for_borrowed_points": 5, "weeks_for_borrowed_points_left": 3, "logged_in_user_has_joined": true}]""", response["body"])
 
     def test_player_serialization_contract(self):
         with patch.object(self.handler.manager, "get_ladders", return_value=[Player("user_id", "name", "email", "phone_number", "photo_url", "availability_text", True, 1, 23, 12, 11, 3, 6, 2)]):
