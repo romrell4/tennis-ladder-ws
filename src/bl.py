@@ -323,6 +323,7 @@ class ManagerImpl:
             self.dao.delete_match(match_id)
 
     def decrement_borrowed_points(self):
+        print("Looking for ladders that need borrowed points decremented")
         for ladder in self.dao.get_ladders():
             # Make sure the ladder is open, and it's using borrowed points
             if ladder.is_open() and ladder.weeks_for_borrowed_points > 0:
@@ -332,6 +333,7 @@ class ManagerImpl:
 
                 # Make sure it hasn't already been decremented this week
                 if weeks_left_now != ladder.weeks_for_borrowed_points_left:
+                    print(f"Decrementing borrowed points for ladder: {ladder.name} from {ladder.weeks_for_borrowed_points_left} to {weeks_left_now}")
                     # Update all the points
                     self.dao.decrement_borrowed_points(ladder.ladder_id, ladder.weeks_for_borrowed_points_left, weeks_left_now)
 

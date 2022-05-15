@@ -26,7 +26,6 @@ class Handler:
     def handle(self, event):
         try:
             if event.get("decrement-borrowed-points"):
-                print("Decrementing borrowed points...")
                 self.manager.decrement_borrowed_points()
                 return {}
             elif event is None or "resource" not in event or "httpMethod" not in event:
