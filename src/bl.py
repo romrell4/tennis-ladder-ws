@@ -327,8 +327,10 @@ class ManagerImpl:
         for ladder in self.dao.get_ladders():
             # Make sure the ladder is open, and it's using borrowed points
             if ladder.is_open() and ladder.weeks_for_borrowed_points > 0:
+                print(f"{ladder.name} is open and is using borrowed points...")
                 # // will divide and round down
                 num_weeks_since_start = (datetime.now(timezone("US/Mountain")).date() - ladder.start_date).days // 7
+                print(f"Number of weeks since the ladder started: {(datetime.now(timezone('US/Mountain')).date() - ladder.start_date).days // 7}")
                 weeks_left_now = ladder.weeks_for_borrowed_points - num_weeks_since_start
 
                 # Make sure it hasn't already been decremented this week
@@ -340,6 +342,8 @@ class ManagerImpl:
                     # Update the value on the ladder
                     ladder.weeks_for_borrowed_points_left = weeks_left_now
                     self.dao.update_ladder(ladder)
+                else:
+                    print(f"Already decremented through {ladder.weeks_for_borrowed_points_left} weeks left")
 
     # Utils
 
