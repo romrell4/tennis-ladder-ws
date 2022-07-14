@@ -105,9 +105,13 @@ class ManagerImpl:
         # If the user is logged in, tack on the information about which ladders they have joined and sort them at the top
         if self.user is not None:
             # Add an "admin" attribute to each ladder
-            user_admin_ladder_ids = self.dao.get_users_admin_ladder_ids(self.user.user_id)
-            for ladder in ladders:
-                ladder.logged_in_user_is_admin = ladder.ladder_id in user_admin_ladder_ids
+            if self.user.admin:
+                for ladder in ladders:
+                    ladder.logged_in_user_is_admin = True
+            else:
+                user_admin_ladder_ids = self.dao.get_users_admin_ladder_ids(self.user.user_id)
+                for ladder in ladders:
+                    ladder.logged_in_user_is_admin = self.user.admin or ladder.ladder_id in user_admin_ladder_ids
 
             # Add a "joined" attribute to users' ladders and sort those at the top
             user_ladder_ids = self.dao.get_users_ladder_ids(self.user.user_id)

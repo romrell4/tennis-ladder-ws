@@ -179,7 +179,22 @@ class Test(unittest.TestCase):
                     self.assertEqual(1, ladders[1].ladder_id)
                     self.assertFalse(ladders[1].logged_in_user_has_joined)
 
+    def test_get_ladders_as_uber_admin_should_return_admin_for_all_ladders(self):
+        self.manager.user = fixtures.user(admin=True)
+        with patch.object(self.manager.dao, "get_ladders", return_value=[
+            fixtures.ladder(ladder_id=1),
+            fixtures.ladder(ladder_id=2),
+            fixtures.ladder(ladder_id=3),
+        ]):
+            with patch.object(self.manager.dao, "get_users_ladder_ids", return_value=[]):
+                ladders = self.manager.get_ladders()
+                self.assertEqual(3, len(ladders))
+                self.assertTrue(ladders[0].logged_in_user_is_admin)
+                self.assertTrue(ladders[1].logged_in_user_is_admin)
+                self.assertTrue(ladders[2].logged_in_user_is_admin)
+
     def test_get_ladders_should_return_ladder_admins(self):
+        self.manager.user = fixtures.user(admin=False)
         with patch.object(self.manager.dao, "get_ladders", return_value=[
             fixtures.ladder(ladder_id=1),
             fixtures.ladder(ladder_id=2),
