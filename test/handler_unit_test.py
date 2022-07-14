@@ -49,9 +49,9 @@ class Test(unittest.TestCase):
         self.assertEqual("""[{"user_id": "user_id", "name": "name", "email": "email", "phone_number": "phone_number", "photo_url": "photo_url", "availability_text": "availability_text", "admin": true}]""", response["body"])
 
     def test_ladder_serialization_contract(self):
-        with patch.object(self.handler.manager, "get_ladders", return_value=[Ladder(1, "name", date(2020, 1, 1), date(2021, 2, 3), False, 5, 3, True)]):
+        with patch.object(self.handler.manager, "get_ladders", return_value=[fixtures.ladder(1, "name", date(2020, 1, 1), date(2021, 2, 3), False, 5, 3, True, True)]):
             response = self.handler.handle(create_event("/ladders"))
-        self.assertEqual("""[{"ladder_id": 1, "name": "name", "start_date": "2020-01-01", "end_date": "2021-02-03", "distance_penalty_on": false, "weeks_for_borrowed_points": 5, "weeks_for_borrowed_points_left": 3, "logged_in_user_has_joined": true}]""", response["body"])
+        self.assertEqual("""[{"ladder_id": 1, "name": "name", "start_date": "2020-01-01", "end_date": "2021-02-03", "distance_penalty_on": false, "weeks_for_borrowed_points": 5, "weeks_for_borrowed_points_left": 3, "logged_in_user_has_joined": true, "logged_in_user_is_admin": true}]""", response["body"])
 
     def test_player_serialization_contract(self):
         with patch.object(self.handler.manager, "get_ladders", return_value=[Player("user_id", "name", "email", "phone_number", "photo_url", "availability_text", True, 1, 23, 12, 11, 3, 6, 2)]):
@@ -162,12 +162,12 @@ class Test(unittest.TestCase):
     def test_update_match_scores(self):
         with patch.object(self.handler.manager, "update_match_scores", return_value={}) as update_match_scores_mock:
             self.handler.handle(create_event("/ladders/{ladder_id}/matches/{match_id}", {"ladder_id": "1", "match_id": "2"}, "PUT", "{}"))
-        update_match_scores_mock.assert_called_once_with(2, {})
+        update_match_scores_mock.assert_called_once_with(1, 2, {})
 
     def test_delete_match(self):
         with patch.object(self.handler.manager, "delete_match", return_value={}) as delete_match_mock:
             self.handler.handle(create_event("/ladders/{ladder_id}/matches/{match_id}", {"ladder_id": "1", "match_id": "2"}, "DELETE"))
-        delete_match_mock.assert_called_once_with(2)
+        delete_match_mock.assert_called_once_with(1, 2)
 
 
 # noinspection PyDefaultArgument

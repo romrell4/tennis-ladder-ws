@@ -16,9 +16,13 @@ class Dao:
 
     def get_ladder(self, ladder_id): raise NotImplementedError()
 
+    def get_ladder_admins(self, ladder_id: int) -> [str]: raise NotImplementedError()
+
     def update_ladder(self, ladder: Ladder): raise NotImplementedError
 
     def get_users_ladder_ids(self, user_id): raise NotImplementedError()
+
+    def get_users_admin_ladder_ids(self, user_id: str) -> [int]: raise NotImplementedError()
 
     def get_players(self, ladder_id): raise NotImplementedError()
 
@@ -92,11 +96,17 @@ class DaoImpl(Dao):
     def get_ladder(self, ladder_id) -> Ladder:
         return self.get_one(Ladder, "select ID, NAME, START_DATE, END_DATE, DISTANCE_PENALTY_ON, WEEKS_FOR_BORROWED_POINTS, WEEKS_FOR_BORROWED_POINTS_LEFT from ladders where ID = %s", ladder_id)
 
+    def get_ladder_admins(self, ladder_id: int) -> [str]:
+        return self.get_list(str, "select USER_ID from ladder_admins where LADDER_ID = %s", ladder_id)
+
     def update_ladder(self, ladder: Ladder):
         self.execute("update ladders set WEEKS_FOR_BORROWED_POINTS_LEFT = %s where ID = %s", ladder.weeks_for_borrowed_points_left, ladder.ladder_id)
 
     def get_users_ladder_ids(self, user_id):
         return self.get_list(int, "select LADDER_ID from players where user_id = %s", user_id)
+
+    def get_users_admin_ladder_ids(self, user_id: str) -> [int]:
+        return self.get_list(int, "select LADDER_ID from ladder_admins where USER_ID = %s", user_id)
 
     def get_players(self, ladder_id):
         return self.get_list(Player, self.PLAYERS_SQL, ladder_id, ladder_id, ladder_id, ladder_id)

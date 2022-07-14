@@ -750,6 +750,9 @@
           },
           "logged_in_user_has_joined": {
             "type": "boolean"
+          },
+          "logged_in_user_is_admin": {
+            "type": "boolean"
           }
         }
       },

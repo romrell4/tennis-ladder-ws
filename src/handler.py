@@ -61,9 +61,9 @@ class Handler:
             elif resource == "/ladders/{ladder_id}/matches" and method == "POST":
                 response_body = self.manager.report_match(int(path_params.get("ladder_id")), body)
             elif resource == "/ladders/{ladder_id}/matches/{match_id}" and method == "PUT":
-                response_body = self.manager.update_match_scores(int(path_params.get("match_id")), body)
+                response_body = self.manager.update_match_scores(int(path_params.get("ladder_id")), int(path_params.get("match_id")), body)
             elif resource == "/ladders/{ladder_id}/matches/{match_id}" and method == "DELETE":
-                self.manager.delete_match(int(path_params.get("match_id")))
+                self.manager.delete_match(int(path_params.get("ladder_id")), int(path_params.get("match_id")))
                 response_body = {}
             else:
                 raise ServiceException("Invalid path: '{} {}'".format(resource, method))

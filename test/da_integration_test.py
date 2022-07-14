@@ -45,6 +45,10 @@ class Test(unittest.TestCase):
             self.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
                 (-1, -3, '2018-01-02 03:04:05', 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
             """)
+            self.dao.insert("""INSERT INTO ladder_admins (LADDER_ID, USER_ID) VALUES
+                (-3, 'TEST1'),
+                (-3, 'TEST2')
+            """)
         except Exception:
             self.tearDown()
             exit()
@@ -126,6 +130,15 @@ class Test(unittest.TestCase):
         # Test a normal ladder
         ladder = self.dao.get_ladder(-3)
         self.assertIsNotNone(ladder)
+
+    def test_get_ladder_admins(self):
+        # Test a ladder with admins
+        admins = self.dao.get_ladder_admins(-3)
+        self.assertEqual(len(admins), 2)
+
+        # Test a ladder without admins
+        admins = self.dao.get_ladder_admins(-4)
+        self.assertEqual(len(admins), 0)
 
     def test_update_ladder_only_updates_weeks_for_borrowed_points_left(self):
         ladder_id = -3

@@ -17,8 +17,9 @@ CREATE TABLE `ladders` (
   `DISTANCE_PENALTY_ON` tinyint(1) NOT NULL DEFAULT '0',
   `WEEKS_FOR_BORROWED_POINTS` smallint(6) NOT NULL DEFAULT '0',
   `WEEKS_FOR_BORROWED_POINTS_LEFT` smallint(6) NOT NULL DEFAULT '0',
+  `PASSCODE` varchar(64) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 # drop table players;
 CREATE TABLE `players` (
@@ -51,9 +52,11 @@ create table matches(
   foreign key (LOSER_ID) references users(ID) on delete cascade
 );
 
-# drop table ladder_codes;
-create table ladder_codes(
-  LADDER_ID integer key not null,
-  CODE varchar(64) not null,
-  foreign key (LADDER_ID) references ladders(ID) on delete cascade
-)
+CREATE TABLE `ladder_admins` (
+  `LADDER_ID` int(11) NOT NULL,
+  `USER_ID` varchar(64) NOT NULL,
+  PRIMARY KEY (`LADDER_ID`,`USER_ID`),
+  KEY `USER_ID` (`USER_ID`),
+  CONSTRAINT `ladder_admins_ibfk_1` FOREIGN KEY (`LADDER_ID`) REFERENCES `ladders` (`ID`) ON DELETE CASCADE,
+  CONSTRAINT `ladder_admins_ibfk_2` FOREIGN KEY (`USER_ID`) REFERENCES `users` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

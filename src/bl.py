@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Optional
 
 from pytz import timezone
 
@@ -27,9 +27,9 @@ class Manager:
 
     def report_match(self, ladder_id, match_dict): raise NotImplementedError()
 
-    def update_match_scores(self, match_id, match_dict): raise NotImplementedError()
+    def update_match_scores(self, ladder_id: Optional[int], match_id, match_dict): raise NotImplementedError()
 
-    def delete_match(self, match_id): raise NotImplementedError()
+    def delete_match(self, ladder_id: Optional[int], match_id): raise NotImplementedError()
 
     def decrement_borrowed_points(self): raise NotImplementedError()
 
@@ -104,6 +104,12 @@ class ManagerImpl:
 
         # If the user is logged in, tack on the information about which ladders they have joined and sort them at the top
         if self.user is not None:
+            # Add an "admin" attribute to each ladder
+            user_admin_ladder_ids = self.dao.get_users_admin_ladder_ids(self.user.user_id)
+            for ladder in ladders:
+                ladder.logged_in_user_is_admin = ladder.ladder_id in user_admin_ladder_ids
+
+            # Add a "joined" attribute to users' ladders and sort those at the top
             user_ladder_ids = self.dao.get_users_ladder_ids(self.user.user_id)
             my_ladders = []
             other_ladders = []
@@ -146,10 +152,10 @@ class ManagerImpl:
     def update_player_order(self, ladder_id, generate_borrowed_points: bool, player_dicts):
         if self.user is None:
             raise ServiceException("Unable to authenticate", 401)
-        elif not self.user.admin:
-            raise ServiceException("Only admins can update player orders", 403)
         elif ladder_id is None:
             raise ServiceException("No ladder_id passed in", 400)
+        elif not self.user_is_ladder_admin(ladder_id):
+            raise ServiceException("Only admins can update player orders", 403)
         elif player_dicts is None:
             raise ServiceException("No players passed in", 400)
 
@@ -168,13 +174,13 @@ class ManagerImpl:
 
         return self.dao.get_players(ladder_id)
 
-    def update_player(self, ladder_id, user_id, player_dict):
+    def update_player(self, ladder_id: Optional[int], user_id, player_dict):
         if self.user is None:
             raise ServiceException("Unable to authenticate", 401)
-        elif not self.user.admin:
-            raise ServiceException("Only admins can update players", 403)
         elif ladder_id is None:
             raise ServiceException("No ladder_id passed in", 400)
+        elif not self.user_is_ladder_admin(ladder_id):
+            raise ServiceException("Only admins can update players", 403)
         elif user_id is None:
             raise ServiceException("No user_id passed in", 400)
         elif player_dict is None:
@@ -269,10 +275,12 @@ class ManagerImpl:
         # Attach winners and losers to the match
         return self.transform_matches([match], ladder_id)[0]
 
-    def update_match_scores(self, match_id, match_dict):
+    def update_match_scores(self, ladder_id: Optional[int], match_id, match_dict):
         if self.user is None:
             raise ServiceException("Unable to authenticate", 401)
-        elif not self.user.admin:
+        elif ladder_id is None:
+            raise ServiceException("No ladder_id passed in", 400)
+        elif not self.user_is_ladder_admin(ladder_id):
             raise ServiceException("Only admins can update matches", 403)
         elif match_id is None:
             raise ServiceException("Null match_id param", 400)
@@ -306,10 +314,12 @@ class ManagerImpl:
 
         return self.transform_matches([original_match], original_match.ladder_id)[0]
 
-    def delete_match(self, match_id):
+    def delete_match(self, ladder_id: Optional[int], match_id):
         if self.user is None:
             raise ServiceException("Unable to authenticate", 401)
-        elif not self.user.admin:
+        elif ladder_id is None:
+            raise ServiceException("No ladder_id passed in", 400)
+        elif not self.user_is_ladder_admin(ladder_id):
             raise ServiceException("Only admins can delete matches", 403)
         elif match_id is None:
             raise ServiceException("Null match_id param", 400)
@@ -368,6 +378,9 @@ class ManagerImpl:
             match.loser = player_map[match.loser_id]
 
         return matches
+
+    def user_is_ladder_admin(self, ladder_id: int) -> bool:
+        return self.user.admin or self.user.user_id in self.dao.get_ladder_admins(ladder_id)
 
 
 def match_from_dict(match_dict):
