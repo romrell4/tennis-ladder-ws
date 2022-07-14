@@ -169,7 +169,7 @@ class DaoImpl(Dao):
         self.execute("delete from matches where ID = %s", match_id)
 
     def get_ladder_code(self, ladder_id):
-        return self.get_one(str, "select CODE from ladder_codes where LADDER_ID = %s", ladder_id)
+        return self.get_one(str, "select PASSCODE from ladders where ID = %s", ladder_id)
 
     # region Utils
 

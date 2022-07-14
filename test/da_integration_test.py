@@ -29,10 +29,10 @@ class Test(unittest.TestCase):
                 ('TEST4', 'Tester Four', 'test4@mail.com', null, 'test4.jpg', 'avail 4'),
                 ('TEST5', 'Tester Five', 'test4@mail.com', null, 'test5.jpg', 'avail 5')
             """)
-            self.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE) VALUES 
-                (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02'),
-                (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02'),
-                (-5, 'Test 3', DATE '2018-01-02', DATE '2018-01-03')
+            self.dao.insert("""INSERT INTO ladders (ID, NAME, START_DATE, END_DATE, PASSCODE) VALUES 
+                (-3, 'Test 1', DATE '2018-01-01', DATE '2018-01-02', 'good'),
+                (-4, 'Test 2', DATE '2018-02-01', DATE '2018-02-02', ''),
+                (-5, 'Test 3', DATE '2018-01-02', DATE '2018-01-03', '')
             """)
             self.dao.insert("""INSERT INTO players (USER_ID, LADDER_ID, EARNED_POINTS, BORROWED_POINTS, `ORDER`) VALUES
                 ('TEST1', -3, 5, 0, 0),
@@ -44,9 +44,6 @@ class Test(unittest.TestCase):
             """)
             self.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
                 (-1, -3, '2018-01-02 03:04:05', 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
-            """)
-            self.dao.insert("""INSERT INTO ladder_codes (LADDER_ID, CODE) VALUES
-                (-3, 'good')
             """)
         except Exception:
             self.tearDown()
@@ -402,7 +399,3 @@ class Test(unittest.TestCase):
         # Test ladder with code
         code = self.dao.get_ladder_code(-3)
         self.assertEqual("good", code)
-
-        # Test ladder without code
-        code = self.dao.get_ladder_code(-4)
-        self.assertIsNone(code)
