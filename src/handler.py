@@ -4,7 +4,7 @@ import json
 from bl import ManagerImpl
 from firebase_client import FirebaseClientImpl
 from da import DaoImpl
-from domain import ServiceException
+from domain import ServiceException, User
 
 
 def handle(event, _):
@@ -32,7 +32,6 @@ class Handler:
                 raise ServiceException("Invalid request. No 'resource', or 'httpMethod' found in the event", 400)
 
             resource, method = event["resource"], event["httpMethod"]  # These will be used to specify which endpoint was being hit
-            print(f"Received a {method} on {resource}")
             path_params = event.get("pathParameters", {}) if event.get("pathParameters") is not None else {}  # This will be used to get IDs and other parameters from the URL
             query_params = event.get("queryStringParameters", {}) if event.get("queryStringParameters") is not None else {}  # This will be used to get IDs and other parameters from the URL
             try:
@@ -41,6 +40,10 @@ class Handler:
                 body = None
 
             self.manager.validate_token(self.get_token(event))
+            user = None
+            if hasattr(self.manager, "user") and isinstance(self.manager.user, User):
+                user = self.manager.user
+            print(f"Received a {method} on {resource} from {user}")
 
             if resource == "/users/{user_id}" and method == "GET":
                 response_body = self.manager.get_user(path_params.get("user_id"))

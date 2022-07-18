@@ -7,6 +7,9 @@ class User:
     def __init__(self, user_id, name, email, phone_number, photo_url, availability_text, admin: bool):
         self.user_id, self.name, self.email, self.phone_number, self.photo_url, self.availability_text, self.admin = user_id, name, email, phone_number, photo_url, availability_text, bool(admin)
 
+    def __str__(self):
+        return f"'{self.name}' ('{self.user_id}')"
+
 
 class Ladder:
     def __init__(self, ladder_id, name, start_date, end_date, distance_penalty_on, weeks_for_borrowed_points: int, weeks_for_borrowed_points_left: int):
