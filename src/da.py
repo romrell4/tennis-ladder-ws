@@ -145,7 +145,7 @@ class DaoImpl(Dao):
         self.execute("UPDATE players set EARNED_POINTS = EARNED_POINTS + %s where LADDER_ID = %s and USER_ID = %s", new_points_to_add, ladder_id, user_id)
 
     def get_matches(self, ladder_id, user_id=None):
-        sql_prefix = "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE from matches where LADDER_ID = %s"
+        sql_prefix = "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS from matches where LADDER_ID = %s"
         sql_postfix = " order by MATCH_DATE desc"
 
         if user_id is not None:

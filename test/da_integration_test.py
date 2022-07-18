@@ -42,8 +42,8 @@ class Test(unittest.TestCase):
                 ('TEST4', -4, 0, 0, 2),
                 ('TEST2', -5, 0, 30, 1)
             """)
-            self.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE) VALUES 
-                (-1, -3, '2018-01-02 03:04:05', 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5)
+            self.dao.insert("""INSERT INTO matches (ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS) VALUES 
+                (-1, -3, '2018-01-02 03:04:05', 'TEST1', 'TEST2', 6, 0, 0, 6, 7, 5, 28, 11)
             """)
             self.dao.insert("""INSERT INTO ladder_admins (LADDER_ID, USER_ID) VALUES
                 (-3, 'TEST1'),
@@ -341,6 +341,12 @@ class Test(unittest.TestCase):
         matches = self.dao.get_matches(-3, "TEST2")
         self.assertEqual(1, len(matches))
 
+        # Make sure that winner/loser points are returned
+        matches = self.dao.get_matches(-3)
+        self.assertEqual(1, len(matches))
+        self.assertEqual(28, matches[0].winner_points)
+        self.assertEqual(11, matches[0].loser_points)
+
     def test_get_match(self):
         match = self.dao.get_match(-1)
         self.assertEqual(-3, match.ladder_id)
@@ -353,8 +359,8 @@ class Test(unittest.TestCase):
         self.assertEqual(6, match.loser_set2_score)
         self.assertEqual(7, match.winner_set3_score)
         self.assertEqual(5, match.loser_set3_score)
-        self.assertEqual(0, match.winner_points)
-        self.assertEqual(0, match.loser_points)
+        self.assertEqual(28, match.winner_points)
+        self.assertEqual(11, match.loser_points)
 
     def test_create_match(self):
         # Test with null values
