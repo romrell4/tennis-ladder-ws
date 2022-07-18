@@ -393,14 +393,6 @@ class Test(unittest.TestCase):
             with patch.object(self.manager.dao, "get_player", side_effect=[fixtures.player(), None]):
                 self.assert_error(lambda: self.manager.report_match(1, create_match_dict("TEST1", "TEST0", 6, 0, 6, 0)), 400, "No user with id: 'TEST0'")
 
-    def test_report_match_where_players_are_too_far_apart_when_distance_penalty_on(self):
-        with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder(distance_penalty_on=True)):
-            with patch.object(self.manager.dao, "get_player", side_effect=[
-                fixtures.player(ranking=1),
-                fixtures.player(ranking=17),
-            ]):
-                self.assert_error(lambda: self.manager.report_match(2, create_match_dict("TEST1", "TEST17", 6, 0, 6, 0)), 400, "Players are too far apart in the rankings to challenge one another")
-
     def test_report_match_when_each_player_has_already_played_a_match_that_day(self):
         with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
             with patch.object(self.manager.dao, "get_player", return_value=fixtures.player()):

@@ -190,6 +190,10 @@ class Test(unittest.TestCase):
         with patch.object(Match, "calculate_distance_points", return_value=-100):
             assert_success(create_match(7, 6, 6, 7, 7, 6), 12, 19)
 
+        # Test that with a large premium, the loser's score cannot go above 55
+        with patch.object(Match, "calculate_distance_points", return_value=100):
+            assert_success(create_match(6, 0, 6, 0), 55, 0)
+
     def test_played_tiebreak(self):
         def match_played_tiebreak(winner_set3_score, loser_set3_score):
             return Match(None, None, None, None, None, None, None, None, None, winner_set3_score, loser_set3_score).played_tiebreak()

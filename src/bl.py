@@ -35,7 +35,6 @@ class Manager:
 
 
 class ManagerImpl:
-    INVALID_RANKING_DISTANCE = 15
     MAX_MATCHES_BETWEEN_PLAYERS = 5
     MAX_MATCHES_PER_DAY = 1
 
@@ -245,9 +244,6 @@ class ManagerImpl:
         loser = self.dao.get_player(ladder_id, match.loser_id)
         if loser is None:
             raise ServiceException("No user with id: '{}'".format(match.loser_id), 400)
-
-        if ladder.distance_penalty_on and abs(winner.ranking - loser.ranking) > ManagerImpl.INVALID_RANKING_DISTANCE:
-            raise ServiceException("Players are too far apart in the rankings to challenge one another", 400)
 
         # Get all matches for this ladder (to enforce some of the rules below)
         ladder_matches = self.dao.get_matches(ladder_id)
