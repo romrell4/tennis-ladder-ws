@@ -34,14 +34,14 @@ class Test(unittest.TestCase):
 
         class TestObject:
             def __init__(self):
-                self.datetime = datetime(2020, 1, 1, 1, 0, 0)
+                self.datetime = datetime(2020, 1, 1, 1, 0, 0, tzinfo=timezone("US/Mountain"))
                 self.date = date(2021, 12, 25)
                 self.nested_object = NestedObject()
 
         with patch.object(self.handler.manager, "get_ladders", return_value=[TestObject()]):
             response = self.handler.handle(create_event("/ladders"))
         self.assertEqual(200, response["statusCode"])
-        self.assertEqual("""[{"datetime": "2020-01-01T01:00:00Z", "date": "2021-12-25", "nested_object": {"key": "value"}}]""", response["body"])
+        self.assertEqual("""[{"datetime": "2020-01-01T01:00:00-07:00", "date": "2021-12-25", "nested_object": {"key": "value"}}]""", response["body"])
 
     def test_user_serialization_contract(self):
         with patch.object(self.handler.manager, "get_ladders", return_value=[User("user_id", "name", "email", "phone_number", "photo_url", "availability_text", True)]):
@@ -63,11 +63,11 @@ class Test(unittest.TestCase):
 
     def test_match_serialization_contract(self):
         with patch.object(self.handler.manager, "get_ladders", return_value=[
-            Match(1, 2, datetime(2020, 1, 2, 3, 4, 5), "winner_id", "loser_id", 6, 0, 5, 7, 10, 8, 24, 12, fixtures.player(user_=fixtures.user(user_id="winner_id"), ladder_id=2),
+            Match(1, 2, datetime(2020, 1, 2, 3, 4, 5, tzinfo=timezone("US/Mountain")), "winner_id", "loser_id", 6, 0, 5, 7, 10, 8, 24, 12, fixtures.player(user_=fixtures.user(user_id="winner_id"), ladder_id=2),
                   fixtures.player(user_=fixtures.user(user_id="loser_id"), ladder_id=2))]):
             response = self.handler.handle(create_event("/ladders"))
         self.assertEqual(
-            """[{"match_id": 1, "ladder_id": 2, "match_date": "2020-01-02T03:04:05Z", "winner_id": "winner_id", "loser_id": "loser_id", "winner_set1_score": 6, "loser_set1_score": 0, "winner_set2_score": 5, "loser_set2_score": 7, "winner_set3_score": 10, "loser_set3_score": 8, "winner_points": 24, "loser_points": 12, "winner": {"user": {"user_id": "winner_id", "name": "", "email": "", "phone_number": null, "photo_url": null, "availability_text": null, "admin": false}, "ladder_id": 2, "score": 0, "earned_points": 0, "borrowed_points": 0, "ranking": 0, "wins": 0, "losses": 0}, "loser": {"user": {"user_id": "loser_id", "name": "", "email": "", "phone_number": null, "photo_url": null, "availability_text": null, "admin": false}, "ladder_id": 2, "score": 0, "earned_points": 0, "borrowed_points": 0, "ranking": 0, "wins": 0, "losses": 0}}]""",
+            """[{"match_id": 1, "ladder_id": 2, "match_date": "2020-01-02T03:04:05-07:00", "winner_id": "winner_id", "loser_id": "loser_id", "winner_set1_score": 6, "loser_set1_score": 0, "winner_set2_score": 5, "loser_set2_score": 7, "winner_set3_score": 10, "loser_set3_score": 8, "winner_points": 24, "loser_points": 12, "winner": {"user": {"user_id": "winner_id", "name": "", "email": "", "phone_number": null, "photo_url": null, "availability_text": null, "admin": false}, "ladder_id": 2, "score": 0, "earned_points": 0, "borrowed_points": 0, "ranking": 0, "wins": 0, "losses": 0}, "loser": {"user": {"user_id": "loser_id", "name": "", "email": "", "phone_number": null, "photo_url": null, "availability_text": null, "admin": false}, "ladder_id": 2, "score": 0, "earned_points": 0, "borrowed_points": 0, "ranking": 0, "wins": 0, "losses": 0}}]""",
             response["body"]
         )
 
