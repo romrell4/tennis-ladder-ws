@@ -19,6 +19,9 @@ class Ladder:
         return self.start_date <= datetime.now(timezone("US/Mountain")).date() <= self.end_date
 
 
+mountain_tz = timezone("US/Mountain")
+
+
 class Match:
     BASE_WINNER_POINTS = 39
     MIN_WINNER_POINTS = 12
@@ -30,7 +33,7 @@ class Match:
 
     def __init__(self, match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score=None, loser_set3_score=None, winner_points=0, loser_points=0,
                  winner=None, loser=None):
-        self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points, self.winner, self.loser = match_id, ladder_id, match_date, winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points, winner, loser
+        self.match_id, self.ladder_id, self.match_date, self.winner_id, self.loser_id, self.winner_set1_score, self.loser_set1_score, self.winner_set2_score, self.loser_set2_score, self.winner_set3_score, self.loser_set3_score, self.winner_points, self.loser_points, self.winner, self.loser = match_id, ladder_id, match_date.replace(tzinfo=mountain_tz), winner_id, loser_id, winner_set1_score, loser_set1_score, winner_set2_score, loser_set2_score, winner_set3_score, loser_set3_score, winner_points, loser_points, winner, loser
 
     def validate(self):
         if self.ladder_id is None:

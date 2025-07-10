@@ -166,7 +166,7 @@ class DaoImpl(Dao):
             "insert into matches (LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE, WINNER_POINTS, LOSER_POINTS) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             *match.get_insert_properties()
         )
-        return self.get_one(Match, "select ID, LADDER_ID, MATCH_DATE, WINNER_ID, LOSER_ID, WINNER_SET1_SCORE, LOSER_SET1_SCORE, WINNER_SET2_SCORE, LOSER_SET2_SCORE, WINNER_SET3_SCORE, LOSER_SET3_SCORE from matches where ID = %s", match_id)
+        return self.get_match(match_id)
 
     def update_match(self, match: Match):
         self.execute(

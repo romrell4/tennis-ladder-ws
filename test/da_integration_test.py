@@ -9,6 +9,7 @@ from domain import *
 
 class Test(unittest.TestCase):
     dao: DaoImpl
+    mountain_tz = timezone("US/Mountain")
 
     @classmethod
     def setUpClass(cls):
@@ -350,7 +351,7 @@ class Test(unittest.TestCase):
     def test_get_match(self):
         match = self.dao.get_match(-1)
         self.assertEqual(-3, match.ladder_id)
-        self.assertEqual(datetime(2018, 1, 2, 3, 4, 5), match.match_date)
+        self.assertEqual(datetime(2018, 1, 2, 3, 4, 5, tzinfo=mountain_tz), match.match_date)
         self.assertEqual('TEST1', match.winner_id)
         self.assertEqual('TEST2', match.loser_id)
         self.assertEqual(6, match.winner_set1_score)
@@ -366,7 +367,7 @@ class Test(unittest.TestCase):
         # Test with null values
         match = self.dao.create_match(Match(None, -3, datetime(2018, 1, 1, 1, 0, 0), "TEST1", "TEST2", 6, 1, 6, 2))
         self.assertEqual(-3, match.ladder_id)
-        self.assertEqual(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
+        self.assertEqual(datetime(2018, 1, 1, 1, 0, 0, tzinfo=mountain_tz), match.match_date)
         self.assertEqual("TEST1", match.winner_id)
         self.assertEqual("TEST2", match.loser_id)
         self.assertEqual(6, match.winner_set1_score)
@@ -379,7 +380,7 @@ class Test(unittest.TestCase):
         # Test with a third set
         match = self.dao.create_match(Match(None, -3, datetime(2018, 1, 1, 1, 0, 0), "TEST3", "TEST4", 6, 1, 2, 6, 7, 5))
         self.assertEqual(-3, match.ladder_id)
-        self.assertEqual(datetime(2018, 1, 1, 1, 0, 0), match.match_date)
+        self.assertEqual(datetime(2018, 1, 1, 1, 0, 0, tzinfo=mountain_tz), match.match_date)
         self.assertEqual("TEST3", match.winner_id)
         self.assertEqual("TEST4", match.loser_id)
         self.assertEqual(6, match.winner_set1_score)
@@ -396,7 +397,7 @@ class Test(unittest.TestCase):
         self.dao.update_match(new_match)
         saved_match = self.dao.get_one(Match, sql)
         self.assertEqual(-4, saved_match.ladder_id)
-        self.assertEqual(datetime(2020, 2, 3, 4, 5, 6), saved_match.match_date)
+        self.assertEqual(datetime(2020, 2, 3, 4, 5, 6, tzinfo=mountain_tz), saved_match.match_date)
         self.assertEqual('TEST2', saved_match.winner_id)
         self.assertEqual('TEST1', saved_match.loser_id)
         self.assertEqual(3, saved_match.winner_set1_score)

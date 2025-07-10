@@ -90,7 +90,7 @@ def format_response(body=None, status_code=200):
 
 def default_serialize(x):
     if isinstance(x, datetime.datetime):
-        return x.isoformat() + "Z"
+        return x.isoformat()
     elif isinstance(x, datetime.date):
         return x.isoformat()
     else:
