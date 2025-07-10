@@ -541,7 +541,7 @@ class Test(unittest.TestCase):
         self.assertEqual(7, updated_match.loser_points)
         # Test values that shouldn't update
         self.assertEqual(1, updated_match.ladder_id)
-        self.assertEqual(datetime(2020, 1, 2, 3, 4, 5), updated_match.match_date)
+        self.assertEqual(datetime(2020, 1, 2, 3, 4, 5, tzinfo=timezone("US/Mountain")), updated_match.match_date)
         self.assertEqual("TEST1", updated_match.winner_id)
         self.assertEqual("TEST2", updated_match.loser_id)
 
