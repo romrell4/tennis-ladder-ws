@@ -282,6 +282,10 @@ class Test(unittest.TestCase):
         with patch.object(self.manager.dao, "get_ladder", return_value=open_ladder()):
             self.assert_error(lambda: self.manager.update_player_order(1, False, []), 403, "You can only update player order before the ladder has started")
 
+    def test_update_player_order_when_ladder_already_started_and_ended(self):
+        with patch.object(self.manager.dao, "get_ladder", return_value=closed_ladder()):
+            self.assert_error(lambda: self.manager.update_player_order(1, False, []), 403, "You can only update player order before the ladder has started")
+
     def test_update_player_order_without_generating_borrowed_points_should_update_order_and_return_players(self):
         with patch.object(self.manager.dao, "get_ladder", return_value=pre_open_ladder()):
             with patch.object(self.manager.dao, "update_player_order") as update_player_order_mock:
@@ -725,6 +729,10 @@ def create_match_dict(winner_id, loser_id, winner_set1_score, loser_set1_score, 
         "winner_set3_score": winner_set3_score,
         "loser_set3_score": loser_set3_score
     }
+
+
+def closed_ladder():
+    return fixtures.ladder(start_date=date.today() - timedelta(days=2), end_date=date.today() - timedelta(days=1))
 
 
 def open_ladder(distance_penalty_on=False):

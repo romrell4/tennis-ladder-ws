@@ -18,6 +18,9 @@ class Ladder:
     def is_open(self):
         return self.start_date <= datetime.now(timezone("US/Mountain")).date() <= self.end_date
 
+    def has_started(self):
+        return self.start_date <= datetime.now(timezone("US/Mountain")).date()
+
 
 mountain_tz = timezone("US/Mountain")
 

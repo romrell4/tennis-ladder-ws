@@ -165,7 +165,7 @@ class ManagerImpl:
         ladder = self.dao.get_ladder(ladder_id)
         if ladder is None:
             raise ServiceException(f"No ladder with ID: {ladder_id}", 404)
-        elif ladder.is_open():
+        elif ladder.has_started():
             raise ServiceException("You can only update player order before the ladder has started", 403)
 
         user_ids_with_order = [[player_dict["user"]["user_id"], i + 1] for i, player_dict in enumerate(reversed(player_dicts))]
