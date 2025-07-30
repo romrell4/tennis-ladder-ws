@@ -22,12 +22,12 @@ class Test(unittest.TestCase):
 
     def test(self):
         response = self.handler.handle({
-            "resource": "/users/{user_id}",
+            "resource": "/ladders/{ladder_id}/matches",
             "pathParameters": {
-                "user_id": "erwNxS1AGZVTIakvViXrmeRbasI3"
+                "ladder_id": "24"
             },
-            "httpMethod": "PUT",
-            "body": '{"user_id":"erwNxS1AGZVTIakvViXrmeRbasI3","name":"Test1 Romrell","photo_url":"https://www.aceshowbiz.com/images/photo/roger_federer.jpg","email":"romrelltest1@gmail.com"}',
+            "httpMethod": "POST",
+            "body": '{"ladder_id":24,"loser":{"borrowed_points":0,"earned_points":0,"ladder_id":24,"losses":0,"ranking":19,"score":0,"user":{"availability_text":"Never","email":"romrelltest1@gmail.com","name":"Test1 Romrell","phone_number":"555-555-5555","photo_url":"https://www.aceshowbiz.com/images/photo/roger_federer.jpg","user_id":"erwNxS1AGZVTIakvViXrmeRbasI3"},"wins":0},"loser_points":0,"loser_set1_score":1,"loser_set2_score":4,"match_date":"2025-07-30T12:46:30-07","match_id":0,"winner":{"borrowed_points":0,"earned_points":0,"ladder_id":24,"losses":0,"ranking":19,"score":0,"user":{"availability_text":"","email":"emromrell14@gmail.com","name":"Eric Romrell","phone_number":"503-679-0157","photo_url":"https://lh3.googleusercontent.com/-ysvBgveJOBk/AAAAAAAAAAI/AAAAAAAAAY8/az_oaaI-jYU/s96-c/photo.jpg","user_id":"MHaKAIbzhiWTVwihLeEgC9U2Jj73"},"wins":0},"winner_points":0,"winner_set1_score":6,"winner_set2_score":6}',
             "headers": {
                 "X-Firebase-Token": properties.firebase_token
             }

@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Tuple, Optional
 
+from dateutil import parser
 from pytz import timezone
 
 from domain import User, ServiceException, Match
@@ -387,7 +388,7 @@ def match_from_dict(match_dict):
     return Match(
         match_dict.get("match_id"),
         match_dict.get("ladder_id"),
-        match_dict.get("match_date"),
+        parser.isoparse(match_dict.get("match_date")) if match_dict.get("match_date") else None,
         match_dict.get("winner", {}).get("user", {}).get("user_id"),
         match_dict.get("loser", {}).get("user", {}).get("user_id"),
         match_dict.get("winner_set1_score"),
