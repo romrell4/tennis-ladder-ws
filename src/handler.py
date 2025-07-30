@@ -43,7 +43,7 @@ class Handler:
             user = None
             if hasattr(self.manager, "user") and isinstance(self.manager.user, User):
                 user = self.manager.user
-            print(f"Received a {method} on {resource} from {user}")
+            print(f"Received a {method} on {resource} from {user} with body {body}")
 
             if resource == "/users/{user_id}" and method == "GET":
                 response_body = self.manager.get_user(path_params.get("user_id"))
