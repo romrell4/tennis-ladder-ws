@@ -1,5 +1,5 @@
 firebase-admin~=5.0.2
 pymysql~=1.0.2
 pytz~=2021.1
-freezegun~=1.2.1
-python-dateutil~=2.9.0.post0
+freezegun~=1.5.5
+gpython-dateutil~=2.9.0.post0
