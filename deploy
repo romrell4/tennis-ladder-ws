@@ -38,6 +38,14 @@ aws apigateway create-deployment --rest-api-id lxlwvoenil --stage-name prod
 # Zip and update the code for the Lambda
 cd src
 ../.venv/bin/pip install -r ../requirements.txt -t .
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+  echo ""
+  echo "Failed to install dependencies. Code will not be deployed until this is resolved"
+  cd ..
+  exit $RESULT
+fi
+
 rm lambda.zip
 zip -r lambda.zip *
 aws lambda update-function-code --function-name TennisLadder --zip-file fileb://lambda.zip
