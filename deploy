@@ -6,23 +6,20 @@ if [[ `git status --porcelain` ]]; then
 	exit 1
 fi
 
-git fetch origin master
+git fetch origin main
 
 # Get current branch name
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-# Fetch latest from remote master
-git fetch origin master
-
-# Ensure current branch contains all commits from origin/master
-if ! git merge-base --is-ancestor origin/master "$BRANCH"; then
-    echo "Your branch '$BRANCH' is behind origin/master. Please rebase or merge before deploying."
+# Ensure current branch contains all commits from origin
+if ! git merge-base --is-ancestor origin/main "$BRANCH"; then
+    echo "Your branch '$BRANCH' is behind origin/main. Please rebase or merge before deploying."
     exit 1
 fi
 
 # Run the test suite
 cd test
-../.venv/bin/python test_runner.py
+../.gvenv/bin/python test_runner.py
 RESULT=$?
 cd ..
 if [ $RESULT -ne 0 ]; then
